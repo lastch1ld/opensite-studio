@@ -1,0 +1,38 @@
+# OpenSite Studio — Documentation Index
+
+Self-hosted, open-source alternative to Wix/Elementor: a lightweight CMS with
+auth, a live visual page editor, and a public site renderer.
+
+**Stack:** Next.js (App Router) + TypeScript, Node.js, Prisma + Postgres,
+NextAuth (credentials + OAuth), Docker Compose for self-hosting.
+
+## Status legend
+- `[x]` implemented in the current MVP
+- `[ ]` documented/designed only — needed for full Wix/Elementor parity, not yet built
+
+## Documents
+
+| Doc | Covers | MVP status |
+|---|---|---|
+| [architecture.md](architecture.md) | System overview, monorepo layout, request flow | Partial |
+| [data-model.md](data-model.md) | Prisma schema: sites, pages, blocks, media, users, revisions | Partial |
+| [auth.md](auth.md) | Accounts, roles/permissions, multi-tenant site ownership, sessions | Partial |
+| [editor.md](editor.md) | Live drag-and-drop editor, canvas, block registry, undo/redo, autosave | Minimal |
+| [renderer.md](renderer.md) | Public site rendering, custom domains, SSR/ISR, preview vs published | Minimal |
+| [blocks-and-theming.md](blocks-and-theming.md) | Block library, design tokens, global styles/theme editor | Not built |
+| [media.md](media.md) | Uploads, image transforms, asset library | Not built |
+| [integrations.md](integrations.md) | SEO, GEO, social media, newsletter, cookie banner, chatbot embeds | Not built |
+| [ai-mode.md](ai-mode.md) | Full-page Claude/ChatGPT-style chat app mode, server-side API keys, whitelabeling | Not built |
+| [starter-templates.md](starter-templates.md) | Reusing the `blog-template` (Aperture) repo's blocks/SEO/newsletter as a base, minus Decap CMS | Not built |
+| [plugins-and-extensibility.md](plugins-and-extensibility.md) | Plugin/app model, third-party block SDK, marketplace | Not built |
+| [deployment.md](deployment.md) | Self-hosting via Docker Compose, env config, backups | Partial |
+| [roadmap.md](roadmap.md) | Feature checklist toward full Wix/Elementor parity, phased | N/A |
+
+## Reading order
+
+1. `architecture.md` — get the shape of the system.
+2. `data-model.md` + `auth.md` — the persistence and identity foundations everything else depends on.
+3. `editor.md` + `renderer.md` — the two user-facing halves (build-time vs serve-time).
+4. `blocks-and-theming.md`, `media.md`, `integrations.md`, `ai-mode.md`, `plugins-and-extensibility.md` — parity features layered on top later.
+5. `deployment.md` — how it actually runs self-hosted.
+6. `roadmap.md` — what's in the MVP now vs deferred, and in what order to build it next.
