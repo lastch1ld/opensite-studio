@@ -24,6 +24,7 @@ NextAuth (credentials + OAuth), Docker Compose for self-hosting.
 | [integrations.md](integrations.md) | SEO, GEO, social media, newsletter, cookie banner, chatbot embeds | Not built |
 | [ai-mode.md](ai-mode.md) | Full-page Claude/ChatGPT-style chat app mode, server-side API keys, whitelabeling | Not built |
 | [starter-templates.md](starter-templates.md) | Reusing the `blog-template` (Aperture) repo's blocks/SEO/newsletter as a base, minus Decap CMS | Not built |
+| [content-import.md](content-import.md) | One-time migration tooling: sitemap-based page-structure import, and a content clipboard for manually moving old-page text into new blocks | Not built |
 | [collections.md](collections.md) | CMS collections, dynamic/repeater pages, conditional visibility, dynamic field binding | Not built |
 | [theme-builder.md](theme-builder.md) | Site-wide header/footer/page templates with conditional targeting | Not built |
 | [popups-and-modals.md](popups-and-modals.md) | Popup/modal builder with trigger rules | Not built |
@@ -40,6 +41,7 @@ NextAuth (credentials + OAuth), Docker Compose for self-hosting.
 2. `data-model.md` + `auth.md` — the persistence and identity foundations everything else depends on.
 3. `editor.md` + `renderer.md` — the two user-facing halves (build-time vs serve-time).
 4. `blocks-and-theming.md`, `media.md`, `integrations.md`, `ai-mode.md`, `plugins-and-extensibility.md` — parity features layered on top later.
+   `starter-templates.md` and `content-import.md` are both "bring in existing content" tools and read well together here too.
 5. `collections.md` → `theme-builder.md` → `popups-and-modals.md` / `forms.md` — read in this order: collections.md's `Condition`/`$bind` types are reused by all three of the others.
 6. `deployment.md` — how it actually runs self-hosted.
 7. `roadmap.md` — what's in the MVP now vs deferred, and in what order to build it next.
