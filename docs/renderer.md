@@ -30,7 +30,6 @@
 - **Sitemap.xml / robots.txt** generation per site (ties into SEO in
   integrations.md).
 - **Multi-language rendering** — locale-prefixed routing + per-locale
-  content variants (Wix Multilingual equivalent) — significant scope, own
-  future doc if pursued.
+  content variants (Wix Multilingual equivalent). See multilingual.md.
 - **Analytics/pageview tracking hook points** for the integrations in
   integrations.md.
