@@ -1,9 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import type { CookieBannerSettings, CookieCategory, NewsletterSettings } from "@/lib/siteSettings";
+import {
+  KNOWN_AI_CRAWLERS,
+  type AiCrawlerBot,
+  type AiCrawlerSettings,
+  type ChatbotEmbedSettings,
+  type ChatbotProvider,
+  type CookieBannerSettings,
+  type CookieCategory,
+  type NewsletterSettings,
+} from "@/lib/siteSettings";
 
 const ALL_CATEGORIES: CookieCategory[] = ["analytics", "marketing"];
+const CHATBOT_PROVIDERS: { value: ChatbotProvider; label: string }[] = [
+  { value: "custom", label: "Custom snippet" },
+  { value: "intercom", label: "Intercom" },
+  { value: "crisp", label: "Crisp" },
+  { value: "tawkto", label: "Tawk.to" },
+];
 
 type VerificationRecord = { name: string; type: "TXT"; value: string } | null;
 
@@ -18,6 +33,8 @@ export function SiteSettingsPanel({
   siteId,
   initialCookieBanner,
   initialNewsletter,
+  initialAiCrawlers,
+  initialChatbotEmbed,
   initialCustomDomain,
   initialDomainVerified,
   initialVerificationRecord,
@@ -27,6 +44,8 @@ export function SiteSettingsPanel({
   siteId: string;
   initialCookieBanner: CookieBannerSettings;
   initialNewsletter: NewsletterSettings;
+  initialAiCrawlers: AiCrawlerSettings;
+  initialChatbotEmbed: ChatbotEmbedSettings;
   initialCustomDomain: string | null;
   initialDomainVerified: boolean;
   initialVerificationRecord: VerificationRecord;
@@ -35,6 +54,8 @@ export function SiteSettingsPanel({
 }) {
   const [cookieBanner, setCookieBanner] = useState(initialCookieBanner);
   const [newsletter, setNewsletter] = useState(initialNewsletter);
+  const [aiCrawlers, setAiCrawlers] = useState(initialAiCrawlers);
+  const [chatbotEmbed, setChatbotEmbed] = useState(initialChatbotEmbed);
   const [saving, setSaving] = useState(false);
 
   const [domainInput, setDomainInput] = useState(initialCustomDomain ?? "");
@@ -45,10 +66,17 @@ export function SiteSettingsPanel({
   const [verifying, setVerifying] = useState(false);
   const [domainError, setDomainError] = useState<string | null>(null);
 
-  async function save(next: { cookieBanner?: CookieBannerSettings; newsletter?: NewsletterSettings }) {
+  async function save(next: {
+    cookieBanner?: CookieBannerSettings;
+    newsletter?: NewsletterSettings;
+    aiCrawlers?: AiCrawlerSettings;
+    chatbotEmbed?: ChatbotEmbedSettings;
+  }) {
     if (readOnly) return;
     if (next.cookieBanner) setCookieBanner(next.cookieBanner);
     if (next.newsletter) setNewsletter(next.newsletter);
+    if (next.aiCrawlers) setAiCrawlers(next.aiCrawlers);
+    if (next.chatbotEmbed) setChatbotEmbed(next.chatbotEmbed);
     setSaving(true);
     await fetch(`/api/sites/${siteId}/settings`, {
       method: "PUT",
@@ -63,6 +91,13 @@ export function SiteSettingsPanel({
       ? [...cookieBanner.categories, category]
       : cookieBanner.categories.filter((c) => c !== category);
     save({ cookieBanner: { ...cookieBanner, categories } });
+  }
+
+  function toggleAiBot(bot: AiCrawlerBot, checked: boolean) {
+    const blockedBots = checked
+      ? [...aiCrawlers.blockedBots, bot]
+      : aiCrawlers.blockedBots.filter((b) => b !== bot);
+    save({ aiCrawlers: { ...aiCrawlers, blockedBots } });
   }
 
   async function saveDomain() {
@@ -228,6 +263,87 @@ export function SiteSettingsPanel({
               />
             </label>
           )}
+        </div>
+      </section>
+      <section>
+        <h2 className="text-sm font-semibold text-gray-700">AI crawler access</h2>
+        <p className="mt-1 text-xs text-gray-500">
+          Controls whether GEO crawlers (GPTBot, ClaudeBot, PerplexityBot, ...) can access this site, via robots.txt.
+        </p>
+        <div className="mt-3 flex flex-col gap-3 rounded border p-4">
+          <label className="flex flex-col gap-1 text-xs text-gray-500">
+            Mode
+            <select
+              disabled={readOnly}
+              value={aiCrawlers.mode}
+              onChange={(e) => save({ aiCrawlers: { ...aiCrawlers, mode: e.target.value as AiCrawlerSettings["mode"] } })}
+              className="w-full max-w-xs rounded border px-2 py-1 text-sm"
+            >
+              <option value="allowAll">Allow all AI crawlers</option>
+              <option value="blockAll">Block all known AI crawlers</option>
+              <option value="custom">Block specific bots</option>
+            </select>
+          </label>
+          {aiCrawlers.mode === "custom" && (
+            <div className="flex flex-wrap gap-4">
+              {KNOWN_AI_CRAWLERS.map((bot) => (
+                <label key={bot} className="flex items-center gap-1 text-xs">
+                  <input
+                    type="checkbox"
+                    disabled={readOnly}
+                    checked={aiCrawlers.blockedBots.includes(bot)}
+                    onChange={(e) => toggleAiBot(bot, e.target.checked)}
+                  />
+                  {bot}
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="text-sm font-semibold text-gray-700">Chatbot embed</h2>
+        <p className="mt-1 text-xs text-gray-500">
+          Paste a third-party chat widget snippet (Intercom, Crisp, Tawk.to, or your own). Runs sandboxed, same as the
+          Embed block, and only loads after the visitor grants marketing cookie consent (if the cookie banner is on).
+        </p>
+        <div className="mt-3 flex flex-col gap-3 rounded border p-4">
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              disabled={readOnly}
+              checked={chatbotEmbed.enabled}
+              onChange={(e) => save({ chatbotEmbed: { ...chatbotEmbed, enabled: e.target.checked } })}
+            />
+            Show a chat widget on this site
+          </label>
+          <label className="flex flex-col gap-1 text-xs text-gray-500">
+            Provider
+            <select
+              disabled={readOnly}
+              value={chatbotEmbed.provider}
+              onChange={(e) => save({ chatbotEmbed: { ...chatbotEmbed, provider: e.target.value as ChatbotProvider } })}
+              className="w-full max-w-xs rounded border px-2 py-1 text-sm"
+            >
+              {CHATBOT_PROVIDERS.map((p) => (
+                <option key={p.value} value={p.value}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1 text-xs text-gray-500">
+            Embed snippet (HTML/script)
+            <textarea
+              disabled={readOnly}
+              value={chatbotEmbed.snippet}
+              onChange={(e) => save({ chatbotEmbed: { ...chatbotEmbed, snippet: e.target.value } })}
+              placeholder="<script>...</script>"
+              rows={5}
+              className="w-full max-w-md rounded border px-2 py-1 font-mono text-xs"
+            />
+          </label>
         </div>
       </section>
       {saving && <span className="text-xs text-gray-400">Saving...</span>}

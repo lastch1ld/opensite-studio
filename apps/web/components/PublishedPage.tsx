@@ -7,7 +7,13 @@ import { resolveTemplate, resolveTemplates } from "@/lib/templates";
 import { PopupHost, type PopupSpec } from "@/components/PopupHost";
 import { defaultPopupSettings, type PopupSettings } from "@/lib/popupTrigger";
 import { CookieBanner } from "@/components/CookieBanner";
-import { defaultCookieBannerSettings, type CookieBannerSettings } from "@/lib/siteSettings";
+import { ChatbotEmbed } from "@/components/ChatbotEmbed";
+import {
+  defaultCookieBannerSettings,
+  defaultChatbotEmbedSettings,
+  type CookieBannerSettings,
+  type ChatbotEmbedSettings,
+} from "@/lib/siteSettings";
 
 // Composes header Template + (page content, or a matching pageTemplate /
 // collectionItemTemplate's content if one targets this render) + footer
@@ -20,12 +26,14 @@ export function PublishedPage({
   templates = [],
   renderContext,
   cookieBannerSettings = null,
+  chatbotEmbedSettings = null,
 }: {
   content: PageContent | null;
   theme?: ThemeTokens | null;
   templates?: TemplateLite[];
   renderContext?: RenderContext;
   cookieBannerSettings?: CookieBannerSettings | null;
+  chatbotEmbedSettings?: ChatbotEmbedSettings | null;
 }) {
   const ctx: RenderContext = renderContext ?? { device: "desktop" };
 
@@ -43,6 +51,8 @@ export function PublishedPage({
     settings: (t.trigger as PopupSettings | undefined) ?? defaultPopupSettings(),
   }));
 
+  const resolvedCookieBanner = cookieBannerSettings ?? defaultCookieBannerSettings();
+
   if (!bodyRoot) {
     return (
       <div style={{ padding: "48px", textAlign: "center", fontFamily: "sans-serif", color: "#666" }}>
@@ -57,7 +67,8 @@ export function PublishedPage({
       <BlockRenderer block={bodyRoot} theme={theme} renderContext={ctx} isRoot />
       {footer && <BlockRenderer block={(footer.content as PageContent).root} theme={theme} renderContext={ctx} isRoot />}
       <PopupHost popups={popups} theme={theme} renderContext={ctx} />
-      <CookieBanner settings={cookieBannerSettings ?? defaultCookieBannerSettings()} />
+      <CookieBanner settings={resolvedCookieBanner} />
+      <ChatbotEmbed settings={chatbotEmbedSettings ?? defaultChatbotEmbedSettings()} cookieBannerSettings={resolvedCookieBanner} />
     </>
   );
 }

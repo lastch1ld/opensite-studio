@@ -3,7 +3,16 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getSiteRole } from "@/lib/permissions";
 import { SiteSettingsPanel } from "@/components/dashboard/SiteSettingsPanel";
-import { defaultCookieBannerSettings, defaultNewsletterSettings, type CookieBannerSettings, type NewsletterSettings } from "@/lib/siteSettings";
+import {
+  defaultCookieBannerSettings,
+  defaultNewsletterSettings,
+  defaultAiCrawlerSettings,
+  defaultChatbotEmbedSettings,
+  type CookieBannerSettings,
+  type NewsletterSettings,
+  type AiCrawlerSettings,
+  type ChatbotEmbedSettings,
+} from "@/lib/siteSettings";
 import { verificationRecordName } from "@/lib/domain";
 
 export default async function SiteSettingsPage({ params }: { params: Promise<{ siteId: string }> }) {
@@ -24,6 +33,8 @@ export default async function SiteSettingsPage({ params }: { params: Promise<{ s
           siteId={siteId}
           initialCookieBanner={(settings?.cookieBanner as unknown as CookieBannerSettings) ?? defaultCookieBannerSettings()}
           initialNewsletter={(settings?.newsletter as unknown as NewsletterSettings) ?? defaultNewsletterSettings()}
+          initialAiCrawlers={(settings?.aiCrawlers as unknown as AiCrawlerSettings) ?? defaultAiCrawlerSettings()}
+          initialChatbotEmbed={(settings?.chatbotEmbed as unknown as ChatbotEmbedSettings) ?? defaultChatbotEmbedSettings()}
           initialCustomDomain={site.customDomain}
           initialDomainVerified={site.customDomainVerified}
           initialVerificationRecord={

@@ -103,8 +103,8 @@ simpler option, not the doc's originally-sketched multi-host-per-site
 
 ## Phase 4 — Ecosystem
 
-- GEO optimizations (llms.txt, AI-crawler controls) (integrations.md)
-- Chatbot embed integrations (integrations.md)
+- [x] GEO optimizations (llms.txt, AI-crawler controls) (integrations.md)
+- [x] Chatbot embed integrations (integrations.md)
 - AI Mode: full-page Claude/ChatGPT-style chat app, server-side keys, instance whitelabeling (ai-mode.md)
 - Plugin/block SDK (plugins-and-extensibility.md)
 - Multi-language sites (multilingual.md)
@@ -112,6 +112,12 @@ simpler option, not the doc's originally-sketched multi-host-per-site
 
 Phases are a sequencing guide, not a commitment to build every item —
 re-prioritize freely as real usage surfaces what matters.
+
+Note: `SiteSettings` gained two new Json columns, `aiCrawlers` and
+`chatbotEmbed` (GEO/Chatbots above) — same existing table already noted in
+Phase 2, still needs a Prisma migration generated (`npx prisma migrate dev`)
+once a dev Postgres is available; schema.prisma is updated and `prisma
+generate` succeeds, but no migration file exists yet.
 
 ## Explicitly out of scope
 

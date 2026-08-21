@@ -5,7 +5,7 @@ import { PublishedPage } from "@/components/PublishedPage";
 import type { PageContent } from "@/components/blocks/types";
 import type { ThemeTokens } from "@/lib/theme";
 import { buildPageMetadata, type PageSeo } from "@/lib/seo";
-import type { CookieBannerSettings } from "@/lib/siteSettings";
+import type { CookieBannerSettings, ChatbotEmbedSettings } from "@/lib/siteSettings";
 
 // Path-based fallback for previewing a published site without wiring real
 // wildcard subdomains locally, e.g. /site/my-site/about instead of
@@ -37,6 +37,7 @@ export default async function PublicSiteFallbackPage({
       templates={result.templates}
       renderContext={renderContextFor(result)}
       cookieBannerSettings={(result.site.settings?.cookieBanner as unknown as CookieBannerSettings | undefined) ?? null}
+      chatbotEmbedSettings={(result.site.settings?.chatbotEmbed as unknown as ChatbotEmbedSettings | undefined) ?? null}
     />
   );
 }
