@@ -1,8 +1,9 @@
 import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import type { Metadata } from "next";
-import { siteFromHost, resolvePageByHost, renderContextFor } from "@/lib/resolveSite";
+import { siteFromHost, siteModeFromHost, resolvePageByHost, renderContextFor } from "@/lib/resolveSite";
 import { PublishedPage } from "@/components/PublishedPage";
+import { AiChatApp } from "@/components/aiChat/AiChatApp";
 import type { PageContent } from "@/components/blocks/types";
 import type { ThemeTokens } from "@/lib/theme";
 import { auth } from "@/lib/auth";
@@ -19,6 +20,10 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug?: string[] }>;
 }): Promise<Metadata> {
+  const host = (await headers()).get("host");
+  const site = await siteModeFromHost(host);
+  if (site?.mode === "AI_CHAT") return { title: site.name };
+
   const { slug } = await params;
   const result = await resolve(slug ?? []);
   if (!result) return {};
@@ -28,6 +33,15 @@ export async function generateMetadata({
 export default async function PublicSitePage({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { slug } = await params;
   const host = (await headers()).get("host");
+
+  // AI_CHAT sites skip the page/block system entirely (docs/ai-mode.md) —
+  // resolve the mode first, cheaply, before running the heavier page
+  // resolution that assumes a block-based site.
+  const modeSite = await siteModeFromHost(host);
+  if (modeSite?.mode === "AI_CHAT") {
+    return <AiChatApp siteId={modeSite.id} siteName={modeSite.name} />;
+  }
+
   const result = await resolvePageByHost(host, slug ?? []);
 
   // Host isn't a recognized site subdomain or verified custom domain: this

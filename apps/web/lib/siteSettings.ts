@@ -69,3 +69,31 @@ export type ChatbotEmbedSettings = {
 export function defaultChatbotEmbedSettings(): ChatbotEmbedSettings {
   return { enabled: false, provider: "custom", snippet: "" };
 }
+
+// AI Mode site config (docs/ai-mode.md) — provider/model/system prompt for
+// an AI_CHAT site's chat proxy. `apiKeyEncrypted` holds the AES-256-GCM
+// ciphertext (lib/secrets.ts) and must never reach the client: every route
+// that sends this settings shape to the browser runs it through
+// `redactAiChatSettings` first, per the doc's "write-only field from the
+// client's perspective" requirement. Only an Anthropic adapter exists so
+// far (lib/ai/anthropic.ts); `provider` already models room for more.
+export type AiProvider = "anthropic" | "openai" | "openai-compatible";
+
+export type AiChatSettings = {
+  provider: AiProvider;
+  model: string;
+  systemPrompt: string;
+  baseUrl?: string;
+  apiKeyEncrypted?: string;
+};
+
+export type AiChatSettingsPublic = Omit<AiChatSettings, "apiKeyEncrypted"> & { hasApiKey: boolean };
+
+export function defaultAiChatSettings(): AiChatSettings {
+  return { provider: "anthropic", model: "claude-3-5-sonnet-20241022", systemPrompt: "" };
+}
+
+export function redactAiChatSettings(settings: AiChatSettings): AiChatSettingsPublic {
+  const { apiKeyEncrypted, ...rest } = settings;
+  return { ...rest, hasApiKey: Boolean(apiKeyEncrypted) };
+}

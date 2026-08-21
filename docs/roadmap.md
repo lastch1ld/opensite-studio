@@ -105,7 +105,7 @@ simpler option, not the doc's originally-sketched multi-host-per-site
 
 - [x] GEO optimizations (llms.txt, AI-crawler controls) (integrations.md)
 - [x] Chatbot embed integrations (integrations.md)
-- AI Mode: full-page Claude/ChatGPT-style chat app, server-side keys, instance whitelabeling (ai-mode.md)
+- [x] AI Mode: full-page Claude/ChatGPT-style chat app, server-side keys, instance whitelabeling (ai-mode.md)
 - Plugin/block SDK (plugins-and-extensibility.md)
 - Multi-language sites (multilingual.md)
 - CLI, MCP server, and public API with per-key scoped permissions (programmatic-access.md)
@@ -118,6 +118,18 @@ Note: `SiteSettings` gained two new Json columns, `aiCrawlers` and
 Phase 2, still needs a Prisma migration generated (`npx prisma migrate dev`)
 once a dev Postgres is available; schema.prisma is updated and `prisma
 generate` succeeds, but no migration file exists yet.
+
+Note: AI Mode (above) added `Site.mode` (`SiteMode` enum, `BUILDER`
+default/`AI_CHAT`), a third `SiteSettings.aiChat` Json column (provider
+config + AES-256-GCM-encrypted API key, see lib/secrets.ts), and three new
+tables — `SiteVisitor` (per-site visitor accounts, separate from `User`;
+see auth.md's deferred "public visitor auth" item, now built minimally),
+`AiConversation`, and `AiMessage`. Same as the note above: schema.prisma is
+updated and `prisma generate` succeeds, but no migration file exists yet —
+still needs `npx prisma migrate dev` once a dev Postgres is available.
+Whitelabeling (`AppSettings`) was implemented via env vars
+(`APP_NAME`/`APP_LOGO_URL`/`APP_FAVICON_URL`/`APP_PRIMARY_COLOR`, see
+lib/appSettings.ts), not a DB row — no migration implication.
 
 ## Explicitly out of scope
 

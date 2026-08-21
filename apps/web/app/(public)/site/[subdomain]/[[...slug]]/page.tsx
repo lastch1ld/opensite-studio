@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { resolvePageBySubdomain, renderContextFor } from "@/lib/resolveSite";
+import { resolvePageBySubdomain, renderContextFor, siteModeBySubdomain } from "@/lib/resolveSite";
 import { PublishedPage } from "@/components/PublishedPage";
+import { AiChatApp } from "@/components/aiChat/AiChatApp";
 import type { PageContent } from "@/components/blocks/types";
 import type { ThemeTokens } from "@/lib/theme";
 import { buildPageMetadata, type PageSeo } from "@/lib/seo";
@@ -16,6 +17,9 @@ export async function generateMetadata({
   params: Promise<{ subdomain: string; slug?: string[] }>;
 }): Promise<Metadata> {
   const { subdomain, slug } = await params;
+  const modeSite = await siteModeBySubdomain(subdomain);
+  if (modeSite?.mode === "AI_CHAT") return { title: modeSite.name };
+
   const result = await resolvePageBySubdomain(subdomain, slug ?? []);
   if (!result) return {};
   return buildPageMetadata({ title: result.page.title, seo: result.page.seo as PageSeo | null }, result.site.name);
@@ -27,6 +31,12 @@ export default async function PublicSiteFallbackPage({
   params: Promise<{ subdomain: string; slug?: string[] }>;
 }) {
   const { subdomain, slug } = await params;
+
+  const modeSite = await siteModeBySubdomain(subdomain);
+  if (modeSite?.mode === "AI_CHAT") {
+    return <AiChatApp siteId={modeSite.id} siteName={modeSite.name} />;
+  }
+
   const result = await resolvePageBySubdomain(subdomain, slug ?? []);
   if (!result) notFound();
 

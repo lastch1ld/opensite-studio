@@ -61,11 +61,20 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+enum SiteMode {
+  BUILDER
+  AI_CHAT
+}
+
 model Site {
   id        String   @id @default(uuid())
   ownerId   String
   name      String
   subdomain String   @unique
+  // AI_CHAT sites skip the page/block system entirely — the public routing
+  // layer hands off to the chat app shell instead of BlockRenderer once
+  // this is set (docs/ai-mode.md). Chosen once at site-creation time.
+  mode      SiteMode @default(BUILDER)
   // Single custom-domain + verified flag (docs/renderer.md "Custom domain
   // verification + TLS") — deliberately not the doc's originally-sketched
   // multi-host-per-site `Domain` table, out of scope for this pass.
@@ -79,16 +88,18 @@ model Site {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  owner       User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  pages       Page[]
-  media       Media[]
-  theme       Theme?
-  savedBlocks SavedBlock[]
-  memberships Membership[]
-  invitations Invitation[]
-  collections Collection[]
-  templates   Template[]
-  settings    SiteSettings?
+  owner         User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  pages         Page[]
+  media         Media[]
+  theme         Theme?
+  savedBlocks   SavedBlock[]
+  memberships   Membership[]
+  invitations   Invitation[]
+  collections   Collection[]
+  templates     Template[]
+  settings      SiteSettings?
+  siteVisitors  SiteVisitor[]
+  aiConversations AiConversation[]
 }
 
 // Site-level settings/secrets store (docs/integrations.md "Shared plumbing
@@ -102,10 +113,60 @@ model SiteSettings {
   newsletter   Json?
   aiCrawlers   Json?
   chatbotEmbed Json?
+  // AI Mode site config (docs/ai-mode.md): provider/model/system prompt plus
+  // the provider API key, AES-256-GCM encrypted at rest (lib/secrets.ts) —
+  // see AiChatSettings in lib/siteSettings.ts. Only relevant when the owning
+  // Site's `mode` is AI_CHAT, but lives here alongside the other per-site
+  // integration settings rather than a bespoke table.
+  aiChat       Json?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+}
+
+// Visitor account on an AI_CHAT site — deliberately separate from `User`
+// (docs/ai-mode.md forces "public visitor auth", explicitly out of scope for
+// CMS-author auth per docs/auth.md). Scoped per-site so the same email can
+// register independently on two different AI_CHAT sites. Not a NextAuth
+// provider: sessions are a small signed cookie (lib/visitorAuth.ts), kept
+// deliberately separate from the CMS author's NextAuth session so the two
+// contexts never conflate.
+model SiteVisitor {
+  id           String   @id @default(uuid())
+  siteId       String
+  email        String
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+
+  site          Site             @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  conversations AiConversation[]
+
+  @@unique([siteId, email])
+}
+
+model AiConversation {
+  id        String   @id @default(uuid())
+  siteId    String
+  visitorId String
+  title     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  site     Site        @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  visitor  SiteVisitor @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  messages AiMessage[]
+}
+
+model AiMessage {
+  id             String   @id @default(uuid())
+  conversationId String
+  role           String
+  content        String   @db.Text
+  createdAt      DateTime @default(now())
+
+  conversation AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 }
 
 enum MembershipRole {

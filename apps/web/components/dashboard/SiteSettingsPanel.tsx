@@ -5,6 +5,8 @@ import {
   KNOWN_AI_CRAWLERS,
   type AiCrawlerBot,
   type AiCrawlerSettings,
+  type AiChatSettingsPublic,
+  type AiProvider,
   type ChatbotEmbedSettings,
   type ChatbotProvider,
   type CookieBannerSettings,
@@ -19,6 +21,11 @@ const CHATBOT_PROVIDERS: { value: ChatbotProvider; label: string }[] = [
   { value: "crisp", label: "Crisp" },
   { value: "tawkto", label: "Tawk.to" },
 ];
+const AI_PROVIDERS: { value: AiProvider; label: string }[] = [
+  { value: "anthropic", label: "Anthropic" },
+  { value: "openai", label: "OpenAI (not yet implemented)" },
+  { value: "openai-compatible", label: "OpenAI-compatible endpoint (not yet implemented)" },
+];
 
 type VerificationRecord = { name: string; type: "TXT"; value: string } | null;
 
@@ -31,10 +38,12 @@ type VerificationRecord = { name: string; type: "TXT"; value: string } | null;
 // uses.
 export function SiteSettingsPanel({
   siteId,
+  siteMode,
   initialCookieBanner,
   initialNewsletter,
   initialAiCrawlers,
   initialChatbotEmbed,
+  initialAiChat,
   initialCustomDomain,
   initialDomainVerified,
   initialVerificationRecord,
@@ -42,10 +51,12 @@ export function SiteSettingsPanel({
   isOwner,
 }: {
   siteId: string;
+  siteMode: "BUILDER" | "AI_CHAT";
   initialCookieBanner: CookieBannerSettings;
   initialNewsletter: NewsletterSettings;
   initialAiCrawlers: AiCrawlerSettings;
   initialChatbotEmbed: ChatbotEmbedSettings;
+  initialAiChat: AiChatSettingsPublic;
   initialCustomDomain: string | null;
   initialDomainVerified: boolean;
   initialVerificationRecord: VerificationRecord;
@@ -56,6 +67,8 @@ export function SiteSettingsPanel({
   const [newsletter, setNewsletter] = useState(initialNewsletter);
   const [aiCrawlers, setAiCrawlers] = useState(initialAiCrawlers);
   const [chatbotEmbed, setChatbotEmbed] = useState(initialChatbotEmbed);
+  const [aiChat, setAiChat] = useState(initialAiChat);
+  const [aiApiKeyInput, setAiApiKeyInput] = useState("");
   const [saving, setSaving] = useState(false);
 
   const [domainInput, setDomainInput] = useState(initialCustomDomain ?? "");
@@ -83,6 +96,29 @@ export function SiteSettingsPanel({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(next),
     });
+    setSaving(false);
+  }
+
+  // Separate from `save` above: the API key field is write-only from this
+  // component's perspective too — the GET response never contains it, so
+  // there's nothing to hold in aiChat state except the redacted `hasApiKey`
+  // flag. Only include `apiKey` in the request when the owner typed a new
+  // one; an empty input leaves the stored key untouched.
+  async function saveAiChat(next: Partial<AiChatSettingsPublic> & { apiKey?: string }) {
+    if (readOnly) return;
+    const merged = { ...aiChat, ...next };
+    setAiChat(merged);
+    setSaving(true);
+    const res = await fetch(`/api/sites/${siteId}/settings`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ aiChat: next }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setAiChat(data.aiChat);
+    }
+    setAiApiKeyInput("");
     setSaving(false);
   }
 
@@ -346,6 +382,75 @@ export function SiteSettingsPanel({
           </label>
         </div>
       </section>
+      {siteMode === "AI_CHAT" && (
+        <section>
+          <h2 className="text-sm font-semibold text-gray-700">AI Chat settings</h2>
+          <p className="mt-1 text-xs text-gray-500">
+            Configures the assistant this AI_CHAT site talks to. The API key is write-only — it&rsquo;s never sent back
+            to this page once saved, only whether one is configured.
+          </p>
+          <div className="mt-3 flex flex-col gap-3 rounded border p-4">
+            <label className="flex flex-col gap-1 text-xs text-gray-500">
+              Provider
+              <select
+                disabled={readOnly}
+                value={aiChat.provider}
+                onChange={(e) => saveAiChat({ provider: e.target.value as AiProvider })}
+                className="w-full max-w-xs rounded border px-2 py-1 text-sm"
+              >
+                {AI_PROVIDERS.map((p) => (
+                  <option key={p.value} value={p.value}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1 text-xs text-gray-500">
+              Model
+              <input
+                type="text"
+                disabled={readOnly}
+                defaultValue={aiChat.model}
+                onBlur={(e) => e.target.value !== aiChat.model && saveAiChat({ model: e.target.value })}
+                placeholder="claude-3-5-sonnet-20241022"
+                className="w-full max-w-md rounded border px-2 py-1 text-sm"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-xs text-gray-500">
+              System prompt / persona
+              <textarea
+                disabled={readOnly}
+                defaultValue={aiChat.systemPrompt}
+                onBlur={(e) => e.target.value !== aiChat.systemPrompt && saveAiChat({ systemPrompt: e.target.value })}
+                rows={4}
+                className="w-full max-w-md rounded border px-2 py-1 text-sm"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-xs text-gray-500">
+              API key
+              <input
+                type="password"
+                disabled={readOnly}
+                value={aiApiKeyInput}
+                onChange={(e) => setAiApiKeyInput(e.target.value)}
+                placeholder={aiChat.hasApiKey ? "Key configured — enter a new key to replace it" : "sk-ant-..."}
+                className="w-full max-w-md rounded border px-2 py-1 text-sm"
+              />
+              <span>{aiChat.hasApiKey ? "A key is configured." : "No key configured yet — chat will fail without one."}</span>
+            </label>
+            {!readOnly && (
+              <button
+                type="button"
+                onClick={() => saveAiChat({ apiKey: aiApiKeyInput })}
+                disabled={!aiApiKeyInput.trim() || saving}
+                className="w-fit rounded border px-3 py-1 text-xs hover:bg-gray-50 disabled:opacity-50"
+              >
+                Save API key
+              </button>
+            )}
+          </div>
+        </section>
+      )}
       {saving && <span className="text-xs text-gray-400">Saving...</span>}
     </div>
   );

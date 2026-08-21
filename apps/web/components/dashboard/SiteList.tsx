@@ -4,13 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-type Site = { id: string; name: string; subdomain: string };
+type SiteMode = "BUILDER" | "AI_CHAT";
+type Site = { id: string; name: string; subdomain: string; mode?: SiteMode };
 
 export function SiteList({ initialSites }: { initialSites: Site[] }) {
   const router = useRouter();
   const [sites, setSites] = useState(initialSites);
   const [name, setName] = useState("");
   const [subdomain, setSubdomain] = useState("");
+  const [mode, setMode] = useState<SiteMode>("BUILDER");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -22,7 +24,7 @@ export function SiteList({ initialSites }: { initialSites: Site[] }) {
     const res = await fetch("/api/sites", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, subdomain }),
+      body: JSON.stringify({ name, subdomain, mode }),
     });
 
     setLoading(false);
@@ -70,6 +72,17 @@ export function SiteList({ initialSites }: { initialSites: Site[] }) {
             className="rounded border px-3 py-2"
           />
         </div>
+        <div>
+          <label className="block text-sm text-gray-600">Site type</label>
+          <select
+            value={mode}
+            onChange={(e) => setMode(e.target.value as SiteMode)}
+            className="rounded border px-3 py-2"
+          >
+            <option value="BUILDER">Page builder</option>
+            <option value="AI_CHAT">AI chat app</option>
+          </select>
+        </div>
         <button type="submit" disabled={loading} className="rounded bg-black px-3 py-2 text-white disabled:opacity-50">
           {loading ? "Creating..." : "Create site"}
         </button>
@@ -83,7 +96,10 @@ export function SiteList({ initialSites }: { initialSites: Site[] }) {
               <Link href={`/dashboard/sites/${site.id}`} className="font-medium underline">
                 {site.name}
               </Link>
-              <p className="text-sm text-gray-500">{site.subdomain}</p>
+              <p className="text-sm text-gray-500">
+                {site.subdomain}
+                {site.mode === "AI_CHAT" && <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 text-xs">AI chat</span>}
+              </p>
             </div>
             <button onClick={() => handleDelete(site.id)} className="text-sm text-red-600 underline">
               Delete

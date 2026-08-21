@@ -13,7 +13,7 @@ export default async function DashboardPage() {
     <div>
       <h1 className="text-2xl font-semibold">Your sites</h1>
       <SiteList
-        initialSites={sites.map((s) => ({ id: s.id, name: s.name, subdomain: s.subdomain }))}
+        initialSites={sites.map((s) => ({ id: s.id, name: s.name, subdomain: s.subdomain, mode: s.mode }))}
       />
     </div>
   );

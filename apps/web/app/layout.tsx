@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { getAppSettings } from "@/lib/appSettings";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,9 +13,16 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Fallback title/favicon only — every public site route (app/(public)/**)
+// overrides title via its own generateMetadata, so this default only shows
+// on the dashboard/auth chrome, matching docs/ai-mode.md's whitelabeling
+// scope (dashboard shell, login/signup — not per-site).
+const { appName, faviconUrl } = getAppSettings();
+
 export const metadata: Metadata = {
-  title: "OpenSite Studio",
+  title: appName,
   description: "Self-hosted visual site builder",
+  icons: faviconUrl ? { icon: faviconUrl } : undefined,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

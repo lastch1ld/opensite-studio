@@ -49,6 +49,37 @@ export async function siteFromHost(host: string | null) {
   return site;
 }
 
+// Cheap host → Site lookup, used only to check `mode` before deciding
+// whether to run the (expensive, block-tree) page resolution at all
+// (docs/ai-mode.md: an AI_CHAT site skips the page/block system entirely).
+// Deliberately a separate lightweight query rather than reusing
+// siteFromHost's heavy include, mirroring the existing pattern of
+// resolvePageBySubdomain doing its own site lookup instead of routing
+// through siteFromHost.
+export async function siteModeFromHost(host: string | null) {
+  const subdomain = subdomainFromHost(host);
+  if (subdomain) {
+    return db.site.findUnique({ where: { subdomain }, select: { id: true, name: true, mode: true } });
+  }
+
+  const hostname = host?.split(":")[0];
+  if (!hostname) return null;
+  const appDomain = process.env.APP_DOMAIN;
+  const appHostname = appDomain?.split(":")[0];
+  if (appHostname && (hostname === appHostname || hostname === `www.${appHostname}`)) return null;
+
+  const site = await db.site.findUnique({
+    where: { customDomain: hostname },
+    select: { id: true, name: true, mode: true, customDomainVerified: true },
+  });
+  if (!site || !site.customDomainVerified) return null;
+  return site;
+}
+
+export async function siteModeBySubdomain(subdomain: string) {
+  return db.site.findUnique({ where: { subdomain }, select: { id: true, name: true, mode: true } });
+}
+
 export async function resolvePageBySubdomain(subdomain: string, slugSegments: string[]) {
   const site = await db.site.findUnique({ where: { subdomain }, include: siteWithRelationsInclude });
   if (!site) return null;
