@@ -1,33 +1,85 @@
 "use client";
 
-import type { Block } from "./types";
+import { cloneElement, isValidElement, type ReactElement, type ReactNode } from "react";
+import type { Block, Breakpoint } from "./types";
 import { blockRegistry } from "./registry";
+import { buildResponsiveCss, resolveStyle } from "@/lib/responsiveStyle";
 
 type BlockRendererProps = {
   block: Block;
   selectedId?: string | null;
   onSelect?: (id: string) => void;
+  activeBreakpoint?: Breakpoint;
+  // Editor-only hooks: wrap a block's rendered node (e.g. to add a drag
+  // handle) or wrap a container's children (e.g. to interleave drop
+  // targets). Public renderer never passes these, so its output is
+  // untouched — same render tree, same registry `render()` calls.
+  renderNodeWrapper?: (block: Block, node: ReactNode, isRoot: boolean) => ReactNode;
+  renderChildrenWrapper?: (container: Block, childNodes: ReactNode[], childBlocks: Block[]) => ReactNode;
+  isRoot?: boolean;
 };
 
 // Editor canvas and public renderer both call this component with the same
 // block tree. `onSelect`/`selectedId` are only passed by the editor, so the
 // public renderer gets identical markup with zero selection chrome.
-export function BlockRenderer({ block, selectedId, onSelect }: BlockRendererProps) {
+export function BlockRenderer({
+  block,
+  selectedId,
+  onSelect,
+  activeBreakpoint = "base",
+  renderNodeWrapper,
+  renderChildrenWrapper,
+  isRoot = false,
+}: BlockRendererProps) {
   const def = blockRegistry[block.type];
   if (!def) return null;
 
-  const children = block.children?.length
-    ? block.children.map((child) => (
-        <BlockRenderer key={child.id} block={child} selectedId={selectedId} onSelect={onSelect} />
-      ))
+  const childBlocks = block.children ?? [];
+  const childNodes = childBlocks.map((child) => (
+    <BlockRenderer
+      key={child.id}
+      block={child}
+      selectedId={selectedId}
+      onSelect={onSelect}
+      activeBreakpoint={activeBreakpoint}
+      renderNodeWrapper={renderNodeWrapper}
+      renderChildrenWrapper={renderChildrenWrapper}
+    />
+  ));
+
+  const childrenContent = block.children
+    ? renderChildrenWrapper
+      ? renderChildrenWrapper(block, childNodes, childBlocks)
+      : childNodes.length
+        ? childNodes
+        : null
     : null;
 
-  const content = def.render(block.props, block.style ?? {}, children);
+  const resolvedStyle = resolveStyle(block.style, activeBreakpoint);
+  // Only the public renderer (no onSelect) needs generated media-query CSS;
+  // the editor just re-renders the resolved style for whichever breakpoint
+  // is active, since its canvas isn't a real responsive viewport.
+  const responsiveCss = onSelect ? null : buildResponsiveCss(block.id, block.style);
 
-  if (!onSelect) return <>{content}</>;
+  const rawContent = def.render(block.props, resolvedStyle, childrenContent);
+  const content =
+    responsiveCss && isValidElement(rawContent)
+      ? cloneElement(rawContent as ReactElement<Record<string, unknown>>, { "data-block-id": block.id })
+      : rawContent;
+
+  const withCss = responsiveCss ? (
+    <>
+      {content}
+      <style dangerouslySetInnerHTML={{ __html: responsiveCss }} />
+    </>
+  ) : (
+    content
+  );
+
+  if (!onSelect) return <>{withCss}</>;
 
   const isSelected = block.id === selectedId;
-  return (
+  const selectionNode = (
     <div
       onClick={(e) => {
         e.stopPropagation();
@@ -46,7 +98,9 @@ export function BlockRenderer({ block, selectedId, onSelect }: BlockRendererProp
         if (!isSelected) e.currentTarget.style.outline = "1px dashed transparent";
       }}
     >
-      {content}
+      {withCss}
     </div>
   );
+
+  return renderNodeWrapper ? renderNodeWrapper(block, selectionNode, isRoot) : selectionNode;
 }

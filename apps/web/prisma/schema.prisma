@@ -69,6 +69,21 @@ model Site {
 
   owner User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   pages Page[]
+  media Media[]
+}
+
+model Media {
+  id         String   @id @default(uuid())
+  siteId     String
+  url        String
+  storageKey String
+  mimeType   String
+  width      Int?
+  height     Int?
+  altText    String?
+  createdAt  DateTime @default(now())
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 }
 
 model Page {

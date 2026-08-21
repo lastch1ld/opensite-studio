@@ -8,7 +8,7 @@ export function emptyPageContent(): PageContent {
       id: randomUUID(),
       type: "section",
       props: { layout: "stack" },
-      style: { padding: "24px", background: "#ffffff" },
+      style: { base: { padding: "24px", background: "#ffffff" } },
       children: [],
     },
   };

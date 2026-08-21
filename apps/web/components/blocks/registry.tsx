@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import type { Block, FieldSchema } from "./types";
+import { hasContainerChildren } from "@/lib/responsiveStyle";
 
 type BlockDef = {
   label: string;
@@ -81,7 +82,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
     defaultProps: { src: "https://placehold.co/600x300", alt: "", objectFit: "cover" },
     defaultStyle: {},
     fields: [
-      { key: "src", label: "Image URL", group: "props", input: "url" },
+      { key: "src", label: "Image", group: "props", input: "image" },
       { key: "alt", label: "Alt text", group: "props", input: "text" },
       {
         key: "objectFit",
@@ -135,6 +136,103 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
       );
     },
   },
+  heading: {
+    label: "Heading",
+    defaultProps: { level: "h2", text: "Heading" },
+    defaultStyle: { fontSize: "32px", fontWeight: "700", color: "#111111" },
+    fields: [
+      { key: "text", label: "Text", group: "props", input: "text" },
+      {
+        key: "level",
+        label: "Level",
+        group: "props",
+        input: "select",
+        options: [
+          { label: "H1", value: "h1" },
+          { label: "H2", value: "h2" },
+          { label: "H3", value: "h3" },
+          { label: "H4", value: "h4" },
+          { label: "H5", value: "h5" },
+          { label: "H6", value: "h6" },
+        ],
+      },
+      { key: "fontSize", label: "Font size", group: "style", input: "text" },
+      { key: "color", label: "Color", group: "style", input: "color" },
+    ],
+    render(props, style) {
+      const Tag = (["h1", "h2", "h3", "h4", "h5", "h6"].includes(str(props.level)) ? str(props.level) : "h2") as
+        | "h1"
+        | "h2"
+        | "h3"
+        | "h4"
+        | "h5"
+        | "h6";
+      const cssStyle: CSSProperties = {
+        fontSize: str(style.fontSize, "32px"),
+        fontWeight: str(style.fontWeight, "700") as CSSProperties["fontWeight"],
+        color: str(style.color, "#111111"),
+        margin: 0,
+      };
+      return <Tag style={cssStyle}>{str(props.text, "Heading")}</Tag>;
+    },
+  },
+  spacer: {
+    label: "Spacer",
+    defaultProps: {},
+    defaultStyle: { height: "32px" },
+    fields: [{ key: "height", label: "Height", group: "style", input: "text" }],
+    render(_props, style) {
+      return <div style={{ height: str(style.height, "32px") }} />;
+    },
+  },
+  columns: {
+    label: "Columns",
+    defaultProps: { columns: "2" },
+    defaultStyle: { gap: "16px" },
+    fields: [
+      {
+        key: "columns",
+        label: "Columns",
+        group: "props",
+        input: "select",
+        options: [
+          { label: "2", value: "2" },
+          { label: "3", value: "3" },
+          { label: "4", value: "4" },
+        ],
+      },
+      { key: "gap", label: "Gap", group: "style", input: "text" },
+    ],
+    render(props, style, children) {
+      const columns = str(props.columns, "2");
+      const cssStyle: CSSProperties = {
+        display: "grid",
+        gridTemplateColumns: `repeat(${columns}, 1fr)`,
+        gap: str(style.gap, "16px"),
+        minHeight: "40px",
+      };
+      return <div style={cssStyle}>{children}</div>;
+    },
+  },
+  embed: {
+    label: "Embed",
+    defaultProps: { html: "" },
+    defaultStyle: { height: "300px" },
+    fields: [
+      { key: "html", label: "HTML embed (sandboxed - trusted content only)", group: "props", input: "textarea" },
+      { key: "height", label: "Height", group: "style", input: "text" },
+    ],
+    render(props, style) {
+      return (
+        <iframe
+          srcDoc={str(props.html)}
+          sandbox="allow-scripts allow-same-origin"
+          style={{ width: "100%", height: str(style.height, "300px"), border: "0" }}
+          title="Embedded content"
+        />
+      );
+    },
+  },
 };
 
 export function createBlock(type: Block["type"]): Block {
@@ -143,7 +241,7 @@ export function createBlock(type: Block["type"]): Block {
     id: crypto.randomUUID(),
     type,
     props: { ...def.defaultProps },
-    style: { ...def.defaultStyle },
-    children: type === "section" ? [] : undefined,
+    style: { base: { ...def.defaultStyle } },
+    children: hasContainerChildren(type) ? [] : undefined,
   };
 }
