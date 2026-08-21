@@ -21,6 +21,7 @@ import { DropSlotList } from "./dnd/DropSlotList";
 import { LayersPanel } from "./LayersPanel";
 import { Inspector } from "./Inspector";
 import { Toolbar } from "./Toolbar";
+import { ClipboardPanel } from "./ClipboardPanel";
 
 export type SavedBlockSummary = { id: string; name: string; content: Block };
 export type CollectionSummary = { id: string; name: string; fieldSchema: CollectionField[] };
@@ -62,6 +63,7 @@ export function EditorClient({
 }) {
   const { present: content, update: updateContent, undo, redo, canUndo, canRedo } = useHistory(initialContent);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [rightTab, setRightTab] = useState<"inspector" | "clipboard">("inspector");
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [publishing, setPublishing] = useState(false);
   const [activeBreakpoint, setActiveBreakpoint] = useState<Breakpoint>("base");
@@ -227,6 +229,21 @@ export function EditorClient({
     setPublishing(false);
   }
 
+  // Content clipboard insertion (docs/content-import.md "Formatting:
+  // target block wins"): writes the fragment's plain text into the
+  // selected block's own text prop only, never touching its `style` — the
+  // target block's existing style/theme keeps governing how it renders.
+  const handleInsertFragment = useCallback(
+    (propKey: string, text: string) => {
+      if (!selectedId || readOnly) return;
+      updateContent((prev) => ({
+        ...prev,
+        root: updateBlock(prev.root, selectedId, (block) => ({ ...block, props: { ...block.props, [propKey]: text } })),
+      }));
+    },
+    [selectedId, readOnly, updateContent],
+  );
+
   const handleRestore = useCallback(
     (restoredContent: PageContent) => {
       updateContent(() => restoredContent);
@@ -300,15 +317,43 @@ export function EditorClient({
               />
             </div>
           </div>
-          <Inspector
-            block={selectedBlock}
-            siteId={siteId}
-            activeBreakpoint={activeBreakpoint}
-            theme={theme}
-            onChange={handleChange}
-            collections={collections}
-            pageCollectionId={pageCollectionId}
-          />
+          <div className="flex h-full flex-col overflow-hidden">
+            {!readOnly && (
+              <div className="flex border-b border-l bg-white">
+                <button
+                  onClick={() => setRightTab("inspector")}
+                  className={`flex-1 px-3 py-2 text-xs font-medium ${
+                    rightTab === "inspector" ? "border-b-2 border-black" : "text-gray-500 hover:bg-gray-50"
+                  }`}
+                >
+                  Inspector
+                </button>
+                <button
+                  onClick={() => setRightTab("clipboard")}
+                  className={`flex-1 px-3 py-2 text-xs font-medium ${
+                    rightTab === "clipboard" ? "border-b-2 border-black" : "text-gray-500 hover:bg-gray-50"
+                  }`}
+                >
+                  Import
+                </button>
+              </div>
+            )}
+            <div className="flex-1 overflow-hidden">
+              {rightTab === "clipboard" && !readOnly ? (
+                <ClipboardPanel siteId={siteId} selectedBlock={selectedBlock} onInsert={handleInsertFragment} />
+              ) : (
+                <Inspector
+                  block={selectedBlock}
+                  siteId={siteId}
+                  activeBreakpoint={activeBreakpoint}
+                  theme={theme}
+                  onChange={handleChange}
+                  collections={collections}
+                  pageCollectionId={pageCollectionId}
+                />
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </DndContext>

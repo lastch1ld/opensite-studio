@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { SitemapImportPanel } from "./SitemapImportPanel";
 
 type Page = { id: string; title: string; slug: string; isHome: boolean; collectionId: string | null };
 type CollectionOption = { id: string; name: string };
@@ -94,6 +95,14 @@ export function PageList({
         <button type="submit" disabled={loading} className="rounded bg-black px-3 py-2 text-white disabled:opacity-50">
           {loading ? "Creating..." : "Create page"}
         </button>
+        <SitemapImportPanel
+          siteId={siteId}
+          existingSlugs={pages.map((p) => p.slug)}
+          onImported={(imported) => {
+            setPages((prev) => [...prev, ...imported]);
+            router.refresh();
+          }}
+        />
         {error && <p className="w-full text-sm text-red-600">{error}</p>}
       </form>
 

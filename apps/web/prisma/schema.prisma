@@ -158,11 +158,18 @@ model Page {
   // Set for a dynamic/repeater page: the block tree above is the template,
   // rendered once per CollectionItem (see docs/collections.md).
   collectionId     String?
+  // Page-tree hierarchy, independent of `slug` (see docs/content-import.md
+  // "Page hierarchy: decision") — the renderer never reads this, it only
+  // resolves `slug` directly. Null for manually-created pages (flat,
+  // top-level); sitemap import is the natural first writer of it.
+  parentId         String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
   site            Site             @relation(fields: [siteId], references: [id], onDelete: Cascade)
   collection      Collection?      @relation(fields: [collectionId], references: [id])
+  parent          Page?            @relation("PageHierarchy", fields: [parentId], references: [id])
+  children        Page[]           @relation("PageHierarchy")
   revisions       Revision[]
   formSubmissions FormSubmission[]
 
