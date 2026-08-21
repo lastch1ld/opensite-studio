@@ -1,0 +1,35 @@
+import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { requirePageOwner } from "@/lib/permissions";
+import type { Prisma } from "@prisma/client";
+
+export async function PATCH(req: Request, { params }: { params: Promise<{ pageId: string }> }) {
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { pageId } = await params;
+  const page = await requirePageOwner(pageId, session.user.id);
+  if (!page) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const { draftContent } = await req.json();
+  if (!draftContent) return NextResponse.json({ error: "draftContent is required" }, { status: 400 });
+
+  const updated = await db.page.update({
+    where: { id: pageId },
+    data: { draftContent: draftContent as Prisma.InputJsonValue },
+  });
+  return NextResponse.json(updated);
+}
+
+export async function DELETE(_req: Request, { params }: { params: Promise<{ pageId: string }> }) {
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { pageId } = await params;
+  const page = await requirePageOwner(pageId, session.user.id);
+  if (!page) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  await db.page.delete({ where: { id: pageId } });
+  return NextResponse.json({ ok: true });
+}

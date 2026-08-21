@@ -1,0 +1,149 @@
+import type { CSSProperties, ReactNode } from "react";
+import type { Block, FieldSchema } from "./types";
+
+type BlockDef = {
+  label: string;
+  defaultProps: Record<string, unknown>;
+  defaultStyle: Record<string, unknown>;
+  fields: FieldSchema[];
+  render: (props: Record<string, unknown>, style: Record<string, unknown>, children: ReactNode) => ReactNode;
+};
+
+function str(v: unknown, fallback = ""): string {
+  return typeof v === "string" ? v : fallback;
+}
+
+export const blockRegistry: Record<Block["type"], BlockDef> = {
+  section: {
+    label: "Section",
+    defaultProps: { layout: "stack" },
+    defaultStyle: { padding: "24px", background: "#ffffff" },
+    fields: [
+      {
+        key: "layout",
+        label: "Layout",
+        group: "props",
+        input: "select",
+        options: [
+          { label: "Stack (vertical)", value: "stack" },
+          { label: "Row (horizontal)", value: "row" },
+        ],
+      },
+      { key: "padding", label: "Padding", group: "style", input: "text" },
+      { key: "background", label: "Background", group: "style", input: "color" },
+    ],
+    render(props, style, children) {
+      const layout = str(props.layout, "stack");
+      const cssStyle: CSSProperties = {
+        padding: str(style.padding, "24px"),
+        background: str(style.background, "#ffffff"),
+        display: "flex",
+        flexDirection: layout === "row" ? "row" : "column",
+        gap: "12px",
+        minHeight: "40px",
+      };
+      return <div style={cssStyle}>{children}</div>;
+    },
+  },
+  text: {
+    label: "Text",
+    defaultProps: { content: "New text block" },
+    defaultStyle: { fontSize: "16px", fontWeight: "400", color: "#111111" },
+    fields: [
+      { key: "content", label: "Content", group: "props", input: "textarea" },
+      { key: "fontSize", label: "Font size", group: "style", input: "text" },
+      {
+        key: "fontWeight",
+        label: "Font weight",
+        group: "style",
+        input: "select",
+        options: [
+          { label: "Normal", value: "400" },
+          { label: "Medium", value: "500" },
+          { label: "Bold", value: "700" },
+        ],
+      },
+      { key: "color", label: "Color", group: "style", input: "color" },
+    ],
+    render(props, style) {
+      const cssStyle: CSSProperties = {
+        fontSize: str(style.fontSize, "16px"),
+        fontWeight: str(style.fontWeight, "400") as CSSProperties["fontWeight"],
+        color: str(style.color, "#111111"),
+        margin: 0,
+        whiteSpace: "pre-wrap",
+      };
+      return <p style={cssStyle}>{str(props.content)}</p>;
+    },
+  },
+  image: {
+    label: "Image",
+    defaultProps: { src: "https://placehold.co/600x300", alt: "", objectFit: "cover" },
+    defaultStyle: {},
+    fields: [
+      { key: "src", label: "Image URL", group: "props", input: "url" },
+      { key: "alt", label: "Alt text", group: "props", input: "text" },
+      {
+        key: "objectFit",
+        label: "Object fit",
+        group: "props",
+        input: "select",
+        options: [
+          { label: "Cover", value: "cover" },
+          { label: "Contain", value: "contain" },
+          { label: "Fill", value: "fill" },
+        ],
+      },
+    ],
+    render(props) {
+      const cssStyle: CSSProperties = {
+        width: "100%",
+        objectFit: str(props.objectFit, "cover") as CSSProperties["objectFit"],
+      };
+      // eslint-disable-next-line @next/next/no-img-element
+      return <img src={str(props.src)} alt={str(props.alt)} style={cssStyle} />;
+    },
+  },
+  button: {
+    label: "Button",
+    defaultProps: { label: "Click me", href: "#", variant: "primary" },
+    defaultStyle: {},
+    fields: [
+      { key: "label", label: "Label", group: "props", input: "text" },
+      { key: "href", label: "Link URL", group: "props", input: "url" },
+      {
+        key: "variant",
+        label: "Variant",
+        group: "props",
+        input: "select",
+        options: [
+          { label: "Primary", value: "primary" },
+          { label: "Secondary", value: "secondary" },
+        ],
+      },
+    ],
+    render(props) {
+      const variant = str(props.variant, "primary");
+      const cssStyle: CSSProperties =
+        variant === "secondary"
+          ? { padding: "10px 18px", borderRadius: "6px", background: "transparent", color: "#111", border: "1px solid #111", display: "inline-block", textDecoration: "none" }
+          : { padding: "10px 18px", borderRadius: "6px", background: "#111", color: "#fff", border: "1px solid #111", display: "inline-block", textDecoration: "none" };
+      return (
+        <a href={str(props.href, "#")} style={cssStyle}>
+          {str(props.label, "Button")}
+        </a>
+      );
+    },
+  },
+};
+
+export function createBlock(type: Block["type"]): Block {
+  const def = blockRegistry[type];
+  return {
+    id: crypto.randomUUID(),
+    type,
+    props: { ...def.defaultProps },
+    style: { ...def.defaultStyle },
+    children: type === "section" ? [] : undefined,
+  };
+}

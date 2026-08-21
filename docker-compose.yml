@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: opensite
+      POSTGRES_PASSWORD: opensite
+      POSTGRES_DB: opensite
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  web:
+    build:
+      context: ./apps/web
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://opensite:opensite@db:5432/opensite?schema=public
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      APP_DOMAIN: ${APP_DOMAIN:-}
+      MEDIA_STORAGE_PATH: /data/media
+    volumes:
+      - media-data:/data/media
+    ports:
+      - "3000:3000"
+
+volumes:
+  db-data:
+  media-data:
