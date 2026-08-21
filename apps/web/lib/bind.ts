@@ -10,6 +10,11 @@ export type RenderContext = {
   device: "desktop" | "tablet" | "mobile";
   collectionItems?: Record<string, CollectionItemLite[]>;
   currentItem?: (CollectionItemLite & { collectionId: string }) | null;
+  // Needed by the `form` block to submit against the right Site/Page (see
+  // components/blocks/FormBlock.tsx) — undefined in editor canvas contexts
+  // that don't correspond to a real Page (e.g. Theme Builder templates).
+  siteId?: string;
+  pageId?: string;
 };
 
 type BindSource =

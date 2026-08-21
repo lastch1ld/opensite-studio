@@ -62,11 +62,18 @@ Postgres is available — schema.prisma is updated and `prisma generate`
 succeeds, but no migration file exists yet (same situation as `Media` in
 Phase 1).
 
+Note: a Prisma migration for the new `FormSubmission` table, and for the
+`Template.trigger` column added for popup trigger/frequency/close-behavior
+settings, still needs to be generated (`npx prisma migrate dev`) once a dev
+Postgres is available — schema.prisma is updated and `prisma generate`
+succeeds, but no migration file exists yet (same situation as `Media` in
+Phase 1).
+
 ## Phase 3 — Parity features
 
 - Content import: sitemap-based page-structure import + content clipboard for migrating old-page text (content-import.md)
-- Forms: fields, conditional logic, multi-step, submissions (forms.md)
-- Popups & modals with trigger rules (popups-and-modals.md)
+- [x] Forms: fields, conditional logic, multi-step, submissions (forms.md)
+- [x] Popups & modals with trigger rules (popups-and-modals.md)
 - SEO fields + sitemap/robots (integrations.md)
 - Cookie banner + consent gating (integrations.md)
 - Newsletter block + provider adapters (integrations.md)

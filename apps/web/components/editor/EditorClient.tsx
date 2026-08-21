@@ -293,6 +293,7 @@ export function EditorClient({
                 onSelect={setSelectedId}
                 activeBreakpoint={activeBreakpoint}
                 theme={theme}
+                renderContext={{ device: activeBreakpoint === "base" ? "desktop" : activeBreakpoint, siteId, pageId: mode === "page" ? pageId : undefined }}
                 renderNodeWrapper={renderNodeWrapper}
                 renderChildrenWrapper={renderChildrenWrapper}
                 isRoot

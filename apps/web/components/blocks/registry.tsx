@@ -1,13 +1,22 @@
 import type { CSSProperties, ReactNode } from "react";
-import type { Block, FieldSchema } from "./types";
+import type { Block, FieldSchema, FormField } from "./types";
 import { hasContainerChildren } from "@/lib/responsiveStyle";
+import { FormBlock } from "./FormBlock";
+import type { RenderContext } from "@/lib/bind";
+
+// Extra per-render info a block's `render()` doesn't get from props/style
+// alone: which block this is (`blockId`, for the `form` block's submit
+// endpoint and popup elementClick triggers) and the shared RenderContext
+// (`ctx`, for the `form` block's siteId/pageId). Optional 4th param so
+// every other block's `render()` stays unchanged.
+type RenderMeta = { blockId: string; ctx: RenderContext };
 
 type BlockDef = {
   label: string;
   defaultProps: Record<string, unknown>;
   defaultStyle: Record<string, unknown>;
   fields: FieldSchema[];
-  render: (props: Record<string, unknown>, style: Record<string, unknown>, children: ReactNode) => ReactNode;
+  render: (props: Record<string, unknown>, style: Record<string, unknown>, children: ReactNode, meta: RenderMeta) => ReactNode;
 };
 
 function str(v: unknown, fallback = ""): string {
@@ -107,7 +116,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
   },
   button: {
     label: "Button",
-    defaultProps: { label: "Click me", href: "#", variant: "primary" },
+    defaultProps: { label: "Click me", href: "#", variant: "primary", closesPopup: "" },
     defaultStyle: {},
     fields: [
       { key: "label", label: "Label", group: "props", input: "text" },
@@ -122,6 +131,16 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
           { label: "Secondary", value: "secondary" },
         ],
       },
+      {
+        key: "closesPopup",
+        label: "Closes popup (only has an effect inside a popup)",
+        group: "props",
+        input: "select",
+        options: [
+          { label: "No", value: "" },
+          { label: "Yes", value: "true" },
+        ],
+      },
     ],
     render(props) {
       const variant = str(props.variant, "primary");
@@ -130,7 +149,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
           ? { padding: "10px 18px", borderRadius: "6px", background: "transparent", color: "#111", border: "1px solid #111", display: "inline-block", textDecoration: "none" }
           : { padding: "10px 18px", borderRadius: "6px", background: "#111", color: "#fff", border: "1px solid #111", display: "inline-block", textDecoration: "none" };
       return (
-        <a href={str(props.href, "#")} style={cssStyle}>
+        <a href={str(props.href, "#")} style={cssStyle} data-close-popup={str(props.closesPopup) === "true" ? "true" : undefined}>
           {str(props.label, "Button")}
         </a>
       );
@@ -268,6 +287,30 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
         minHeight: "40px",
       };
       return <div style={cssStyle}>{children}</div>;
+    },
+  },
+  // Field list/steps/onSubmit are managed by a dedicated Inspector panel
+  // (components/editor/FormFieldsEditor.tsx), not the generic FieldSchema
+  // loop — `fields` here stays empty on purpose (docs/forms.md).
+  form: {
+    label: "Form",
+    defaultProps: { fields: [] as FormField[], submitLabel: "Submit", onSubmit: { action: "storeOnly" } },
+    defaultStyle: { padding: "16px" },
+    fields: [],
+    render(props, style, _children, meta) {
+      const fields = Array.isArray(props.fields) ? (props.fields as FormField[]) : [];
+      const steps = Array.isArray(props.steps) ? (props.steps as string[][]) : undefined;
+      return (
+        <div style={{ padding: str(style.padding, "16px") }}>
+          <FormBlock
+            fields={fields}
+            steps={steps}
+            submitLabel={str(props.submitLabel, "Submit")}
+            blockId={meta.blockId}
+            ctx={meta.ctx}
+          />
+        </div>
+      );
     },
   },
 };

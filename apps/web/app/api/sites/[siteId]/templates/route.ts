@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { requireSiteRole } from "@/lib/permissions";
 import { emptyPageContent } from "@/lib/pageContent";
+import { defaultPopupSettings } from "@/lib/popupTrigger";
 import type { Prisma, TemplateType } from "@prisma/client";
 
 const TEMPLATE_TYPES: TemplateType[] = ["header", "footer", "pageTemplate", "collectionItemTemplate", "popup"];
@@ -31,9 +32,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ siteId:
   if (typeof name !== "string" || !name.trim() || !TEMPLATE_TYPES.includes(type)) {
     return NextResponse.json({ error: "name and a valid type are required" }, { status: 400 });
   }
-  if (type === "popup") {
-    return NextResponse.json({ error: "Popup templates are not supported yet" }, { status: 400 });
-  }
 
   const template = await db.template.create({
     data: {
@@ -42,6 +40,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ siteId:
       type: type as TemplateType,
       content: emptyPageContent() as unknown as Prisma.InputJsonValue,
       condition: { type: "always" } as Prisma.InputJsonValue,
+      trigger: type === "popup" ? (defaultPopupSettings() as unknown as Prisma.InputJsonValue) : undefined,
     },
   });
   return NextResponse.json(template, { status: 201 });

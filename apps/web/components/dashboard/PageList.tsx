@@ -124,6 +124,9 @@ export function PageList({
                   ))}
                 </select>
               )}
+              <Link href={`/dashboard/sites/${siteId}/pages/${page.id}/submissions`} className="text-sm underline">
+                Submissions
+              </Link>
               <button onClick={() => handleDelete(page.id)} className="text-sm text-red-600 underline">
                 Delete
               </button>

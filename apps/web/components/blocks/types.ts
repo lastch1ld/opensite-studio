@@ -9,7 +9,8 @@ export type BlockType =
   | "spacer"
   | "columns"
   | "embed"
-  | "list";
+  | "list"
+  | "form";
 
 export type Breakpoint = "base" | "tablet" | "mobile";
 
@@ -32,6 +33,31 @@ export type Block = {
 export type PageContent = {
   root: Block;
   version: number;
+};
+
+// docs/forms.md's `form` block props. `fields` render as actual input
+// widgets (managed via a dedicated Inspector panel, not the generic
+// FieldSchema-driven one, since it's a list of structured records rather
+// than flat props) — see components/editor/FormFieldsEditor.tsx.
+export type FormField = {
+  id: string;
+  type: "text" | "email" | "textarea" | "select" | "checkbox" | "radio" | "file";
+  label: string;
+  required: boolean;
+  options?: string[];
+  showIf?: Condition;
+};
+
+export type FormOnSubmit =
+  | { action: "storeOnly" }
+  | { action: "webhook"; url: string }
+  | { action: "email"; to: string };
+
+export type FormBlockProps = {
+  fields: FormField[];
+  steps?: string[][];
+  submitLabel: string;
+  onSubmit: FormOnSubmit;
 };
 
 export type FieldSchema = {

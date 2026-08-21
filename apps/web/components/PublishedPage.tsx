@@ -3,7 +3,9 @@ import type { PageContent } from "@/components/blocks/types";
 import type { ThemeTokens } from "@/lib/theme";
 import type { RenderContext } from "@/lib/bind";
 import type { TemplateLite } from "@/lib/templates";
-import { resolveTemplate } from "@/lib/templates";
+import { resolveTemplate, resolveTemplates } from "@/lib/templates";
+import { PopupHost, type PopupSpec } from "@/components/PopupHost";
+import { defaultPopupSettings, type PopupSettings } from "@/lib/popupTrigger";
 
 // Composes header Template + (page content, or a matching pageTemplate /
 // collectionItemTemplate's content if one targets this render) + footer
@@ -29,6 +31,14 @@ export function PublishedPage({
   const bodyTemplate = resolveTemplate(templates, bodyTemplateType, ctx);
   const bodyRoot = bodyTemplate ? (bodyTemplate.content as PageContent).root : content?.root;
 
+  // Popups aren't single-slot like header/footer/pageTemplate — every
+  // eligible one mounts, each independently trigger-gated by PopupHost.
+  const popups: PopupSpec[] = resolveTemplates(templates, "popup", ctx).map((t) => ({
+    id: t.id,
+    content: t.content as PageContent,
+    settings: (t.trigger as PopupSettings | undefined) ?? defaultPopupSettings(),
+  }));
+
   if (!bodyRoot) {
     return (
       <div style={{ padding: "48px", textAlign: "center", fontFamily: "sans-serif", color: "#666" }}>
@@ -42,6 +52,7 @@ export function PublishedPage({
       {header && <BlockRenderer block={(header.content as PageContent).root} theme={theme} renderContext={ctx} isRoot />}
       <BlockRenderer block={bodyRoot} theme={theme} renderContext={ctx} isRoot />
       {footer && <BlockRenderer block={(footer.content as PageContent).root} theme={theme} renderContext={ctx} isRoot />}
+      <PopupHost popups={popups} theme={theme} renderContext={ctx} />
     </>
   );
 }

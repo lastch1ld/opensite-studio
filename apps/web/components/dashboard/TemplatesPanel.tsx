@@ -11,6 +11,7 @@ const TYPE_LABELS: Record<string, string> = {
   footer: "Footer",
   pageTemplate: "Page template",
   collectionItemTemplate: "Collection item template",
+  popup: "Popup",
 };
 
 const CREATABLE_TYPES = Object.keys(TYPE_LABELS);

@@ -4,8 +4,10 @@ import { db } from "@/lib/db";
 import { getSiteRole } from "@/lib/permissions";
 import { EditorClient } from "@/components/editor/EditorClient";
 import { TemplateTargetingPanel } from "@/components/dashboard/TemplateTargetingPanel";
+import { PopupTriggerPanel } from "@/components/dashboard/PopupTriggerPanel";
 import type { PageContent } from "@/components/blocks/types";
 import type { Condition } from "@/lib/condition";
+import { defaultPopupSettings, type PopupSettings } from "@/lib/popupTrigger";
 
 export default async function TemplateEditorPage({
   params,
@@ -32,13 +34,23 @@ export default async function TemplateEditorPage({
       mode="template"
       backHref={`/dashboard/sites/${siteId}/templates`}
       extraToolbar={
-        <TemplateTargetingPanel
-          siteId={siteId}
-          templateId={templateId}
-          initialCondition={(template.condition as unknown as Condition) ?? { type: "always" }}
-          initialPriority={template.priority}
-          collections={collections.map((c) => ({ id: c.id, name: c.name }))}
-        />
+        <>
+          <TemplateTargetingPanel
+            siteId={siteId}
+            templateId={templateId}
+            initialCondition={(template.condition as unknown as Condition) ?? { type: "always" }}
+            initialPriority={template.priority}
+            collections={collections.map((c) => ({ id: c.id, name: c.name }))}
+          />
+          {template.type === "popup" && (
+            <PopupTriggerPanel
+              siteId={siteId}
+              templateId={templateId}
+              initialSettings={(template.trigger as unknown as PopupSettings) ?? defaultPopupSettings()}
+              collections={collections.map((c) => ({ id: c.id, name: c.name }))}
+            />
+          )}
+        </>
       }
     />
   );

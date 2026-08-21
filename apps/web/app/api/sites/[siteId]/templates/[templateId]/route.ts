@@ -39,7 +39,7 @@ export async function PATCH(
   const template = await requireTemplate(siteId, templateId);
   if (!template) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const { name, content, condition, priority } = await req.json();
+  const { name, content, condition, trigger, priority } = await req.json();
   const data: Prisma.TemplateUpdateInput = {};
   if (name !== undefined) {
     if (typeof name !== "string" || !name.trim()) {
@@ -49,6 +49,7 @@ export async function PATCH(
   }
   if (content !== undefined) data.content = content as Prisma.InputJsonValue;
   if (condition !== undefined) data.condition = condition as Prisma.InputJsonValue;
+  if (trigger !== undefined) data.trigger = trigger as Prisma.InputJsonValue;
   if (priority !== undefined) {
     if (typeof priority !== "number") return NextResponse.json({ error: "priority must be a number" }, { status: 400 });
     data.priority = priority;

@@ -161,11 +161,22 @@ model Page {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  site       Site        @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  collection Collection? @relation(fields: [collectionId], references: [id])
-  revisions  Revision[]
+  site            Site             @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  collection      Collection?      @relation(fields: [collectionId], references: [id])
+  revisions       Revision[]
+  formSubmissions FormSubmission[]
 
   @@unique([siteId, slug])
+}
+
+model FormSubmission {
+  id        String   @id @default(uuid())
+  pageId    String
+  blockId   String
+  data      Json
+  createdAt DateTime @default(now())
+
+  page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
 }
 
 model Collection {
@@ -206,6 +217,9 @@ model Template {
   name      String
   content   Json
   condition Json
+  // Popup-only: PopupTrigger + frequency/close-behavior settings
+  // (lib/popupTrigger.ts). Null for non-popup template types.
+  trigger   Json?
   priority  Int          @default(0)
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt

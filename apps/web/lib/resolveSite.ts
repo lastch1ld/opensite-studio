@@ -81,5 +81,7 @@ export function renderContextFor(result: Awaited<ReturnType<typeof resolvePageBy
     device: "desktop",
     collectionItems: result.collectionItems,
     currentItem: result.currentItem,
+    siteId: result.site.id,
+    pageId: result.page.id,
   };
 }

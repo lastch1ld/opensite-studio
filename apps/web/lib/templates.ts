@@ -7,6 +7,9 @@ export type TemplateLite = {
   type: string;
   content: unknown;
   condition: unknown;
+  // Popup-only (lib/popupTrigger.ts's PopupSettings); null/undefined for
+  // every other Template type.
+  trigger?: unknown;
   priority: number;
 };
 
@@ -27,4 +30,14 @@ export function resolveTemplate(templates: TemplateLite[], type: string, ctx: Re
     return 0;
   });
   return candidates[0];
+}
+
+// Popups aren't a single-slot type like header/footer/pageTemplate — several
+// can be eligible on the same Page at once (e.g. an exit-intent popup and a
+// scroll popup), each firing on its own trigger. Returns every match instead
+// of picking one winner.
+export function resolveTemplates(templates: TemplateLite[], type: string, ctx: RenderContext): TemplateLite[] {
+  return templates.filter(
+    (t) => t.type === type && evaluateCondition((t.condition as Condition) ?? { type: "always" }, ctx),
+  );
 }

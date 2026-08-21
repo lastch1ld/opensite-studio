@@ -6,6 +6,8 @@ import { blockRegistry } from "@/components/blocks/registry";
 import { tokenOptionsFor, type ThemeTokens } from "@/lib/theme";
 import type { CollectionSummary } from "./EditorClient";
 import { MediaPicker } from "./MediaPicker";
+import { FormFieldsEditor } from "./FormFieldsEditor";
+import type { FormField, FormOnSubmit } from "@/components/blocks/types";
 
 type InspectorProps = {
   block: Block | null;
@@ -195,8 +197,23 @@ export function Inspector({
           Editing style overrides for {activeBreakpoint}. Leave a field blank to inherit desktop.
         </p>
       )}
+      {block.type === "form" && (
+        <div className="mt-4">
+          <FormFieldsEditor
+            fields={Array.isArray(block.props.fields) ? (block.props.fields as FormField[]) : []}
+            submitLabel={typeof block.props.submitLabel === "string" ? block.props.submitLabel : "Submit"}
+            onSubmit={(block.props.onSubmit as FormOnSubmit | undefined) ?? { action: "storeOnly" }}
+            collections={collections}
+            onChange={(next) => {
+              if (next.fields !== undefined) onChange("props", "fields", next.fields);
+              if (next.submitLabel !== undefined) onChange("props", "submitLabel", next.submitLabel);
+              if (next.onSubmit !== undefined) onChange("props", "onSubmit", next.onSubmit);
+            }}
+          />
+        </div>
+      )}
       <div className="mt-4 flex flex-col gap-4">
-        {def.fields.map((field) => {
+        {block.type !== "form" && def.fields.map((field) => {
           const isStyle = field.group === "style";
           // Props are global (not breakpoint-scoped); style edits write into
           // the currently active breakpoint's override bucket.

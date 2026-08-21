@@ -136,9 +136,13 @@ export function BlockRenderer({
   const responsiveCss = onSelect ? null : buildResponsiveCss(block.id, block.style, theme);
 
   const resolvedProps = resolveBoundProps(block.props, ctx);
-  const rawContent = def.render(resolvedProps, resolvedStyle, childrenContent);
+  const rawContent = def.render(resolvedProps, resolvedStyle, childrenContent, { blockId: block.id, ctx });
+  // Public renderer always tags the root element with its block id (not
+  // just when responsive CSS needs it) — popup elementClick triggers
+  // (docs/popups-and-modals.md) delegate a click listener off this
+  // attribute to find "the button/link block elsewhere on the page".
   const content =
-    responsiveCss && isValidElement(rawContent)
+    !onSelect && isValidElement(rawContent)
       ? cloneElement(rawContent as ReactElement<Record<string, unknown>>, { "data-block-id": block.id })
       : rawContent;
 
