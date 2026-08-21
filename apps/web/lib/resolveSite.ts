@@ -21,18 +21,50 @@ export function subdomainFromHost(host: string | null): string | null {
   return null;
 }
 
-export async function resolvePageBySubdomain(subdomain: string, slugSegments: string[]) {
-  const site = await db.site.findUnique({
-    where: { subdomain },
-    include: {
-      theme: true,
-      templates: true,
-      collections: { include: { items: true } },
-      settings: true,
-    },
-  });
-  if (!site) return null;
+const siteWithRelationsInclude = {
+  theme: true,
+  templates: true,
+  collections: { include: { items: true as const } },
+  settings: true,
+} as const;
 
+// Verified-custom-domain hosts resolve through this too, so it's the one
+// place (besides subdomainFromHost) that decides what counts as "this site's
+// host" — sitemap.xml/robots.txt and the catch-all page route both go
+// through here rather than re-deriving their own host check.
+export async function siteFromHost(host: string | null) {
+  const subdomain = subdomainFromHost(host);
+  if (subdomain) {
+    return db.site.findUnique({ where: { subdomain }, include: siteWithRelationsInclude });
+  }
+
+  const hostname = host?.split(":")[0];
+  if (!hostname) return null;
+  const appDomain = process.env.APP_DOMAIN;
+  const appHostname = appDomain?.split(":")[0];
+  if (appHostname && (hostname === appHostname || hostname === `www.${appHostname}`)) return null;
+
+  const site = await db.site.findUnique({ where: { customDomain: hostname }, include: siteWithRelationsInclude });
+  if (!site || !site.customDomainVerified) return null;
+  return site;
+}
+
+export async function resolvePageBySubdomain(subdomain: string, slugSegments: string[]) {
+  const site = await db.site.findUnique({ where: { subdomain }, include: siteWithRelationsInclude });
+  if (!site) return null;
+  return resolvePageForSite(site, slugSegments);
+}
+
+export async function resolvePageByHost(host: string | null, slugSegments: string[]) {
+  const site = await siteFromHost(host);
+  if (!site) return null;
+  return resolvePageForSite(site, slugSegments);
+}
+
+async function resolvePageForSite(
+  site: NonNullable<Awaited<ReturnType<typeof siteFromHost>>>,
+  slugSegments: string[],
+) {
   const slug = slugSegments.join("/");
   let page = slug
     ? await db.page.findUnique({ where: { siteId_slug: { siteId: site.id, slug } } })

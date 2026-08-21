@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { subdomainFromHost } from "@/lib/resolveSite";
+import { siteFromHost } from "@/lib/resolveSite";
 import { db } from "@/lib/db";
 import { isPageIndexable, type PageSeo } from "@/lib/seo";
 
@@ -9,10 +9,7 @@ import { isPageIndexable, type PageSeo } from "@/lib/seo";
 // uses, listing only published pages and respecting per-page noindex.
 export async function GET(req: Request) {
   const host = (await headers()).get("host");
-  const subdomain = subdomainFromHost(host);
-  if (!subdomain) return new Response("Not found", { status: 404 });
-
-  const site = await db.site.findUnique({ where: { subdomain } });
+  const site = await siteFromHost(host);
   if (!site) return new Response("Not found", { status: 404 });
 
   const pages = await db.page.findMany({ where: { siteId: site.id } });

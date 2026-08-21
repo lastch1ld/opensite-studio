@@ -5,23 +5,45 @@ import type { CookieBannerSettings, CookieCategory, NewsletterSettings } from "@
 
 const ALL_CATEGORIES: CookieCategory[] = ["analytics", "marketing"];
 
+type VerificationRecord = { name: string; type: "TXT"; value: string } | null;
+
 // Site-level settings panel — first consumer of the shared SiteSettings
 // store (docs/integrations.md "Shared plumbing"): cookie-banner config and
-// newsletter provider config both save through the same PUT endpoint.
+// newsletter provider config both save through the same PUT endpoint. The
+// custom-domain section below is a separate OWNER-only resource
+// (app/api/sites/[siteId]/domain) rather than part of SiteSettings, since
+// it's gated more strictly than the OWNER+EDITOR bar the rest of this panel
+// uses.
 export function SiteSettingsPanel({
   siteId,
   initialCookieBanner,
   initialNewsletter,
+  initialCustomDomain,
+  initialDomainVerified,
+  initialVerificationRecord,
   readOnly,
+  isOwner,
 }: {
   siteId: string;
   initialCookieBanner: CookieBannerSettings;
   initialNewsletter: NewsletterSettings;
+  initialCustomDomain: string | null;
+  initialDomainVerified: boolean;
+  initialVerificationRecord: VerificationRecord;
   readOnly: boolean;
+  isOwner: boolean;
 }) {
   const [cookieBanner, setCookieBanner] = useState(initialCookieBanner);
   const [newsletter, setNewsletter] = useState(initialNewsletter);
   const [saving, setSaving] = useState(false);
+
+  const [domainInput, setDomainInput] = useState(initialCustomDomain ?? "");
+  const [customDomain, setCustomDomain] = useState(initialCustomDomain);
+  const [domainVerified, setDomainVerified] = useState(initialDomainVerified);
+  const [verificationRecord, setVerificationRecord] = useState(initialVerificationRecord);
+  const [domainSaving, setDomainSaving] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [domainError, setDomainError] = useState<string | null>(null);
 
   async function save(next: { cookieBanner?: CookieBannerSettings; newsletter?: NewsletterSettings }) {
     if (readOnly) return;
@@ -43,8 +65,101 @@ export function SiteSettingsPanel({
     save({ cookieBanner: { ...cookieBanner, categories } });
   }
 
+  async function saveDomain() {
+    if (!isOwner) return;
+    setDomainSaving(true);
+    setDomainError(null);
+    const res = await fetch(`/api/sites/${siteId}/domain`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ customDomain: domainInput.trim() || null }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setDomainError(data.error ?? "Failed to save domain");
+    } else {
+      setCustomDomain(data.customDomain);
+      setDomainVerified(data.verified);
+      setVerificationRecord(data.verificationRecord);
+    }
+    setDomainSaving(false);
+  }
+
+  async function verifyDomain() {
+    if (!isOwner) return;
+    setVerifying(true);
+    setDomainError(null);
+    const res = await fetch(`/api/sites/${siteId}/domain/verify`, { method: "POST" });
+    const data = await res.json();
+    if (!res.ok) {
+      setDomainError(data.error ?? "Verification failed");
+    } else {
+      setDomainVerified(data.verified);
+      if (!data.verified) setDomainError("DNS record not found yet — this can take a few minutes to propagate.");
+    }
+    setVerifying(false);
+  }
+
   return (
     <div className="flex flex-col gap-8">
+      <section>
+        <h2 className="text-sm font-semibold text-gray-700">Custom domain</h2>
+        <div className="mt-3 flex flex-col gap-3 rounded border p-4">
+          <label className="flex flex-col gap-1 text-xs text-gray-500">
+            Domain
+            <input
+              type="text"
+              disabled={!isOwner}
+              value={domainInput}
+              onChange={(e) => setDomainInput(e.target.value)}
+              placeholder="www.example.com"
+              className="w-full max-w-md rounded border px-2 py-1 text-sm"
+            />
+          </label>
+          {isOwner && (
+            <button
+              type="button"
+              onClick={saveDomain}
+              disabled={domainSaving || domainInput.trim() === (customDomain ?? "")}
+              className="w-fit rounded border px-3 py-1 text-xs hover:bg-gray-50 disabled:opacity-50"
+            >
+              {domainSaving ? "Saving..." : "Save domain"}
+            </button>
+          )}
+          {customDomain && (
+            <div className="flex flex-col gap-2 text-xs text-gray-600">
+              <span>
+                Status:{" "}
+                <span className={domainVerified ? "font-medium text-green-700" : "font-medium text-amber-700"}>
+                  {domainVerified ? "Verified" : "Not verified"}
+                </span>
+              </span>
+              {!domainVerified && verificationRecord && (
+                <div className="rounded bg-gray-50 p-2 font-mono">
+                  <div>Add this DNS TXT record, then click Verify:</div>
+                  <div>Name: {verificationRecord.name}</div>
+                  <div>Value: {verificationRecord.value}</div>
+                </div>
+              )}
+              {!domainVerified && isOwner && (
+                <button
+                  type="button"
+                  onClick={verifyDomain}
+                  disabled={verifying}
+                  className="w-fit rounded border px-3 py-1 text-xs hover:bg-gray-50 disabled:opacity-50"
+                >
+                  {verifying ? "Checking..." : "Verify"}
+                </button>
+              )}
+              {domainVerified && (
+                <span>Point this domain&rsquo;s DNS (A/CNAME) at your server to serve traffic — see README.md.</span>
+              )}
+            </div>
+          )}
+          {domainError && <span className="text-xs text-red-600">{domainError}</span>}
+        </div>
+      </section>
+
       <section>
         <h2 className="text-sm font-semibold text-gray-700">Cookie banner</h2>
         <div className="mt-3 flex flex-col gap-3 rounded border p-4">

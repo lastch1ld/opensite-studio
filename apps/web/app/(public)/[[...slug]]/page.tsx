@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import type { Metadata } from "next";
-import { subdomainFromHost, resolvePageBySubdomain, renderContextFor } from "@/lib/resolveSite";
+import { subdomainFromHost, resolvePageByHost, renderContextFor } from "@/lib/resolveSite";
 import { PublishedPage } from "@/components/PublishedPage";
 import type { PageContent } from "@/components/blocks/types";
 import type { ThemeTokens } from "@/lib/theme";
@@ -11,9 +11,7 @@ import type { CookieBannerSettings } from "@/lib/siteSettings";
 
 async function resolve(slug: string[]) {
   const host = (await headers()).get("host");
-  const subdomain = subdomainFromHost(host);
-  if (!subdomain) return null;
-  return resolvePageBySubdomain(subdomain, slug);
+  return resolvePageByHost(host, slug);
 }
 
 export async function generateMetadata({
@@ -30,18 +28,21 @@ export async function generateMetadata({
 export default async function PublicSitePage({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { slug } = await params;
   const host = (await headers()).get("host");
-  const subdomain = subdomainFromHost(host);
+  const result = await resolvePageByHost(host, slug ?? []);
 
-  // Host isn't a recognized site subdomain: this is the studio's own domain
-  // (APP_DOMAIN itself, or local dev without APP_DOMAIN set), so behave as
-  // the authenticated app's landing page instead of a 404.
-  if (!subdomain) {
-    const session = await auth();
-    redirect(session?.user ? "/dashboard" : "/login");
+  // Host isn't a recognized site subdomain or verified custom domain: this
+  // is the studio's own domain (APP_DOMAIN itself, or local dev without
+  // APP_DOMAIN set), so behave as the authenticated app's landing page
+  // instead of a 404 — but only when it's not simply an unresolvable slug
+  // on an otherwise-recognized site host.
+  if (!result) {
+    const subdomain = subdomainFromHost(host);
+    if (!subdomain) {
+      const session = await auth();
+      redirect(session?.user ? "/dashboard" : "/login");
+    }
+    notFound();
   }
-
-  const result = await resolvePageBySubdomain(subdomain, slug ?? []);
-  if (!result) notFound();
 
   return (
     <PublishedPage

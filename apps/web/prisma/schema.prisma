@@ -66,6 +66,16 @@ model Site {
   ownerId   String
   name      String
   subdomain String   @unique
+  // Single custom-domain + verified flag (docs/renderer.md "Custom domain
+  // verification + TLS") — deliberately not the doc's originally-sketched
+  // multi-host-per-site `Domain` table, out of scope for this pass.
+  // customDomainVerifyToken is the value the owner must publish in a
+  // `_opensite-verify.{customDomain}` TXT record; customDomainVerified only
+  // flips true after a server-side DNS lookup confirms it, and is the sole
+  // gate lib/resolveSite.ts uses before serving content on that host.
+  customDomain            String?  @unique
+  customDomainVerified    Boolean  @default(false)
+  customDomainVerifyToken String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -43,6 +43,21 @@ path-based fallback instead:
 http://localhost:3000/site/<subdomain>/<page-slug>
 ```
 
+## Custom domains
+
+A site owner can add a custom domain from the site's Settings page: enter the
+domain, add the DNS TXT record it shows you (proves ownership), then click
+Verify. Once verified, point the domain's DNS (A/CNAME) at your server and
+run the bundled reverse proxy in front of `web`:
+
+```sh
+docker compose --profile proxy up --build
+```
+
+`caddy` (see `Caddyfile`) issues Let's Encrypt certificates on demand for
+verified domains, asking the app (`/api/domains/verify-ask`) before it
+requests each one — no manual cert config needed as domains are added.
+
 ## Project layout
 
 - `apps/web` — the Next.js app (App Router): dashboard, editor, public

@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { getSiteRole } from "@/lib/permissions";
 import { SiteSettingsPanel } from "@/components/dashboard/SiteSettingsPanel";
 import { defaultCookieBannerSettings, defaultNewsletterSettings, type CookieBannerSettings, type NewsletterSettings } from "@/lib/siteSettings";
+import { verificationRecordName } from "@/lib/domain";
 
 export default async function SiteSettingsPage({ params }: { params: Promise<{ siteId: string }> }) {
   const { siteId } = await params;
@@ -23,7 +24,15 @@ export default async function SiteSettingsPage({ params }: { params: Promise<{ s
           siteId={siteId}
           initialCookieBanner={(settings?.cookieBanner as unknown as CookieBannerSettings) ?? defaultCookieBannerSettings()}
           initialNewsletter={(settings?.newsletter as unknown as NewsletterSettings) ?? defaultNewsletterSettings()}
+          initialCustomDomain={site.customDomain}
+          initialDomainVerified={site.customDomainVerified}
+          initialVerificationRecord={
+            site.customDomain && site.customDomainVerifyToken
+              ? { name: verificationRecordName(site.customDomain), type: "TXT", value: site.customDomainVerifyToken }
+              : null
+          }
           readOnly={role === "VIEWER"}
+          isOwner={role === "OWNER"}
         />
       </div>
     </div>

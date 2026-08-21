@@ -86,7 +86,20 @@ generate` succeeds, but no migration file exists yet (same situation as
 - [x] SEO fields + sitemap/robots (integrations.md)
 - [x] Cookie banner + consent gating (integrations.md)
 - [x] Newsletter block + provider adapters (integrations.md)
-- Custom domains + TLS (renderer.md, deployment.md)
+- [x] Custom domains + TLS (renderer.md, deployment.md)
+
+Phase 3 is now fully complete.
+
+Note: `Site.customDomain` (present in the original data-model.md sketch but
+never actually added to schema.prisma until now) plus two new columns,
+`customDomainVerified` (Boolean) and `customDomainVerifyToken` (String?),
+still need a Prisma migration generated (`npx prisma migrate dev`) once a
+dev Postgres is available — schema.prisma is updated and `prisma generate`
+succeeds, but no migration file exists yet (same situation as `Media` in
+Phase 1). Deliberate simplification: this is the single
+`customDomain`+`verified` flag renderer.md/data-model.md flagged as the
+simpler option, not the doc's originally-sketched multi-host-per-site
+`Domain` table — out of scope for this pass.
 
 ## Phase 4 — Ecosystem
 

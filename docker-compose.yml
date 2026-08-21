@@ -28,6 +28,26 @@ services:
     ports:
       - "3000:3000"
 
+  # Reverse proxy for custom domains + TLS (docs/deployment.md). Optional in
+  # local dev — only start it (`docker compose --profile proxy up`) once
+  # APP_DOMAIN/custom domains are actually in play; plain `docker compose up`
+  # still serves the app directly on :3000 without it.
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    profiles: ["proxy"]
+    depends_on:
+      - web
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy-data:/data
+      - caddy-config:/config
+    ports:
+      - "80:80"
+      - "443:443"
+
 volumes:
   db-data:
   media-data:
+  caddy-data:
+  caddy-config:
