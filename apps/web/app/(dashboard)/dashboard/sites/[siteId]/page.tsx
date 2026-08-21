@@ -34,6 +34,9 @@ export default async function SitePagesPage({ params }: { params: Promise<{ site
           <Link href={`/dashboard/sites/${site.id}/theme`} className="rounded border px-3 py-2 text-sm hover:bg-gray-50">
             Theme
           </Link>
+          <Link href={`/dashboard/sites/${site.id}/settings`} className="rounded border px-3 py-2 text-sm hover:bg-gray-50">
+            Settings
+          </Link>
         </div>
       </div>
       <PageList

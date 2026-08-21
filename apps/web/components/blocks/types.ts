@@ -10,7 +10,8 @@ export type BlockType =
   | "columns"
   | "embed"
   | "list"
-  | "form";
+  | "form"
+  | "newsletter";
 
 export type Breakpoint = "base" | "tablet" | "mobile";
 
@@ -58,6 +59,16 @@ export type FormBlockProps = {
   steps?: string[][];
   submitLabel: string;
   onSubmit: FormOnSubmit;
+};
+
+// docs/integrations.md's "newsletter" block: just an email input + submit —
+// provider config (webhook URL vs. storeOnly) lives site-wide in
+// SiteSettings.newsletter (lib/siteSettings.ts), not per-block, since it's
+// the same provider for every newsletter block on a site.
+export type NewsletterBlockProps = {
+  placeholder: string;
+  submitLabel: string;
+  successMessage: string;
 };
 
 export type FieldSchema = {

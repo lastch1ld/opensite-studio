@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 import type { Block, FieldSchema, FormField } from "./types";
 import { hasContainerChildren } from "@/lib/responsiveStyle";
 import { FormBlock } from "./FormBlock";
+import { NewsletterBlock } from "./NewsletterBlock";
 import type { RenderContext } from "@/lib/bind";
 
 // Extra per-render info a block's `render()` doesn't get from props/style
@@ -306,6 +307,30 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
             fields={fields}
             steps={steps}
             submitLabel={str(props.submitLabel, "Submit")}
+            blockId={meta.blockId}
+            ctx={meta.ctx}
+          />
+        </div>
+      );
+    },
+  },
+  newsletter: {
+    label: "Newsletter",
+    defaultProps: { placeholder: "you@example.com", submitLabel: "Subscribe", successMessage: "Thanks — you're subscribed." },
+    defaultStyle: { padding: "16px" },
+    fields: [
+      { key: "placeholder", label: "Placeholder", group: "props", input: "text" },
+      { key: "submitLabel", label: "Submit label", group: "props", input: "text" },
+      { key: "successMessage", label: "Success message", group: "props", input: "text" },
+      { key: "padding", label: "Padding", group: "style", input: "text", tokenCategory: "spacing" },
+    ],
+    render(props, style, _children, meta) {
+      return (
+        <div style={{ padding: str(style.padding, "16px") }}>
+          <NewsletterBlock
+            placeholder={str(props.placeholder, "you@example.com")}
+            submitLabel={str(props.submitLabel, "Subscribe")}
+            successMessage={str(props.successMessage, "Thanks — you're subscribed.")}
             blockId={meta.blockId}
             ctx={meta.ctx}
           />

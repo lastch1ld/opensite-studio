@@ -12,9 +12,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ pageId
   const page = await requirePageRole(pageId, session.user.id, ["OWNER", "EDITOR"]);
   if (!page) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const { draftContent, collectionId } = await req.json();
-  if (draftContent === undefined && collectionId === undefined) {
-    return NextResponse.json({ error: "draftContent or collectionId is required" }, { status: 400 });
+  const { draftContent, collectionId, seo } = await req.json();
+  if (draftContent === undefined && collectionId === undefined && seo === undefined) {
+    return NextResponse.json({ error: "draftContent, collectionId, or seo is required" }, { status: 400 });
   }
 
   const data: Prisma.PageUpdateInput = {};
@@ -22,6 +22,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ pageId
   if (collectionId !== undefined) {
     data.collection = collectionId ? { connect: { id: collectionId as string } } : { disconnect: true };
   }
+  if (seo !== undefined) data.seo = seo as Prisma.InputJsonValue;
 
   const updated = await db.page.update({ where: { id: pageId }, data });
   return NextResponse.json(updated);

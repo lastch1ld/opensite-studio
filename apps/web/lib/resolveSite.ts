@@ -28,6 +28,7 @@ export async function resolvePageBySubdomain(subdomain: string, slugSegments: st
       theme: true,
       templates: true,
       collections: { include: { items: true } },
+      settings: true,
     },
   });
   if (!site) return null;

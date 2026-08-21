@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { getSiteRole } from "@/lib/permissions";
 import { EditorClient } from "@/components/editor/EditorClient";
 import type { PageContent } from "@/components/blocks/types";
+import type { PageSeo } from "@/lib/seo";
 
 export default async function EditorPage({
   params,
@@ -27,6 +28,7 @@ export default async function EditorPage({
       canPublish={role === "OWNER"}
       readOnly={role === "VIEWER"}
       pageCollectionId={page.collectionId}
+      initialSeo={page.seo as PageSeo | null}
     />
   );
 }

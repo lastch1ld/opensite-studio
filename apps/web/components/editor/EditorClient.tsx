@@ -22,6 +22,8 @@ import { LayersPanel } from "./LayersPanel";
 import { Inspector } from "./Inspector";
 import { Toolbar } from "./Toolbar";
 import { ClipboardPanel } from "./ClipboardPanel";
+import { SeoPanel } from "./SeoPanel";
+import { defaultPageSeo, type PageSeo } from "@/lib/seo";
 
 export type SavedBlockSummary = { id: string; name: string; content: Block };
 export type CollectionSummary = { id: string; name: string; fieldSchema: CollectionField[] };
@@ -44,6 +46,7 @@ export function EditorClient({
   backHref,
   extraToolbar,
   pageCollectionId = null,
+  initialSeo = null,
 }: {
   siteId: string;
   pageId: string;
@@ -60,10 +63,15 @@ export function EditorClient({
   // fixed-collection binding, since this page's content tree is the
   // per-item template. Irrelevant/omitted in template mode.
   pageCollectionId?: string | null;
+  // Page-only (see docs/integrations.md "SEO") — omitted/ignored in template
+  // mode, which has no SEO fields.
+  initialSeo?: PageSeo | null;
 }) {
   const { present: content, update: updateContent, undo, redo, canUndo, canRedo } = useHistory(initialContent);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [rightTab, setRightTab] = useState<"inspector" | "clipboard">("inspector");
+  const [rightTab, setRightTab] = useState<"inspector" | "clipboard" | "seo">("inspector");
+  const [seo, setSeo] = useState<PageSeo>(initialSeo ?? defaultPageSeo());
+  const seoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [publishing, setPublishing] = useState(false);
   const [activeBreakpoint, setActiveBreakpoint] = useState<Breakpoint>("base");
@@ -244,6 +252,22 @@ export function EditorClient({
     [selectedId, readOnly, updateContent],
   );
 
+  const handleSeoChange = useCallback(
+    (next: PageSeo) => {
+      if (readOnly || mode !== "page") return;
+      setSeo(next);
+      if (seoSaveTimer.current) clearTimeout(seoSaveTimer.current);
+      seoSaveTimer.current = setTimeout(() => {
+        fetch(`/api/sites/${siteId}/pages/${pageId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ seo: next }),
+        });
+      }, AUTOSAVE_DELAY_MS);
+    },
+    [siteId, pageId, mode, readOnly],
+  );
+
   const handleRestore = useCallback(
     (restoredContent: PageContent) => {
       updateContent(() => restoredContent);
@@ -336,11 +360,23 @@ export function EditorClient({
                 >
                   Import
                 </button>
+                {mode === "page" && (
+                  <button
+                    onClick={() => setRightTab("seo")}
+                    className={`flex-1 px-3 py-2 text-xs font-medium ${
+                      rightTab === "seo" ? "border-b-2 border-black" : "text-gray-500 hover:bg-gray-50"
+                    }`}
+                  >
+                    SEO
+                  </button>
+                )}
               </div>
             )}
             <div className="flex-1 overflow-hidden">
               {rightTab === "clipboard" && !readOnly ? (
                 <ClipboardPanel siteId={siteId} selectedBlock={selectedBlock} onInsert={handleInsertFragment} />
+              ) : rightTab === "seo" && mode === "page" ? (
+                <SeoPanel seo={seo} onChange={handleSeoChange} readOnly={readOnly} />
               ) : (
                 <Inspector
                   block={selectedBlock}

@@ -78,6 +78,22 @@ model Site {
   invitations Invitation[]
   collections Collection[]
   templates   Template[]
+  settings    SiteSettings?
+}
+
+// Site-level settings/secrets store (docs/integrations.md "Shared plumbing
+// this implies") — one row per Site, holding whatever cross-cutting
+// integration config exists so far. Each integration gets its own nullable
+// Json field here rather than a new sibling table per integration.
+model SiteSettings {
+  id           String   @id @default(uuid())
+  siteId       String   @unique
+  cookieBanner Json?
+  newsletter   Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 }
 
 enum MembershipRole {
@@ -163,6 +179,11 @@ model Page {
   // resolves `slug` directly. Null for manually-created pages (flat,
   // top-level); sitemap import is the natural first writer of it.
   parentId         String?
+  // Per-page SEO fields (docs/integrations.md "SEO"): meta title/description,
+  // canonical URL, OG/Twitter fields, robots index/follow. Kept as one Json
+  // blob (PageSeo, lib/seo.ts) rather than discrete columns since these are
+  // all optional and only ever read/written together.
+  seo              Json?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 

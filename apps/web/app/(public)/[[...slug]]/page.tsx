@@ -6,6 +6,8 @@ import { PublishedPage } from "@/components/PublishedPage";
 import type { PageContent } from "@/components/blocks/types";
 import type { ThemeTokens } from "@/lib/theme";
 import { auth } from "@/lib/auth";
+import { buildPageMetadata, type PageSeo } from "@/lib/seo";
+import type { CookieBannerSettings } from "@/lib/siteSettings";
 
 async function resolve(slug: string[]) {
   const host = (await headers()).get("host");
@@ -22,7 +24,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const result = await resolve(slug ?? []);
   if (!result) return {};
-  return { title: result.page.title, description: `${result.site.name} — ${result.page.title}` };
+  return buildPageMetadata({ title: result.page.title, seo: result.page.seo as PageSeo | null }, result.site.name);
 }
 
 export default async function PublicSitePage({ params }: { params: Promise<{ slug?: string[] }> }) {
@@ -47,6 +49,7 @@ export default async function PublicSitePage({ params }: { params: Promise<{ slu
       theme={(result.site.theme?.tokens as unknown as ThemeTokens | undefined) ?? null}
       templates={result.templates}
       renderContext={renderContextFor(result)}
+      cookieBannerSettings={(result.site.settings?.cookieBanner as unknown as CookieBannerSettings | undefined) ?? null}
     />
   );
 }

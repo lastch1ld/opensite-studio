@@ -70,14 +70,22 @@ migrate dev`) once a dev Postgres is available — schema.prisma is updated
 and `prisma generate` succeeds, but no migration file exists yet (same
 situation as `Media` in Phase 1).
 
+Note: a Prisma migration for the new `SiteSettings` table (site-level
+settings/secrets store shared by the cookie banner and newsletter provider
+config) and for the `Page.seo` column added for per-page SEO fields
+(integrations.md) still needs to be generated (`npx prisma migrate dev`)
+once a dev Postgres is available — schema.prisma is updated and `prisma
+generate` succeeds, but no migration file exists yet (same situation as
+`Media` in Phase 1).
+
 ## Phase 3 — Parity features
 
 - [x] Content import: sitemap-based page-structure import + content clipboard for migrating old-page text (content-import.md)
 - [x] Forms: fields, conditional logic, multi-step, submissions (forms.md)
 - [x] Popups & modals with trigger rules (popups-and-modals.md)
-- SEO fields + sitemap/robots (integrations.md)
-- Cookie banner + consent gating (integrations.md)
-- Newsletter block + provider adapters (integrations.md)
+- [x] SEO fields + sitemap/robots (integrations.md)
+- [x] Cookie banner + consent gating (integrations.md)
+- [x] Newsletter block + provider adapters (integrations.md)
 - Custom domains + TLS (renderer.md, deployment.md)
 
 ## Phase 4 — Ecosystem

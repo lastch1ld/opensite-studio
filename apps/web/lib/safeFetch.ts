@@ -110,3 +110,46 @@ export async function safeFetchText(rawUrl: string): Promise<string> {
   }
   throw new Error("Too many redirects.");
 }
+
+// POSTs a JSON body to a user-supplied URL with the same SSRF guards as
+// safeFetchText (host allowlist re-checked on every redirect hop, timeout).
+// Used for outbound webhook calls (e.g. newsletter provider config) where
+// the response body itself isn't needed, just whether the call succeeded.
+export async function safePostJson(rawUrl: string, payload: unknown): Promise<void> {
+  let current = rawUrl;
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+    const url = new URL(current);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      throw new Error("Only http(s) URLs are supported.");
+    }
+    await assertHostAllowed(url.hostname);
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+        redirect: "manual",
+      });
+    } catch {
+      throw new Error("Failed to reach this URL.");
+    } finally {
+      clearTimeout(timer);
+    }
+
+    if (res.status >= 300 && res.status < 400) {
+      const location = res.headers.get("location");
+      if (!location) throw new Error("Redirect response had no location.");
+      current = new URL(location, url).toString();
+      continue;
+    }
+
+    if (!res.ok) throw new Error(`Request failed with status ${res.status}.`);
+    return;
+  }
+  throw new Error("Too many redirects.");
+}

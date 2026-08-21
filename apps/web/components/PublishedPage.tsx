@@ -6,6 +6,8 @@ import type { TemplateLite } from "@/lib/templates";
 import { resolveTemplate, resolveTemplates } from "@/lib/templates";
 import { PopupHost, type PopupSpec } from "@/components/PopupHost";
 import { defaultPopupSettings, type PopupSettings } from "@/lib/popupTrigger";
+import { CookieBanner } from "@/components/CookieBanner";
+import { defaultCookieBannerSettings, type CookieBannerSettings } from "@/lib/siteSettings";
 
 // Composes header Template + (page content, or a matching pageTemplate /
 // collectionItemTemplate's content if one targets this render) + footer
@@ -17,11 +19,13 @@ export function PublishedPage({
   theme = null,
   templates = [],
   renderContext,
+  cookieBannerSettings = null,
 }: {
   content: PageContent | null;
   theme?: ThemeTokens | null;
   templates?: TemplateLite[];
   renderContext?: RenderContext;
+  cookieBannerSettings?: CookieBannerSettings | null;
 }) {
   const ctx: RenderContext = renderContext ?? { device: "desktop" };
 
@@ -53,6 +57,7 @@ export function PublishedPage({
       <BlockRenderer block={bodyRoot} theme={theme} renderContext={ctx} isRoot />
       {footer && <BlockRenderer block={(footer.content as PageContent).root} theme={theme} renderContext={ctx} isRoot />}
       <PopupHost popups={popups} theme={theme} renderContext={ctx} />
+      <CookieBanner settings={cookieBannerSettings ?? defaultCookieBannerSettings()} />
     </>
   );
 }
