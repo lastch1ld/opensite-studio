@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import type { Metadata } from "next";
-import { subdomainFromHost, resolvePageBySubdomain } from "@/lib/resolveSite";
+import { subdomainFromHost, resolvePageBySubdomain, renderContextFor } from "@/lib/resolveSite";
 import { PublishedPage } from "@/components/PublishedPage";
 import type { PageContent } from "@/components/blocks/types";
 import type { ThemeTokens } from "@/lib/theme";
@@ -45,6 +45,8 @@ export default async function PublicSitePage({ params }: { params: Promise<{ slu
     <PublishedPage
       content={result.page.publishedContent as unknown as PageContent | null}
       theme={(result.site.theme?.tokens as unknown as ThemeTokens | undefined) ?? null}
+      templates={result.templates}
+      renderContext={renderContextFor(result)}
     />
   );
 }

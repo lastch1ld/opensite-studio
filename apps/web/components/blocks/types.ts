@@ -1,3 +1,5 @@
+import type { Condition } from "@/lib/condition";
+
 export type BlockType =
   | "section"
   | "text"
@@ -6,7 +8,8 @@ export type BlockType =
   | "heading"
   | "spacer"
   | "columns"
-  | "embed";
+  | "embed"
+  | "list";
 
 export type Breakpoint = "base" | "tablet" | "mobile";
 
@@ -21,6 +24,9 @@ export type Block = {
   props: Record<string, unknown>;
   style?: BlockStyle;
   children?: Block[];
+  // A block whose condition evaluates false at render time doesn't render
+  // at all (see lib/condition.ts). Independent of style/props.
+  condition?: Condition;
 };
 
 export type PageContent = {
@@ -32,8 +38,11 @@ export type FieldSchema = {
   key: string;
   label: string;
   group: "props" | "style";
-  input: "text" | "textarea" | "number" | "color" | "select" | "url" | "image";
+  input: "text" | "textarea" | "number" | "color" | "select" | "url" | "image" | "collectionSelect";
   options?: { label: string; value: string }[];
+  // Props fields only: whether the Inspector should offer a "bind to
+  // collection field" toggle alongside the literal-value input.
+  bindable?: boolean;
   // Style fields only: which Theme token category this field may bind to
   // (see lib/theme.ts) instead of a literal value.
   tokenCategory?: "colors" | "typography" | "spacing";

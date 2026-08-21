@@ -26,6 +26,7 @@ export default async function EditorPage({
       initialContent={page.draftContent as unknown as PageContent}
       canPublish={role === "OWNER"}
       readOnly={role === "VIEWER"}
+      pageCollectionId={page.collectionId}
     />
   );
 }

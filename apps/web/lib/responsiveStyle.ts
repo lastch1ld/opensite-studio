@@ -73,5 +73,5 @@ export function buildResponsiveCss(
 }
 
 export function hasContainerChildren(type: Block["type"]): boolean {
-  return type === "section" || type === "columns";
+  return type === "section" || type === "columns" || type === "list";
 }

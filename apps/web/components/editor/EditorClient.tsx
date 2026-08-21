@@ -15,6 +15,7 @@ import { addBlock, addBlockAt, cloneWithNewIds, deleteBlock, findBlock, moveBloc
 import { useHistory } from "@/lib/useHistory";
 import { BREAKPOINTS } from "@/lib/responsiveStyle";
 import type { ThemeTokens } from "@/lib/theme";
+import type { CollectionField } from "@/lib/collectionSchema";
 import { DragHandleWrapper } from "./dnd/DragHandleWrapper";
 import { DropSlotList } from "./dnd/DropSlotList";
 import { LayersPanel } from "./LayersPanel";
@@ -22,9 +23,15 @@ import { Inspector } from "./Inspector";
 import { Toolbar } from "./Toolbar";
 
 export type SavedBlockSummary = { id: string; name: string; content: Block };
+export type CollectionSummary = { id: string; name: string; fieldSchema: CollectionField[] };
 
 const AUTOSAVE_DELAY_MS = 1000;
 
+// Theme Builder reuses this same editor for Templates (docs/theme-builder.md
+// "no second editor implementation, just a different content source") —
+// `mode: "template"` swaps the save/publish endpoints and hides the
+// page-only affordances (publish, version history) that don't apply to a
+// Template (single `content` field, no draft/published split).
 export function EditorClient({
   siteId,
   pageId,
@@ -32,6 +39,10 @@ export function EditorClient({
   initialContent,
   canPublish = true,
   readOnly = false,
+  mode = "page",
+  backHref,
+  extraToolbar,
+  pageCollectionId = null,
 }: {
   siteId: string;
   pageId: string;
@@ -39,6 +50,15 @@ export function EditorClient({
   initialContent: PageContent;
   canPublish?: boolean;
   readOnly?: boolean;
+  mode?: "page" | "template";
+  backHref?: string;
+  extraToolbar?: ReactNode;
+  // The Page's own collectionId (see docs/collections.md's dynamic/repeater
+  // pages) — when set, the Inspector's bind toggle offers `currentItem`
+  // bindings ("whichever CollectionItem this render is for") instead of a
+  // fixed-collection binding, since this page's content tree is the
+  // per-item template. Irrelevant/omitted in template mode.
+  pageCollectionId?: string | null;
 }) {
   const { present: content, update: updateContent, undo, redo, canUndo, canRedo } = useHistory(initialContent);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -47,6 +67,7 @@ export function EditorClient({
   const [activeBreakpoint, setActiveBreakpoint] = useState<Breakpoint>("base");
   const [theme, setTheme] = useState<ThemeTokens | null>(null);
   const [savedBlocks, setSavedBlocks] = useState<SavedBlockSummary[]>([]);
+  const [collections, setCollections] = useState<CollectionSummary[]>([]);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isFirstRender = useRef(true);
 
@@ -60,6 +81,9 @@ export function EditorClient({
     fetch(`/api/sites/${siteId}/theme`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data: { tokens: ThemeTokens } | null) => setTheme(data?.tokens ?? null));
+    fetch(`/api/sites/${siteId}/collections`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: { id: string; name: string; fieldSchema: CollectionField[] }[]) => setCollections(data));
     refreshSavedBlocks();
   }, [siteId, refreshSavedBlocks]);
 
@@ -72,10 +96,12 @@ export function EditorClient({
     queueMicrotask(() => setSaveStatus("saving"));
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
-      await fetch(`/api/sites/${siteId}/pages/${pageId}`, {
+      const url = mode === "template" ? `/api/sites/${siteId}/templates/${pageId}` : `/api/sites/${siteId}/pages/${pageId}`;
+      const body = mode === "template" ? { content } : { draftContent: content };
+      await fetch(url, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ draftContent: content }),
+        body: JSON.stringify(body),
       });
       setSaveStatus("saved");
     }, AUTOSAVE_DELAY_MS);
@@ -119,7 +145,7 @@ export function EditorClient({
   }, [selectedId, content.root, updateContent]);
 
   const handleChange = useCallback(
-    (group: "props" | "style", key: string, value: string | { $token: string }) => {
+    (group: "props" | "style", key: string, value: unknown) => {
       if (!selectedId || readOnly) return;
       updateContent((prev) => ({
         ...prev,
@@ -234,6 +260,8 @@ export function EditorClient({
           siteId={siteId}
           pageId={pageId}
           pageTitle={pageTitle}
+          mode={mode}
+          backHref={backHref}
           onAdd={handleAdd}
           onDelete={handleDelete}
           canDelete={Boolean(selectedId && selectedId !== content.root.id) && !readOnly}
@@ -253,6 +281,7 @@ export function EditorClient({
           onInsertSavedBlock={handleInsertSavedBlock}
           readOnly={readOnly}
           onRestore={handleRestore}
+          extraToolbar={extraToolbar}
         />
         <div className="grid flex-1 grid-cols-[220px_1fr_280px] overflow-hidden">
           <LayersPanel root={content.root} selectedId={selectedId} onSelect={setSelectedId} />
@@ -276,6 +305,8 @@ export function EditorClient({
             activeBreakpoint={activeBreakpoint}
             theme={theme}
             onChange={handleChange}
+            collections={collections}
+            pageCollectionId={pageCollectionId}
           />
         </div>
       </div>

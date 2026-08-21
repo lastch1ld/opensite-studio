@@ -52,14 +52,15 @@ one-shared-render-codepath rule (architecture.md).
 - [x] Membership roles (OWNER/EDITOR/VIEWER) + invites (auth.md)
 - [x] Revision history + restore (data-model.md)
 - [x] Saved/reusable blocks
-- Collections + dynamic/repeater pages + conditional visibility + dynamic field binding (collections.md)
-- Theme Builder: header/footer/page templates with conditional targeting (theme-builder.md)
+- [x] Collections + dynamic/repeater pages + conditional visibility + dynamic field binding (collections.md)
+- [x] Theme Builder: header/footer/page templates with conditional targeting (theme-builder.md)
 
 Note: Prisma migrations for the new `Theme`, `SavedBlock`, `Membership`,
-`Invitation`, and `Revision` tables still need to be generated
-(`npx prisma migrate dev`) once a dev Postgres is available — schema.prisma
-is updated and `prisma generate` succeeds, but no migration file exists yet
-(same situation as `Media` in Phase 1).
+`Invitation`, `Revision`, `Collection`, `CollectionItem`, and `Template`
+tables still need to be generated (`npx prisma migrate dev`) once a dev
+Postgres is available — schema.prisma is updated and `prisma generate`
+succeeds, but no migration file exists yet (same situation as `Media` in
+Phase 1).
 
 ## Phase 3 — Parity features
 

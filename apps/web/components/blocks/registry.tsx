@@ -51,7 +51,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
     defaultProps: { content: "New text block" },
     defaultStyle: { fontSize: "16px", fontWeight: "400", color: "#111111" },
     fields: [
-      { key: "content", label: "Content", group: "props", input: "textarea" },
+      { key: "content", label: "Content", group: "props", input: "textarea", bindable: true },
       { key: "fontSize", label: "Font size", group: "style", input: "text", tokenCategory: "typography" },
       {
         key: "fontWeight",
@@ -82,7 +82,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
     defaultProps: { src: "https://placehold.co/600x300", alt: "", objectFit: "cover" },
     defaultStyle: {},
     fields: [
-      { key: "src", label: "Image", group: "props", input: "image" },
+      { key: "src", label: "Image", group: "props", input: "image", bindable: true },
       { key: "alt", label: "Alt text", group: "props", input: "text" },
       {
         key: "objectFit",
@@ -231,6 +231,43 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
           title="Embedded content"
         />
       );
+    },
+  },
+  // Repeating is handled directly by BlockRenderer (it needs to render the
+  // child subtree once per matched CollectionItem, which a single `render`
+  // call over already-built `children` can't do) — this entry only supplies
+  // defaults/fields/style for the registry-driven parts (createBlock,
+  // Inspector, palette). See BlockRenderer.tsx's "list" branch.
+  list: {
+    label: "List / Grid",
+    defaultProps: { collectionId: "", filterField: "", filterValue: "", sortField: "", sortDir: "asc", limit: "10" },
+    defaultStyle: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" },
+    fields: [
+      { key: "collectionId", label: "Collection", group: "props", input: "collectionSelect" },
+      { key: "filterField", label: "Filter field", group: "props", input: "text" },
+      { key: "filterValue", label: "Filter value", group: "props", input: "text" },
+      { key: "sortField", label: "Sort field", group: "props", input: "text" },
+      {
+        key: "sortDir",
+        label: "Sort direction",
+        group: "props",
+        input: "select",
+        options: [
+          { label: "Ascending", value: "asc" },
+          { label: "Descending", value: "desc" },
+        ],
+      },
+      { key: "limit", label: "Limit", group: "props", input: "number" },
+      { key: "gap", label: "Gap", group: "style", input: "text", tokenCategory: "spacing" },
+    ],
+    render(props, style, children) {
+      const cssStyle: CSSProperties = {
+        display: "grid",
+        gridTemplateColumns: "repeat(3, 1fr)",
+        gap: str(style.gap, "16px"),
+        minHeight: "40px",
+      };
+      return <div style={cssStyle}>{children}</div>;
     },
   },
 };

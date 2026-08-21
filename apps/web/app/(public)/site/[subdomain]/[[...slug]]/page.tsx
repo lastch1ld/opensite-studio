@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { resolvePageBySubdomain } from "@/lib/resolveSite";
+import { resolvePageBySubdomain, renderContextFor } from "@/lib/resolveSite";
 import { PublishedPage } from "@/components/PublishedPage";
 import type { PageContent } from "@/components/blocks/types";
 import type { ThemeTokens } from "@/lib/theme";
@@ -32,6 +32,8 @@ export default async function PublicSiteFallbackPage({
     <PublishedPage
       content={result.page.publishedContent as unknown as PageContent | null}
       theme={(result.site.theme?.tokens as unknown as ThemeTokens | undefined) ?? null}
+      templates={result.templates}
+      renderContext={renderContextFor(result)}
     />
   );
 }

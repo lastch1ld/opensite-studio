@@ -76,6 +76,8 @@ model Site {
   savedBlocks SavedBlock[]
   memberships Membership[]
   invitations Invitation[]
+  collections Collection[]
+  templates   Template[]
 }
 
 enum MembershipRole {
@@ -153,13 +155,62 @@ model Page {
   draftContent     Json
   publishedContent Json?
   isHome           Boolean  @default(false)
+  // Set for a dynamic/repeater page: the block tree above is the template,
+  // rendered once per CollectionItem (see docs/collections.md).
+  collectionId     String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  site      Site       @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  revisions Revision[]
+  site       Site        @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  collection Collection? @relation(fields: [collectionId], references: [id])
+  revisions  Revision[]
 
   @@unique([siteId, slug])
+}
+
+model Collection {
+  id         String   @id @default(uuid())
+  siteId     String
+  name       String
+  fieldSchema Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  site  Site             @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  items CollectionItem[]
+  pages Page[]
+}
+
+model CollectionItem {
+  id           String   @id @default(uuid())
+  collectionId String
+  data         Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+}
+
+enum TemplateType {
+  header
+  footer
+  pageTemplate
+  collectionItemTemplate
+  popup
+}
+
+model Template {
+  id        String       @id @default(uuid())
+  siteId    String
+  type      TemplateType
+  name      String
+  content   Json
+  condition Json
+  priority  Int          @default(0)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 }
 
 model Revision {

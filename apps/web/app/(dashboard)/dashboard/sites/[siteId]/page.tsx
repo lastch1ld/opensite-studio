@@ -14,6 +14,7 @@ export default async function SitePagesPage({ params }: { params: Promise<{ site
   if (!site || !role) notFound();
 
   const pages = await db.page.findMany({ where: { siteId }, orderBy: { createdAt: "asc" } });
+  const collections = await db.collection.findMany({ where: { siteId }, orderBy: { createdAt: "asc" } });
   const invitations = role === "OWNER" ? await db.invitation.findMany({ where: { siteId }, orderBy: { createdAt: "desc" } }) : [];
 
   return (
@@ -23,13 +24,22 @@ export default async function SitePagesPage({ params }: { params: Promise<{ site
           <h1 className="text-2xl font-semibold">{site.name}</h1>
           <p className="text-sm text-gray-500">{site.subdomain}</p>
         </div>
-        <Link href={`/dashboard/sites/${site.id}/theme`} className="rounded border px-3 py-2 text-sm hover:bg-gray-50">
-          Theme
-        </Link>
+        <div className="flex gap-2">
+          <Link href={`/dashboard/sites/${site.id}/collections`} className="rounded border px-3 py-2 text-sm hover:bg-gray-50">
+            Collections
+          </Link>
+          <Link href={`/dashboard/sites/${site.id}/templates`} className="rounded border px-3 py-2 text-sm hover:bg-gray-50">
+            Theme Builder
+          </Link>
+          <Link href={`/dashboard/sites/${site.id}/theme`} className="rounded border px-3 py-2 text-sm hover:bg-gray-50">
+            Theme
+          </Link>
+        </div>
       </div>
       <PageList
         siteId={site.id}
-        initialPages={pages.map((p) => ({ id: p.id, title: p.title, slug: p.slug, isHome: p.isHome }))}
+        initialPages={pages.map((p) => ({ id: p.id, title: p.title, slug: p.slug, isHome: p.isHome, collectionId: p.collectionId }))}
+        collections={collections.map((c) => ({ id: c.id, name: c.name }))}
       />
       {role === "OWNER" && (
         <MembersPanel

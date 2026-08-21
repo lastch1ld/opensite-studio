@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 import type { Block, Breakpoint, PageContent } from "@/components/blocks/types";
 import { blockRegistry } from "@/components/blocks/registry";
 import { BREAKPOINTS } from "@/lib/responsiveStyle";
@@ -12,6 +13,9 @@ type ToolbarProps = {
   siteId: string;
   pageId: string;
   pageTitle: string;
+  mode?: "page" | "template";
+  backHref?: string;
+  extraToolbar?: ReactNode;
   onAdd: (type: Block["type"]) => void;
   onDelete: () => void;
   canDelete: boolean;
@@ -37,6 +41,9 @@ export function Toolbar({
   siteId,
   pageId,
   pageTitle,
+  mode = "page",
+  backHref,
+  extraToolbar,
   onAdd,
   onDelete,
   canDelete,
@@ -61,7 +68,7 @@ export function Toolbar({
     <div className="flex flex-col gap-2 border-b bg-white px-4 py-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link href={`/dashboard/sites/${siteId}`} className="text-sm text-gray-500 underline">
+          <Link href={backHref ?? `/dashboard/sites/${siteId}`} className="text-sm text-gray-500 underline">
             &larr; {pageTitle}
           </Link>
           <span className="text-xs text-gray-400">
@@ -102,15 +109,19 @@ export function Toolbar({
           >
             Save as reusable block
           </button>
-          <VersionHistoryPanel siteId={siteId} pageId={pageId} canRestore={!readOnly} onRestore={onRestore} />
-          <button
-            onClick={onPublish}
-            disabled={publishing || !canPublish}
-            title={canPublish ? undefined : "Only the site owner can publish"}
-            className="rounded bg-black px-3 py-1 text-sm text-white disabled:opacity-50"
-          >
-            {publishing ? "Publishing..." : "Publish"}
-          </button>
+          {mode === "page" && (
+            <>
+              <VersionHistoryPanel siteId={siteId} pageId={pageId} canRestore={!readOnly} onRestore={onRestore} />
+              <button
+                onClick={onPublish}
+                disabled={publishing || !canPublish}
+                title={canPublish ? undefined : "Only the site owner can publish"}
+                className="rounded bg-black px-3 py-1 text-sm text-white disabled:opacity-50"
+              >
+                {publishing ? "Publishing..." : "Publish"}
+              </button>
+            </>
+          )}
         </div>
       </div>
       {!readOnly && (
@@ -136,6 +147,7 @@ export function Toolbar({
           ))}
         </div>
       )}
+      {extraToolbar}
     </div>
   );
 }

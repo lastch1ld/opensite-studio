@@ -4,9 +4,18 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-type Page = { id: string; title: string; slug: string; isHome: boolean };
+type Page = { id: string; title: string; slug: string; isHome: boolean; collectionId: string | null };
+type CollectionOption = { id: string; name: string };
 
-export function PageList({ siteId, initialPages }: { siteId: string; initialPages: Page[] }) {
+export function PageList({
+  siteId,
+  initialPages,
+  collections = [],
+}: {
+  siteId: string;
+  initialPages: Page[];
+  collections?: CollectionOption[];
+}) {
   const router = useRouter();
   const [pages, setPages] = useState(initialPages);
   const [title, setTitle] = useState("");
@@ -38,6 +47,18 @@ export function PageList({ siteId, initialPages }: { siteId: string; initialPage
     setSlug("");
     setIsHome(false);
     router.refresh();
+  }
+
+  async function handleCollectionChange(pageId: string, collectionId: string) {
+    const res = await fetch(`/api/sites/${siteId}/pages/${pageId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ collectionId: collectionId || null }),
+    });
+    if (res.ok) {
+      setPages((prev) => prev.map((p) => (p.id === pageId ? { ...p, collectionId: collectionId || null } : p)));
+      router.refresh();
+    }
   }
 
   async function handleDelete(id: string) {
@@ -84,12 +105,29 @@ export function PageList({ siteId, initialPages }: { siteId: string; initialPage
                 {page.title}
               </Link>
               <p className="text-sm text-gray-500">
-                /{page.slug} {page.isHome && "(home)"}
+                /{page.slug} {page.isHome && "(home)"} {page.collectionId && "(dynamic)"}
               </p>
             </div>
-            <button onClick={() => handleDelete(page.id)} className="text-sm text-red-600 underline">
-              Delete
-            </button>
+            <div className="flex items-center gap-3">
+              {collections.length > 0 && (
+                <select
+                  value={page.collectionId ?? ""}
+                  onChange={(e) => handleCollectionChange(page.id, e.target.value)}
+                  className="rounded border px-2 py-1 text-xs"
+                  title="Bind this page to a collection to make it a dynamic/repeater page"
+                >
+                  <option value="">Static page</option>
+                  {collections.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      Dynamic: {c.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <button onClick={() => handleDelete(page.id)} className="text-sm text-red-600 underline">
+                Delete
+              </button>
+            </div>
           </li>
         ))}
         {pages.length === 0 && <p className="py-4 text-sm text-gray-500">No pages yet. Create one above.</p>}
