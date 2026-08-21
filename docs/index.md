@@ -23,6 +23,7 @@ steps, shared-render-codepath rule, commit policy).
 | [data-model.md](data-model.md) | Prisma schema: sites, pages, blocks, media, users, revisions | Partial |
 | [auth.md](auth.md) | Accounts, roles/permissions, multi-tenant site ownership, sessions | Partial |
 | [editor.md](editor.md) | Live drag-and-drop editor, canvas, block registry, undo/redo, autosave | Minimal |
+| [editor-ui-stack.md](editor-ui-stack.md) | Editor chrome tooling: Tailwind + Radix primitives, Puck/Craft.js evaluation, lucide-react | Not built |
 | [renderer.md](renderer.md) | Public site rendering, custom domains, SSR/ISR, preview vs published | Minimal |
 | [blocks-and-theming.md](blocks-and-theming.md) | Block library, design tokens, global styles/theme editor | Not built |
 | [media.md](media.md) | Uploads, image transforms, asset library | Not built |
@@ -45,6 +46,9 @@ steps, shared-render-codepath rule, commit policy).
 1. `architecture.md` — get the shape of the system.
 2. `data-model.md` + `auth.md` — the persistence and identity foundations everything else depends on.
 3. `editor.md` + `renderer.md` — the two user-facing halves (build-time vs serve-time).
+   `editor-ui-stack.md` is a narrower follow-on to `editor.md` — read it
+   when picking tooling for the editor's own chrome (toolbar/panels/dialogs),
+   not the block-rendering system.
 4. `blocks-and-theming.md`, `media.md`, `integrations.md`, `ai-mode.md`, `plugins-and-extensibility.md` — parity features layered on top later.
    `starter-templates.md` and `content-import.md` are both "bring in existing content" tools and read well together here too.
 5. `collections.md` → `theme-builder.md` → `popups-and-modals.md` / `forms.md` — read in this order: collections.md's `Condition`/`$bind` types are reused by all three of the others.

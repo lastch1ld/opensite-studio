@@ -31,6 +31,21 @@ generated (`npx prisma migrate dev`) once a dev Postgres is available —
 schema.prisma is updated and `prisma generate` succeeds, but no migration
 file exists yet.
 
+## Editor UI tooling (editor-ui-stack.md)
+
+Adopt for the editor's own chrome (not the block-rendering system):
+
+- Tailwind + `@radix-ui/react-dialog` for `MediaPicker` and
+  `VersionHistoryPanel` (currently hand-rolled modals missing focus trap,
+  Escape handling, `aria-modal`)
+- `@radix-ui/react-toggle-group` for the breakpoint toggle in `Toolbar.tsx`
+- `lucide-react` for toolbar/layers/viewport icons
+
+Puck/Craft.js evaluated and explicitly rejected — both would require
+replacing this project's `Block`/`BlockRenderer`/registry/`$bind`/
+`Condition` stack wholesale (a rewrite, not an addition) to preserve the
+one-shared-render-codepath rule (architecture.md).
+
 ## Phase 2 — Real theming + collaboration
 
 - [x] Theme tokens + theme editor panel (blocks-and-theming.md)
