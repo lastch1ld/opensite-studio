@@ -6,6 +6,11 @@ auth, a live visual page editor, and a public site renderer.
 **Stack:** Next.js (App Router) + TypeScript, Node.js, Prisma + Postgres,
 NextAuth (credentials + OAuth), Docker Compose for self-hosting.
 
+**Working on this repo?** Read [`../AGENTS.md`](../AGENTS.md) first — glossary
+of project-specific terms (`$bind`, `Condition`, Template, etc.) and the
+ruleset every agent/contributor follows (scope discipline, verification
+steps, shared-render-codepath rule, commit policy).
+
 ## Status legend
 - `[x]` implemented in the current MVP
 - `[ ]` documented/designed only — needed for full Wix/Elementor parity, not yet built
