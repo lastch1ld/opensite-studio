@@ -1,7 +1,8 @@
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import type { PageContent } from "@/components/blocks/types";
+import type { ThemeTokens } from "@/lib/theme";
 
-export function PublishedPage({ content }: { content: PageContent | null }) {
+export function PublishedPage({ content, theme = null }: { content: PageContent | null; theme?: ThemeTokens | null }) {
   if (!content) {
     return (
       <div style={{ padding: "48px", textAlign: "center", fontFamily: "sans-serif", color: "#666" }}>
@@ -10,5 +11,5 @@ export function PublishedPage({ content }: { content: PageContent | null }) {
     );
   }
 
-  return <BlockRenderer block={content.root} />;
+  return <BlockRenderer block={content.root} theme={theme} />;
 }

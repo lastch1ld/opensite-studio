@@ -3,13 +3,18 @@
 import { cloneElement, isValidElement, type ReactElement, type ReactNode } from "react";
 import type { Block, Breakpoint } from "./types";
 import { blockRegistry } from "./registry";
-import { buildResponsiveCss, resolveStyle } from "@/lib/responsiveStyle";
+import { buildResponsiveCss, resolveStyle, resolveTokens } from "@/lib/responsiveStyle";
+import type { ThemeTokens } from "@/lib/theme";
 
 type BlockRendererProps = {
   block: Block;
   selectedId?: string | null;
   onSelect?: (id: string) => void;
   activeBreakpoint?: Breakpoint;
+  // Theme to resolve `{ $token: ... }` style values against. Null renders
+  // token refs' fallback (undefined -> block's own default) — same path
+  // for editor canvas and public renderer, just fed a different theme.
+  theme?: ThemeTokens | null;
   // Editor-only hooks: wrap a block's rendered node (e.g. to add a drag
   // handle) or wrap a container's children (e.g. to interleave drop
   // targets). Public renderer never passes these, so its output is
@@ -27,6 +32,7 @@ export function BlockRenderer({
   selectedId,
   onSelect,
   activeBreakpoint = "base",
+  theme = null,
   renderNodeWrapper,
   renderChildrenWrapper,
   isRoot = false,
@@ -42,6 +48,7 @@ export function BlockRenderer({
       selectedId={selectedId}
       onSelect={onSelect}
       activeBreakpoint={activeBreakpoint}
+      theme={theme}
       renderNodeWrapper={renderNodeWrapper}
       renderChildrenWrapper={renderChildrenWrapper}
     />
@@ -55,11 +62,11 @@ export function BlockRenderer({
         : null
     : null;
 
-  const resolvedStyle = resolveStyle(block.style, activeBreakpoint);
+  const resolvedStyle = resolveTokens(resolveStyle(block.style, activeBreakpoint), theme);
   // Only the public renderer (no onSelect) needs generated media-query CSS;
   // the editor just re-renders the resolved style for whichever breakpoint
   // is active, since its canvas isn't a real responsive viewport.
-  const responsiveCss = onSelect ? null : buildResponsiveCss(block.id, block.style);
+  const responsiveCss = onSelect ? null : buildResponsiveCss(block.id, block.style, theme);
 
   const rawContent = def.render(block.props, resolvedStyle, childrenContent);
   const content =

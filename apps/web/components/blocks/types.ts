@@ -34,4 +34,7 @@ export type FieldSchema = {
   group: "props" | "style";
   input: "text" | "textarea" | "number" | "color" | "select" | "url" | "image";
   options?: { label: string; value: string }[];
+  // Style fields only: which Theme token category this field may bind to
+  // (see lib/theme.ts) instead of a literal value.
+  tokenCategory?: "colors" | "typography" | "spacing";
 };

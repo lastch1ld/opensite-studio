@@ -33,12 +33,17 @@ file exists yet.
 
 ## Phase 2 — Real theming + collaboration
 
-- Theme tokens + theme editor panel (blocks-and-theming.md)
+- [x] Theme tokens + theme editor panel (blocks-and-theming.md)
 - Membership roles (OWNER/EDITOR/VIEWER) + invites (auth.md)
 - Revision history + restore (data-model.md)
-- Saved/reusable blocks
+- [x] Saved/reusable blocks
 - Collections + dynamic/repeater pages + conditional visibility + dynamic field binding (collections.md)
 - Theme Builder: header/footer/page templates with conditional targeting (theme-builder.md)
+
+Note: Prisma migrations for the new `Theme` and `SavedBlock` tables still
+need to be generated (`npx prisma migrate dev`) once a dev Postgres is
+available — schema.prisma is updated and `prisma generate` succeeds, but no
+migration file exists yet (same situation as `Media` in Phase 1).
 
 ## Phase 3 — Parity features
 

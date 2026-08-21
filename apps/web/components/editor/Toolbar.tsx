@@ -5,6 +5,7 @@ import type { Block, Breakpoint } from "@/components/blocks/types";
 import { blockRegistry } from "@/components/blocks/registry";
 import { BREAKPOINTS } from "@/lib/responsiveStyle";
 import { PaletteItem } from "./dnd/PaletteItem";
+import type { SavedBlockSummary } from "./EditorClient";
 
 type ToolbarProps = {
   siteId: string;
@@ -21,6 +22,10 @@ type ToolbarProps = {
   onRedo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  savedBlocks: SavedBlockSummary[];
+  canSaveAsBlock: boolean;
+  onSaveAsBlock: () => void;
+  onInsertSavedBlock: (saved: SavedBlockSummary) => void;
 };
 
 export function Toolbar({
@@ -38,6 +43,10 @@ export function Toolbar({
   onRedo,
   canUndo,
   canRedo,
+  savedBlocks,
+  canSaveAsBlock,
+  onSaveAsBlock,
+  onInsertSavedBlock,
 }: ToolbarProps) {
   return (
     <div className="flex flex-col gap-2 border-b bg-white px-4 py-2">
@@ -78,6 +87,13 @@ export function Toolbar({
             Delete selected
           </button>
           <button
+            onClick={onSaveAsBlock}
+            disabled={!canSaveAsBlock}
+            className="rounded border px-3 py-1 text-sm hover:bg-gray-50 disabled:opacity-40"
+          >
+            Save as reusable block
+          </button>
+          <button
             onClick={onPublish}
             disabled={publishing}
             className="rounded bg-black px-3 py-1 text-sm text-white disabled:opacity-50"
@@ -92,6 +108,21 @@ export function Toolbar({
           <PaletteItem key={t} type={t} label={blockRegistry[t].label} onAdd={onAdd} />
         ))}
       </div>
+      {savedBlocks.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-gray-500">Insert saved block:</span>
+          {savedBlocks.map((saved) => (
+            <button
+              key={saved.id}
+              onClick={() => onInsertSavedBlock(saved)}
+              className="rounded border px-2 py-1 text-xs hover:bg-gray-50"
+              title="Insert a copy"
+            >
+              {saved.name}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

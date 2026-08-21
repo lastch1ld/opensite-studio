@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { resolvePageBySubdomain } from "@/lib/resolveSite";
 import { PublishedPage } from "@/components/PublishedPage";
 import type { PageContent } from "@/components/blocks/types";
+import type { ThemeTokens } from "@/lib/theme";
 
 // Path-based fallback for previewing a published site without wiring real
 // wildcard subdomains locally, e.g. /site/my-site/about instead of
@@ -27,5 +28,10 @@ export default async function PublicSiteFallbackPage({
   const result = await resolvePageBySubdomain(subdomain, slug ?? []);
   if (!result) notFound();
 
-  return <PublishedPage content={result.page.publishedContent as unknown as PageContent | null} />;
+  return (
+    <PublishedPage
+      content={result.page.publishedContent as unknown as PageContent | null}
+      theme={(result.site.theme?.tokens as unknown as ThemeTokens | undefined) ?? null}
+    />
+  );
 }

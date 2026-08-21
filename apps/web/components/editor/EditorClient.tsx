@@ -11,14 +11,17 @@ import {
 import type { Block, Breakpoint, PageContent } from "@/components/blocks/types";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { createBlock } from "@/components/blocks/registry";
-import { addBlock, addBlockAt, deleteBlock, findBlock, moveBlock, updateBlock } from "@/lib/blockTree";
+import { addBlock, addBlockAt, cloneWithNewIds, deleteBlock, findBlock, moveBlock, updateBlock } from "@/lib/blockTree";
 import { useHistory } from "@/lib/useHistory";
 import { BREAKPOINTS } from "@/lib/responsiveStyle";
+import type { ThemeTokens } from "@/lib/theme";
 import { DragHandleWrapper } from "./dnd/DragHandleWrapper";
 import { DropSlotList } from "./dnd/DropSlotList";
 import { LayersPanel } from "./LayersPanel";
 import { Inspector } from "./Inspector";
 import { Toolbar } from "./Toolbar";
+
+export type SavedBlockSummary = { id: string; name: string; content: Block };
 
 const AUTOSAVE_DELAY_MS = 1000;
 
@@ -38,8 +41,23 @@ export function EditorClient({
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [publishing, setPublishing] = useState(false);
   const [activeBreakpoint, setActiveBreakpoint] = useState<Breakpoint>("base");
+  const [theme, setTheme] = useState<ThemeTokens | null>(null);
+  const [savedBlocks, setSavedBlocks] = useState<SavedBlockSummary[]>([]);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isFirstRender = useRef(true);
+
+  const refreshSavedBlocks = useCallback(() => {
+    fetch(`/api/sites/${siteId}/saved-blocks`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: SavedBlockSummary[]) => setSavedBlocks(data));
+  }, [siteId]);
+
+  useEffect(() => {
+    fetch(`/api/sites/${siteId}/theme`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { tokens: ThemeTokens } | null) => setTheme(data?.tokens ?? null));
+    refreshSavedBlocks();
+  }, [siteId, refreshSavedBlocks]);
 
   useEffect(() => {
     if (isFirstRender.current) {
@@ -96,7 +114,7 @@ export function EditorClient({
   }, [selectedId, content.root, updateContent]);
 
   const handleChange = useCallback(
-    (group: "props" | "style", key: string, value: string) => {
+    (group: "props" | "style", key: string, value: string | { $token: string }) => {
       if (!selectedId) return;
       updateContent((prev) => ({
         ...prev,
@@ -113,6 +131,39 @@ export function EditorClient({
       }));
     },
     [selectedId, activeBreakpoint, updateContent],
+  );
+
+  const handleSaveAsBlock = useCallback(async () => {
+    if (!selectedId) return;
+    const block = findBlock(content.root, selectedId);
+    if (!block) return;
+    const name = window.prompt("Name this reusable block:");
+    if (!name || !name.trim()) return;
+    const res = await fetch(`/api/sites/${siteId}/saved-blocks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: name.trim(), content: block }),
+    });
+    if (res.ok) refreshSavedBlocks();
+  }, [selectedId, content.root, siteId, refreshSavedBlocks]);
+
+  // Detached copy: inserting re-generates every id in the subtree (see
+  // lib/blockTree.ts's cloneWithNewIds), so the copy diverges from the
+  // saved original immediately and from any other prior insert. Linked
+  // symbols (edit-one-updates-all) would need the block tree to store a
+  // reference + resolve it at render time everywhere (editor canvas, public
+  // renderer, publish snapshotting) — a bigger change than this first pass
+  // warrants, and detached is what data-model.md flags as the open question
+  // this project can defer.
+  const handleInsertSavedBlock = useCallback(
+    (saved: SavedBlockSummary) => {
+      const parentId =
+        selectedId && findBlock(content.root, selectedId)?.children !== undefined ? selectedId : content.root.id;
+      const newBlock = cloneWithNewIds(saved.content);
+      updateContent((prev) => ({ ...prev, root: addBlock(prev.root, parentId, newBlock) }));
+      setSelectedId(newBlock.id);
+    },
+    [content.root, selectedId, updateContent],
   );
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
@@ -180,6 +231,10 @@ export function EditorClient({
           onRedo={redo}
           canUndo={canUndo}
           canRedo={canRedo}
+          savedBlocks={savedBlocks}
+          canSaveAsBlock={Boolean(selectedId)}
+          onSaveAsBlock={handleSaveAsBlock}
+          onInsertSavedBlock={handleInsertSavedBlock}
         />
         <div className="grid flex-1 grid-cols-[220px_1fr_280px] overflow-hidden">
           <LayersPanel root={content.root} selectedId={selectedId} onSelect={setSelectedId} />
@@ -190,13 +245,20 @@ export function EditorClient({
                 selectedId={selectedId}
                 onSelect={setSelectedId}
                 activeBreakpoint={activeBreakpoint}
+                theme={theme}
                 renderNodeWrapper={renderNodeWrapper}
                 renderChildrenWrapper={renderChildrenWrapper}
                 isRoot
               />
             </div>
           </div>
-          <Inspector block={selectedBlock} siteId={siteId} activeBreakpoint={activeBreakpoint} onChange={handleChange} />
+          <Inspector
+            block={selectedBlock}
+            siteId={siteId}
+            activeBreakpoint={activeBreakpoint}
+            theme={theme}
+            onChange={handleChange}
+          />
         </div>
       </div>
     </DndContext>

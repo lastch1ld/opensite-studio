@@ -30,8 +30,8 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
           { label: "Row (horizontal)", value: "row" },
         ],
       },
-      { key: "padding", label: "Padding", group: "style", input: "text" },
-      { key: "background", label: "Background", group: "style", input: "color" },
+      { key: "padding", label: "Padding", group: "style", input: "text", tokenCategory: "spacing" },
+      { key: "background", label: "Background", group: "style", input: "color", tokenCategory: "colors" },
     ],
     render(props, style, children) {
       const layout = str(props.layout, "stack");
@@ -52,7 +52,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
     defaultStyle: { fontSize: "16px", fontWeight: "400", color: "#111111" },
     fields: [
       { key: "content", label: "Content", group: "props", input: "textarea" },
-      { key: "fontSize", label: "Font size", group: "style", input: "text" },
+      { key: "fontSize", label: "Font size", group: "style", input: "text", tokenCategory: "typography" },
       {
         key: "fontWeight",
         label: "Font weight",
@@ -64,7 +64,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
           { label: "Bold", value: "700" },
         ],
       },
-      { key: "color", label: "Color", group: "style", input: "color" },
+      { key: "color", label: "Color", group: "style", input: "color", tokenCategory: "colors" },
     ],
     render(props, style) {
       const cssStyle: CSSProperties = {
@@ -156,8 +156,8 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
           { label: "H6", value: "h6" },
         ],
       },
-      { key: "fontSize", label: "Font size", group: "style", input: "text" },
-      { key: "color", label: "Color", group: "style", input: "color" },
+      { key: "fontSize", label: "Font size", group: "style", input: "text", tokenCategory: "typography" },
+      { key: "color", label: "Color", group: "style", input: "color", tokenCategory: "colors" },
     ],
     render(props, style) {
       const Tag = (["h1", "h2", "h3", "h4", "h5", "h6"].includes(str(props.level)) ? str(props.level) : "h2") as
@@ -180,7 +180,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
     label: "Spacer",
     defaultProps: {},
     defaultStyle: { height: "32px" },
-    fields: [{ key: "height", label: "Height", group: "style", input: "text" }],
+    fields: [{ key: "height", label: "Height", group: "style", input: "text", tokenCategory: "spacing" }],
     render(_props, style) {
       return <div style={{ height: str(style.height, "32px") }} />;
     },
@@ -201,7 +201,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
           { label: "4", value: "4" },
         ],
       },
-      { key: "gap", label: "Gap", group: "style", input: "text" },
+      { key: "gap", label: "Gap", group: "style", input: "text", tokenCategory: "spacing" },
     ],
     render(props, style, children) {
       const columns = str(props.columns, "2");

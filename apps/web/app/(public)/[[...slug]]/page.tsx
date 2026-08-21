@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { subdomainFromHost, resolvePageBySubdomain } from "@/lib/resolveSite";
 import { PublishedPage } from "@/components/PublishedPage";
 import type { PageContent } from "@/components/blocks/types";
+import type { ThemeTokens } from "@/lib/theme";
 import { auth } from "@/lib/auth";
 
 async function resolve(slug: string[]) {
@@ -40,5 +41,10 @@ export default async function PublicSitePage({ params }: { params: Promise<{ slu
   const result = await resolvePageBySubdomain(subdomain, slug ?? []);
   if (!result) notFound();
 
-  return <PublishedPage content={result.page.publishedContent as unknown as PageContent | null} />;
+  return (
+    <PublishedPage
+      content={result.page.publishedContent as unknown as PageContent | null}
+      theme={(result.site.theme?.tokens as unknown as ThemeTokens | undefined) ?? null}
+    />
+  );
 }

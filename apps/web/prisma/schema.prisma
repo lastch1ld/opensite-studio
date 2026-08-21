@@ -67,9 +67,32 @@ model Site {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  owner User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  pages Page[]
-  media Media[]
+  owner       User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  pages       Page[]
+  media       Media[]
+  theme       Theme?
+  savedBlocks SavedBlock[]
+}
+
+model Theme {
+  id        String   @id @default(uuid())
+  siteId    String   @unique
+  tokens    Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+}
+
+model SavedBlock {
+  id        String   @id @default(uuid())
+  siteId    String
+  name      String
+  content   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 }
 
 model Media {

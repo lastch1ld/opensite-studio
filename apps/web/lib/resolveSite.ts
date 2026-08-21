@@ -20,7 +20,7 @@ export function subdomainFromHost(host: string | null): string | null {
 }
 
 export async function resolvePageBySubdomain(subdomain: string, slugSegments: string[]) {
-  const site = await db.site.findUnique({ where: { subdomain } });
+  const site = await db.site.findUnique({ where: { subdomain }, include: { theme: true } });
   if (!site) return null;
 
   const slug = slugSegments.join("/");

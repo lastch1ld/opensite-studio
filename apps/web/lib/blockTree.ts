@@ -68,6 +68,18 @@ export function deleteBlock(root: Block, id: string): Block {
   };
 }
 
+// Detached-copy insert for saved/reusable blocks: every id in the subtree
+// is regenerated so the inserted copy has no relation to the original once
+// placed (see components/editor/EditorClient.tsx for the linked-vs-detached
+// decision).
+export function cloneWithNewIds(block: Block): Block {
+  return {
+    ...block,
+    id: crypto.randomUUID(),
+    children: block.children?.map(cloneWithNewIds),
+  };
+}
+
 export function updateBlock(
   root: Block,
   id: string,

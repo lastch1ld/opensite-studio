@@ -3,14 +3,20 @@
 import { useState } from "react";
 import type { Block, Breakpoint, FieldSchema } from "@/components/blocks/types";
 import { blockRegistry } from "@/components/blocks/registry";
+import { tokenOptionsFor, type ThemeTokens } from "@/lib/theme";
 import { MediaPicker } from "./MediaPicker";
 
 type InspectorProps = {
   block: Block | null;
   siteId: string;
   activeBreakpoint: Breakpoint;
-  onChange: (group: "props" | "style", key: string, value: string) => void;
+  theme: ThemeTokens | null;
+  onChange: (group: "props" | "style", key: string, value: string | { $token: string }) => void;
 };
+
+function isTokenRef(v: unknown): v is { $token: string } {
+  return typeof v === "object" && v !== null && typeof (v as { $token?: unknown }).$token === "string";
+}
 
 function FieldInput({
   field,
@@ -85,7 +91,7 @@ function FieldInput({
   );
 }
 
-export function Inspector({ block, siteId, activeBreakpoint, onChange }: InspectorProps) {
+export function Inspector({ block, siteId, activeBreakpoint, theme, onChange }: InspectorProps) {
   const [mediaFieldKey, setMediaFieldKey] = useState<string | null>(null);
 
   if (!block) {
@@ -114,16 +120,37 @@ export function Inspector({ block, siteId, activeBreakpoint, onChange }: Inspect
           // the currently active breakpoint's override bucket.
           const source = isStyle ? block.style?.[activeBreakpoint] ?? {} : block.props;
           const raw = source[field.key];
+          const tokenRef = isTokenRef(raw) ? raw.$token : null;
           const value = typeof raw === "string" ? raw : "";
+          const tokenOptions = field.tokenCategory && theme ? tokenOptionsFor(theme, field.tokenCategory) : [];
           return (
             <div key={`${field.group}.${field.key}`}>
               <label className="mb-1 block text-xs font-medium text-gray-600">{field.label}</label>
-              <FieldInput
-                field={field}
-                value={value}
-                onChange={(v) => onChange(field.group, field.key, v)}
-                onOpenMediaPicker={() => setMediaFieldKey(field.key)}
-              />
+              {tokenOptions.length > 0 && (
+                <select
+                  value={tokenRef ?? "__custom__"}
+                  onChange={(e) => {
+                    if (e.target.value === "__custom__") onChange(field.group, field.key, value);
+                    else onChange(field.group, field.key, { $token: e.target.value });
+                  }}
+                  className="mb-1 w-full rounded border px-2 py-1 text-xs"
+                >
+                  <option value="__custom__">Custom value</option>
+                  {tokenOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      Token: {opt.label}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {!tokenRef && (
+                <FieldInput
+                  field={field}
+                  value={value}
+                  onChange={(v) => onChange(field.group, field.key, v)}
+                  onOpenMediaPicker={() => setMediaFieldKey(field.key)}
+                />
+              )}
             </div>
           );
         })}
