@@ -30,6 +30,7 @@ NextAuth (credentials + OAuth), Docker Compose for self-hosting.
 | [forms.md](forms.md) | Form builder: fields, conditional logic, multi-step, submissions | Not built |
 | [multilingual.md](multilingual.md) | Per-locale translation of pages, templates, and collection fields | Not built |
 | [plugins-and-extensibility.md](plugins-and-extensibility.md) | Plugin/app model, third-party block SDK, marketplace | Not built |
+| [programmatic-access.md](programmatic-access.md) | CLI, MCP server, and public API access with per-key scoped permissions | Not built |
 | [deployment.md](deployment.md) | Self-hosting via Docker Compose, env config, backups | Partial |
 | [roadmap.md](roadmap.md) | Feature checklist toward full Wix/Elementor parity, phased | N/A |
 

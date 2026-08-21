@@ -56,6 +56,7 @@ file exists yet.
 - AI Mode: full-page Claude/ChatGPT-style chat app, server-side keys, instance whitelabeling (ai-mode.md)
 - Plugin/block SDK (plugins-and-extensibility.md)
 - Multi-language sites (multilingual.md)
+- CLI, MCP server, and public API with per-key scoped permissions (programmatic-access.md)
 
 Phases are a sequencing guide, not a commitment to build every item —
 re-prioritize freely as real usage surfaces what matters.
