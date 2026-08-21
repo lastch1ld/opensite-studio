@@ -17,6 +17,7 @@ type InspectorProps = {
   onChange: (group: "props" | "style", key: string, value: unknown) => void;
   collections?: CollectionSummary[];
   pageCollectionId?: string | null;
+  readOnly?: boolean;
 };
 
 function isTokenRef(v: unknown): v is { $token: string } {
@@ -33,16 +34,23 @@ function FieldInput({
   onChange,
   onOpenMediaPicker,
   collections,
+  readOnly = false,
 }: {
   field: FieldSchema;
   value: string;
   onChange: (v: string) => void;
   onOpenMediaPicker: () => void;
   collections: CollectionSummary[];
+  readOnly?: boolean;
 }) {
   if (field.input === "collectionSelect") {
     return (
-      <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded border px-2 py-1 text-sm">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={readOnly}
+        className="w-full rounded border px-2 py-1 text-sm"
+      >
         <option value="">Select a collection...</option>
         {collections.map((c) => (
           <option key={c.id} value={c.id}>
@@ -54,7 +62,12 @@ function FieldInput({
   }
   if (field.input === "select") {
     return (
-      <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded border px-2 py-1 text-sm">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={readOnly}
+        className="w-full rounded border px-2 py-1 text-sm"
+      >
         {field.options?.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.label}
@@ -68,6 +81,7 @@ function FieldInput({
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        disabled={readOnly}
         rows={3}
         className="w-full rounded border px-2 py-1 text-sm"
       />
@@ -79,6 +93,7 @@ function FieldInput({
         type="color"
         value={/^#[0-9a-fA-F]{6}$/.test(value) ? value : "#000000"}
         onChange={(e) => onChange(e.target.value)}
+        disabled={readOnly}
         className="h-8 w-full rounded border"
       />
     );
@@ -95,9 +110,14 @@ function FieldInput({
             type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
+            disabled={readOnly}
             className="w-full rounded border px-2 py-1 text-sm"
           />
-          <button onClick={onOpenMediaPicker} className="whitespace-nowrap rounded border px-2 py-1 text-xs hover:bg-gray-50">
+          <button
+            onClick={onOpenMediaPicker}
+            disabled={readOnly}
+            className="whitespace-nowrap rounded border px-2 py-1 text-xs hover:bg-gray-50 disabled:opacity-50"
+          >
             Choose
           </button>
         </div>
@@ -109,6 +129,7 @@ function FieldInput({
       type="text"
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      disabled={readOnly}
       className="w-full rounded border px-2 py-1 text-sm"
     />
   );
@@ -124,11 +145,13 @@ function BindEditor({
   collections,
   pageCollectionId,
   onChange,
+  readOnly = false,
 }: {
   boundRef: { source: string; collectionId?: string; field: string };
   collections: CollectionSummary[];
   pageCollectionId?: string | null;
   onChange: (next: { source: string; collectionId?: string; field: string }) => void;
+  readOnly?: boolean;
 }) {
   const isCurrentItem = boundRef.source === "currentItem";
   const targetCollection = isCurrentItem
@@ -141,6 +164,7 @@ function BindEditor({
         <select
           value={boundRef.collectionId ?? ""}
           onChange={(e) => onChange({ ...boundRef, collectionId: e.target.value })}
+          disabled={readOnly}
           className="w-full rounded border px-2 py-1 text-xs"
         >
           <option value="">Select a collection...</option>
@@ -154,6 +178,7 @@ function BindEditor({
       <select
         value={boundRef.field}
         onChange={(e) => onChange({ ...boundRef, field: e.target.value })}
+        disabled={readOnly}
         className="w-full rounded border px-2 py-1 text-xs"
       >
         <option value="">Select a field...</option>
@@ -175,6 +200,7 @@ export function Inspector({
   onChange,
   collections = [],
   pageCollectionId = null,
+  readOnly = false,
 }: InspectorProps) {
   const [mediaFieldKey, setMediaFieldKey] = useState<string | null>(null);
 
@@ -209,6 +235,7 @@ export function Inspector({
               if (next.submitLabel !== undefined) onChange("props", "submitLabel", next.submitLabel);
               if (next.onSubmit !== undefined) onChange("props", "onSubmit", next.onSubmit);
             }}
+            readOnly={readOnly}
           />
         </div>
       )}
@@ -233,6 +260,7 @@ export function Inspector({
                     <input
                       type="checkbox"
                       checked={Boolean(boundRef)}
+                      disabled={readOnly}
                       onChange={(e) => {
                         if (!e.target.checked) {
                           onChange(field.group, field.key, "");
@@ -258,6 +286,7 @@ export function Inspector({
                   collections={collections}
                   pageCollectionId={pageCollectionId}
                   onChange={(next) => onChange(field.group, field.key, { $bind: next })}
+                  readOnly={readOnly}
                 />
               )}
               {!boundRef && tokenOptions.length > 0 && (
@@ -267,6 +296,7 @@ export function Inspector({
                     if (e.target.value === "__custom__") onChange(field.group, field.key, value);
                     else onChange(field.group, field.key, { $token: e.target.value });
                   }}
+                  disabled={readOnly}
                   className="mb-1 w-full rounded border px-2 py-1 text-xs"
                 >
                   <option value="__custom__">Custom value</option>
@@ -284,6 +314,7 @@ export function Inspector({
                   onChange={(v) => onChange(field.group, field.key, v)}
                   onOpenMediaPicker={() => setMediaFieldKey(field.key)}
                   collections={collections}
+                  readOnly={readOnly}
                 />
               )}
             </div>

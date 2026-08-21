@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import type { Metadata } from "next";
-import { subdomainFromHost, resolvePageByHost, renderContextFor } from "@/lib/resolveSite";
+import { siteFromHost, resolvePageByHost, renderContextFor } from "@/lib/resolveSite";
 import { PublishedPage } from "@/components/PublishedPage";
 import type { PageContent } from "@/components/blocks/types";
 import type { ThemeTokens } from "@/lib/theme";
@@ -33,11 +33,13 @@ export default async function PublicSitePage({ params }: { params: Promise<{ slu
   // Host isn't a recognized site subdomain or verified custom domain: this
   // is the studio's own domain (APP_DOMAIN itself, or local dev without
   // APP_DOMAIN set), so behave as the authenticated app's landing page
-  // instead of a 404 — but only when it's not simply an unresolvable slug
-  // on an otherwise-recognized site host.
+  // instead of a 404 — but only when the host doesn't resolve to a real
+  // Site at all (subdomain match or verified custom domain); an
+  // unresolvable slug on an otherwise-recognized site host is a 404, not
+  // the studio's own landing page.
   if (!result) {
-    const subdomain = subdomainFromHost(host);
-    if (!subdomain) {
+    const site = await siteFromHost(host);
+    if (!site) {
       const session = await auth();
       redirect(session?.user ? "/dashboard" : "/login");
     }

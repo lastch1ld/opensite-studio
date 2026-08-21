@@ -55,6 +55,18 @@ export async function DELETE(
   const collection = await requireCollection(siteId, collectionId);
   if (!collection) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  const boundPages = await db.page.findMany({ where: { collectionId }, select: { title: true } });
+  if (boundPages.length > 0) {
+    return NextResponse.json(
+      {
+        error: `Cannot delete: ${boundPages.length} page(s) are still bound to this collection (${boundPages
+          .map((p) => p.title)
+          .join(", ")}). Unbind them first.`,
+      },
+      { status: 409 },
+    );
+  }
+
   await db.collection.delete({ where: { id: collectionId } });
   return NextResponse.json({ ok: true });
 }

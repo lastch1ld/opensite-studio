@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   DndContext,
   PointerSensor,
@@ -16,6 +16,8 @@ import { useHistory } from "@/lib/useHistory";
 import { BREAKPOINTS } from "@/lib/responsiveStyle";
 import type { ThemeTokens } from "@/lib/theme";
 import type { CollectionField } from "@/lib/collectionSchema";
+import type { CollectionItemLite, RenderContext } from "@/lib/bind";
+import { resolveTemplate, type TemplateLite } from "@/lib/templates";
 import { DragHandleWrapper } from "./dnd/DragHandleWrapper";
 import { DropSlotList } from "./dnd/DropSlotList";
 import { LayersPanel } from "./LayersPanel";
@@ -26,7 +28,12 @@ import { SeoPanel } from "./SeoPanel";
 import { defaultPageSeo, type PageSeo } from "@/lib/seo";
 
 export type SavedBlockSummary = { id: string; name: string; content: Block };
-export type CollectionSummary = { id: string; name: string; fieldSchema: CollectionField[] };
+export type CollectionSummary = {
+  id: string;
+  name: string;
+  fieldSchema: CollectionField[];
+  items: { id: string; data: Record<string, unknown> }[];
+};
 
 const AUTOSAVE_DELAY_MS = 1000;
 
@@ -47,6 +54,9 @@ export function EditorClient({
   extraToolbar,
   pageCollectionId = null,
   initialSeo = null,
+  templateType = null,
+  compositionPage = null,
+  siteTemplates = [],
 }: {
   siteId: string;
   pageId: string;
@@ -66,6 +76,18 @@ export function EditorClient({
   // Page-only (see docs/integrations.md "SEO") — omitted/ignored in template
   // mode, which has no SEO fields.
   initialSeo?: PageSeo | null;
+  // Template mode only — the Template's own `type` (docs/theme-builder.md).
+  // Drives the composed header/footer preview below.
+  templateType?: "header" | "footer" | "pageTemplate" | "collectionItemTemplate" | "popup" | null;
+  // A representative Page's published (or draft) content, used to compose
+  // a live header/footer preview across a real page instead of showing the
+  // template in isolation (docs/theme-builder.md "previews live across
+  // representative pages"). Null if the site has no pages yet.
+  compositionPage?: PageContent | null;
+  // Every other Template on this site, so the composed preview can resolve
+  // the matching pageTemplate/opposite header-or-footer slot the same way
+  // PublishedPage does. Irrelevant outside header/footer template editing.
+  siteTemplates?: TemplateLite[];
 }) {
   const { present: content, update: updateContent, undo, redo, canUndo, canRedo } = useHistory(initialContent);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -93,7 +115,7 @@ export function EditorClient({
       .then((data: { tokens: ThemeTokens } | null) => setTheme(data?.tokens ?? null));
     fetch(`/api/sites/${siteId}/collections`)
       .then((res) => (res.ok ? res.json() : []))
-      .then((data: { id: string; name: string; fieldSchema: CollectionField[] }[]) => setCollections(data));
+      .then((data: CollectionSummary[]) => setCollections(data));
     refreshSavedBlocks();
   }, [siteId, refreshSavedBlocks]);
 
@@ -278,6 +300,52 @@ export function EditorClient({
   const selectedBlock = selectedId ? findBlock(content.root, selectedId) : null;
   const canvasWidth = BREAKPOINTS.find((bp) => bp.id === activeBreakpoint)?.previewWidth ?? 1200;
 
+  // Mirrors renderContextFor in lib/resolveSite.ts so BlockRenderer resolves
+  // $bind/collectionFieldEquals identically in the editor canvas and the
+  // public renderer — see AGENTS.md "One shared render codepath".
+  const collectionItems = useMemo<Record<string, CollectionItemLite[]>>(() => {
+    const out: Record<string, CollectionItemLite[]> = {};
+    for (const c of collections) out[c.id] = c.items;
+    return out;
+  }, [collections]);
+
+  const currentItem = useMemo(() => {
+    if (mode !== "page" || !pageCollectionId) return null;
+    const collection = collections.find((c) => c.id === pageCollectionId);
+    const item = collection?.items[0];
+    if (!item) return null;
+    return { collectionId: pageCollectionId, id: item.id, data: item.data };
+  }, [mode, pageCollectionId, collections]);
+
+  const renderContextValue = useMemo<RenderContext>(
+    () => ({
+      device: activeBreakpoint === "base" ? "desktop" : activeBreakpoint,
+      siteId,
+      pageId: mode === "page" ? pageId : undefined,
+      collectionItems,
+      currentItem,
+    }),
+    [activeBreakpoint, siteId, pageId, mode, collectionItems, currentItem],
+  );
+
+  // Composed preview for header/footer Templates only — mirrors
+  // PublishedPage.tsx's composition so the editor and public renderer never
+  // fork (AGENTS.md "one shared render codepath"). The Template being
+  // edited stays the live/interactive `content.root`; the sample page and
+  // the opposite slot are read-only context rendered through the same
+  // BlockRenderer with no selection props.
+  const showComposedPreview = mode === "template" && (templateType === "header" || templateType === "footer") && Boolean(compositionPage);
+  const otherSlotType = templateType === "header" ? "footer" : "header";
+  const otherSlotTemplate = useMemo(
+    () => (showComposedPreview ? resolveTemplate(siteTemplates, otherSlotType, renderContextValue) : null),
+    [showComposedPreview, siteTemplates, otherSlotType, renderContextValue],
+  );
+  const bodyTemplate = useMemo(
+    () => (showComposedPreview ? resolveTemplate(siteTemplates, "pageTemplate", renderContextValue) : null),
+    [showComposedPreview, siteTemplates, renderContextValue],
+  );
+  const bodyRoot = bodyTemplate ? (bodyTemplate.content as PageContent).root : (compositionPage?.root ?? null);
+
   const renderNodeWrapper = useCallback(
     (block: Block, node: ReactNode, isRoot: boolean) => (
       <DragHandleWrapper block={block} isRoot={isRoot}>
@@ -328,17 +396,72 @@ export function EditorClient({
           <LayersPanel root={content.root} selectedId={selectedId} onSelect={setSelectedId} />
           <div className="overflow-y-auto bg-gray-50 p-6" onClick={() => setSelectedId(null)}>
             <div className="mx-auto bg-white shadow-sm" style={{ maxWidth: `${canvasWidth}px` }}>
-              <BlockRenderer
-                block={content.root}
-                selectedId={selectedId}
-                onSelect={setSelectedId}
-                activeBreakpoint={activeBreakpoint}
-                theme={theme}
-                renderContext={{ device: activeBreakpoint === "base" ? "desktop" : activeBreakpoint, siteId, pageId: mode === "page" ? pageId : undefined }}
-                renderNodeWrapper={renderNodeWrapper}
-                renderChildrenWrapper={renderChildrenWrapper}
-                isRoot
-              />
+              {showComposedPreview ? (
+                <>
+                  {templateType === "header" ? (
+                    <BlockRenderer
+                      block={content.root}
+                      selectedId={selectedId}
+                      onSelect={setSelectedId}
+                      activeBreakpoint={activeBreakpoint}
+                      theme={theme}
+                      renderContext={renderContextValue}
+                      renderNodeWrapper={renderNodeWrapper}
+                      renderChildrenWrapper={renderChildrenWrapper}
+                      isRoot
+                    />
+                  ) : (
+                    otherSlotTemplate && (
+                      <BlockRenderer
+                        block={(otherSlotTemplate.content as PageContent).root}
+                        theme={theme}
+                        renderContext={renderContextValue}
+                        isRoot
+                      />
+                    )
+                  )}
+                  {bodyRoot && <BlockRenderer block={bodyRoot} theme={theme} renderContext={renderContextValue} isRoot />}
+                  {templateType === "footer" ? (
+                    <BlockRenderer
+                      block={content.root}
+                      selectedId={selectedId}
+                      onSelect={setSelectedId}
+                      activeBreakpoint={activeBreakpoint}
+                      theme={theme}
+                      renderContext={renderContextValue}
+                      renderNodeWrapper={renderNodeWrapper}
+                      renderChildrenWrapper={renderChildrenWrapper}
+                      isRoot
+                    />
+                  ) : (
+                    otherSlotTemplate && (
+                      <BlockRenderer
+                        block={(otherSlotTemplate.content as PageContent).root}
+                        theme={theme}
+                        renderContext={renderContextValue}
+                        isRoot
+                      />
+                    )
+                  )}
+                </>
+              ) : (
+                <BlockRenderer
+                  block={content.root}
+                  selectedId={selectedId}
+                  onSelect={setSelectedId}
+                  activeBreakpoint={activeBreakpoint}
+                  theme={theme}
+                  renderContext={renderContextValue}
+                  renderNodeWrapper={renderNodeWrapper}
+                  renderChildrenWrapper={renderChildrenWrapper}
+                  isRoot
+                />
+              )}
+              {mode === "template" && (templateType === "header" || templateType === "footer") && !compositionPage && (
+                <p className="p-2 text-center text-xs text-gray-400">
+                  No pages exist on this site yet — showing the template in isolation.
+                </p>
+              )}
             </div>
           </div>
           <div className="flex h-full flex-col overflow-hidden">
@@ -386,6 +509,7 @@ export function EditorClient({
                   onChange={handleChange}
                   collections={collections}
                   pageCollectionId={pageCollectionId}
+                  readOnly={readOnly}
                 />
               )}
             </div>

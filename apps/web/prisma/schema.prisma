@@ -188,6 +188,8 @@ model Page {
   // "Page hierarchy: decision") — the renderer never reads this, it only
   // resolves `slug` directly. Null for manually-created pages (flat,
   // top-level); sitemap import is the natural first writer of it.
+  // Currently populated but not consumed anywhere else — intentionally
+  // forward-looking for a future page-tree/breadcrumb UI, not dead code.
   parentId         String?
   // Per-page SEO fields (docs/integrations.md "SEO"): meta title/description,
   // canonical URL, OG/Twitter fields, robots index/follow. Kept as one Json

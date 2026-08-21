@@ -12,7 +12,10 @@ import type { Prisma } from "@prisma/client";
 // membership involved for a site visitor).
 export async function POST(req: Request) {
   const forwardedFor = req.headers.get("x-forwarded-for");
-  const ip = forwardedFor?.split(",")[0]?.trim() || "unknown";
+  // Last entry is the one the reverse proxy appended itself (trustworthy);
+  // earlier entries are attacker-controlled if the proxy appends rather
+  // than replaces the header.
+  const ip = forwardedFor?.split(",").pop()?.trim() || "unknown";
 
   let body: { siteId?: unknown; pageId?: unknown; blockId?: unknown; email?: unknown };
   try {

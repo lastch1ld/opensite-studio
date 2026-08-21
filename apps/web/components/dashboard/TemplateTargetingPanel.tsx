@@ -14,28 +14,39 @@ export function TemplateTargetingPanel({
   initialCondition,
   initialPriority,
   collections,
+  readOnly = false,
 }: {
   siteId: string;
   templateId: string;
   initialCondition: Condition;
   initialPriority: number;
   collections: CollectionOption[];
+  readOnly?: boolean;
 }) {
   const [condition, setCondition] = useState<Condition>(initialCondition);
   const [priority, setPriority] = useState(initialPriority);
   const [saving, setSaving] = useState(false);
 
   async function save(nextCondition: Condition, nextPriority: number) {
+    if (readOnly) return;
+    const prevCondition = condition;
+    const prevPriority = priority;
     setSaving(true);
-    await fetch(`/api/sites/${siteId}/templates/${templateId}`, {
+    const res = await fetch(`/api/sites/${siteId}/templates/${templateId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ condition: nextCondition, priority: nextPriority }),
     });
+    if (!res.ok) {
+      setCondition(prevCondition);
+      setPriority(prevPriority);
+      window.alert("Failed to save targeting condition.");
+    }
     setSaving(false);
   }
 
   function setType(type: Condition["type"]) {
+    if (readOnly) return;
     let next: Condition;
     if (type === "always") next = { type: "always" };
     else if (type === "deviceIs") next = { type: "deviceIs", device: "desktop" };
@@ -52,6 +63,7 @@ export function TemplateTargetingPanel({
       <select
         value={condition.type}
         onChange={(e) => setType(e.target.value as Condition["type"])}
+        disabled={readOnly}
         className="rounded border px-2 py-1 text-xs"
       >
         <option value="always">Always</option>
@@ -67,6 +79,7 @@ export function TemplateTargetingPanel({
             setCondition(next);
             save(next, priority);
           }}
+          disabled={readOnly}
           className="rounded border px-2 py-1 text-xs"
         >
           <option value="desktop">Desktop</option>
@@ -84,6 +97,7 @@ export function TemplateTargetingPanel({
               setCondition(next);
               save(next, priority);
             }}
+            disabled={readOnly}
             className="rounded border px-2 py-1 text-xs"
           >
             {collections.map((c) => (
@@ -100,6 +114,7 @@ export function TemplateTargetingPanel({
             }}
             onBlur={() => save(condition, priority)}
             placeholder="field"
+            disabled={readOnly}
             className="w-24 rounded border px-2 py-1 text-xs"
           />
           <input
@@ -110,6 +125,7 @@ export function TemplateTargetingPanel({
             }}
             onBlur={() => save(condition, priority)}
             placeholder="value"
+            disabled={readOnly}
             className="w-24 rounded border px-2 py-1 text-xs"
           />
         </>
@@ -121,6 +137,7 @@ export function TemplateTargetingPanel({
         value={priority}
         onChange={(e) => setPriority(Number(e.target.value))}
         onBlur={() => save(condition, priority)}
+        disabled={readOnly}
         className="w-16 rounded border px-2 py-1 text-xs"
       />
       {saving && <span className="text-xs text-gray-400">Saving...</span>}

@@ -14,23 +14,31 @@ export function PopupTriggerPanel({
   templateId,
   initialSettings,
   collections,
+  readOnly = false,
 }: {
   siteId: string;
   templateId: string;
   initialSettings: PopupSettings;
   collections: CollectionOption[];
+  readOnly?: boolean;
 }) {
   const [settings, setSettings] = useState<PopupSettings>(initialSettings);
   const [saving, setSaving] = useState(false);
 
   async function save(next: PopupSettings) {
+    if (readOnly) return;
+    const prev = settings;
     setSettings(next);
     setSaving(true);
-    await fetch(`/api/sites/${siteId}/templates/${templateId}`, {
+    const res = await fetch(`/api/sites/${siteId}/templates/${templateId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ trigger: next }),
     });
+    if (!res.ok) {
+      setSettings(prev);
+      window.alert("Failed to save popup trigger settings.");
+    }
     setSaving(false);
   }
 
@@ -58,6 +66,7 @@ export function PopupTriggerPanel({
         <select
           value={trigger.type}
           onChange={(e) => setTriggerType(e.target.value as PopupTrigger["type"])}
+          disabled={readOnly}
           className="rounded border px-2 py-1 text-xs"
         >
           <option value="pageLoad">Page load (with delay)</option>
@@ -73,6 +82,7 @@ export function PopupTriggerPanel({
             min={0}
             value={trigger.delaySeconds ?? 0}
             onChange={(e) => save({ ...settings, trigger: { type: "pageLoad", delaySeconds: Number(e.target.value) } })}
+            disabled={readOnly}
             className="w-20 rounded border px-2 py-1 text-xs"
             title="Delay in seconds"
           />
@@ -85,6 +95,7 @@ export function PopupTriggerPanel({
             max={100}
             value={trigger.percent}
             onChange={(e) => save({ ...settings, trigger: { type: "scrollPercent", percent: Number(e.target.value) } })}
+            disabled={readOnly}
             className="w-20 rounded border px-2 py-1 text-xs"
             title="Scroll percent"
           />
@@ -95,6 +106,7 @@ export function PopupTriggerPanel({
             value={trigger.blockId}
             onChange={(e) => save({ ...settings, trigger: { type: "elementClick", blockId: e.target.value } })}
             placeholder="Block id of the trigger button/link"
+            disabled={readOnly}
             className="w-56 rounded border px-2 py-1 text-xs"
           />
         )}
@@ -104,6 +116,7 @@ export function PopupTriggerPanel({
             <select
               value={trigger.collectionId}
               onChange={(e) => save({ ...settings, trigger: { ...trigger, collectionId: e.target.value } })}
+              disabled={readOnly}
               className="rounded border px-2 py-1 text-xs"
             >
               {collections.map((c) => (
@@ -116,12 +129,14 @@ export function PopupTriggerPanel({
               value={trigger.field}
               onChange={(e) => save({ ...settings, trigger: { ...trigger, field: e.target.value } })}
               placeholder="field"
+              disabled={readOnly}
               className="w-24 rounded border px-2 py-1 text-xs"
             />
             <input
               value={String(trigger.value ?? "")}
               onChange={(e) => save({ ...settings, trigger: { ...trigger, value: e.target.value } })}
               placeholder="value"
+              disabled={readOnly}
               className="w-24 rounded border px-2 py-1 text-xs"
             />
           </>
@@ -133,6 +148,7 @@ export function PopupTriggerPanel({
         <select
           value={frequency.mode}
           onChange={(e) => setFrequencyMode(e.target.value as PopupFrequency["mode"])}
+          disabled={readOnly}
           className="rounded border px-2 py-1 text-xs"
         >
           <option value="everyTime">Every time it triggers</option>
@@ -145,6 +161,7 @@ export function PopupTriggerPanel({
             min={1}
             value={frequency.days}
             onChange={(e) => save({ ...settings, frequency: { mode: "onceEveryNDays", days: Number(e.target.value) } })}
+            disabled={readOnly}
             className="w-16 rounded border px-2 py-1 text-xs"
           />
         )}
@@ -157,6 +174,7 @@ export function PopupTriggerPanel({
             type="checkbox"
             checked={settings.closeOnButton}
             onChange={(e) => save({ ...settings, closeOnButton: e.target.checked })}
+            disabled={readOnly}
           />
           Close button
         </label>
@@ -165,6 +183,7 @@ export function PopupTriggerPanel({
             type="checkbox"
             checked={settings.closeOnOutsideClick}
             onChange={(e) => save({ ...settings, closeOnOutsideClick: e.target.checked })}
+            disabled={readOnly}
           />
           Click outside
         </label>
@@ -173,6 +192,7 @@ export function PopupTriggerPanel({
             type="checkbox"
             checked={settings.closeOnEscape}
             onChange={(e) => save({ ...settings, closeOnEscape: e.target.checked })}
+            disabled={readOnly}
           />
           Escape key
         </label>

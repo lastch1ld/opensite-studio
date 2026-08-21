@@ -36,14 +36,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ siteId:
   const existing = await db.page.findUnique({ where: { siteId_slug: { siteId, slug } } });
   if (existing) return NextResponse.json({ error: "A page with that slug already exists." }, { status: 409 });
 
-  const page = await db.page.create({
-    data: {
-      siteId,
-      title,
-      slug,
-      isHome: Boolean(isHome),
-      draftContent: emptyPageContent() as unknown as Prisma.InputJsonValue,
-    },
+  const page = await db.$transaction(async (tx) => {
+    if (isHome) await tx.page.updateMany({ where: { siteId, isHome: true }, data: { isHome: false } });
+    return tx.page.create({
+      data: {
+        siteId,
+        title,
+        slug,
+        isHome: Boolean(isHome),
+        draftContent: emptyPageContent() as unknown as Prisma.InputJsonValue,
+      },
+    });
   });
   return NextResponse.json(page, { status: 201 });
 }
