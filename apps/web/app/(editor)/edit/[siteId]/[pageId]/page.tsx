@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getSiteRole } from "@/lib/permissions";
 import { EditorClient } from "@/components/editor/EditorClient";
 import type { PageContent } from "@/components/blocks/types";
 
@@ -14,8 +15,8 @@ export default async function EditorPage({
   const page = await db.page.findUnique({ where: { id: pageId } });
   if (!page || page.siteId !== siteId) notFound();
 
-  const site = await db.site.findUnique({ where: { id: siteId } });
-  if (!site || site.ownerId !== session!.user.id) notFound();
+  const role = await getSiteRole(siteId, session!.user.id);
+  if (!role) notFound();
 
   return (
     <EditorClient
@@ -23,6 +24,8 @@ export default async function EditorPage({
       pageId={pageId}
       pageTitle={page.title}
       initialContent={page.draftContent as unknown as PageContent}
+      canPublish={role === "OWNER"}
+      readOnly={role === "VIEWER"}
     />
   );
 }

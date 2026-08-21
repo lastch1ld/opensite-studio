@@ -5,7 +5,7 @@ import { SiteList } from "@/components/dashboard/SiteList";
 export default async function DashboardPage() {
   const session = await auth();
   const sites = await db.site.findMany({
-    where: { ownerId: session!.user.id },
+    where: { OR: [{ ownerId: session!.user.id }, { memberships: { some: { userId: session!.user.id } } }] },
     orderBy: { createdAt: "desc" },
   });
 

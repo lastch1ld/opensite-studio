@@ -1,20 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import type { Block, Breakpoint } from "@/components/blocks/types";
+import type { Block, Breakpoint, PageContent } from "@/components/blocks/types";
 import { blockRegistry } from "@/components/blocks/registry";
 import { BREAKPOINTS } from "@/lib/responsiveStyle";
 import { PaletteItem } from "./dnd/PaletteItem";
+import { VersionHistoryPanel } from "./VersionHistoryPanel";
 import type { SavedBlockSummary } from "./EditorClient";
 
 type ToolbarProps = {
   siteId: string;
+  pageId: string;
   pageTitle: string;
   onAdd: (type: Block["type"]) => void;
   onDelete: () => void;
   canDelete: boolean;
   onPublish: () => void;
   publishing: boolean;
+  canPublish: boolean;
   saveStatus: "idle" | "saving" | "saved";
   activeBreakpoint: Breakpoint;
   onBreakpointChange: (bp: Breakpoint) => void;
@@ -26,16 +29,20 @@ type ToolbarProps = {
   canSaveAsBlock: boolean;
   onSaveAsBlock: () => void;
   onInsertSavedBlock: (saved: SavedBlockSummary) => void;
+  readOnly: boolean;
+  onRestore: (content: PageContent) => void;
 };
 
 export function Toolbar({
   siteId,
+  pageId,
   pageTitle,
   onAdd,
   onDelete,
   canDelete,
   onPublish,
   publishing,
+  canPublish,
   saveStatus,
   activeBreakpoint,
   onBreakpointChange,
@@ -47,6 +54,8 @@ export function Toolbar({
   canSaveAsBlock,
   onSaveAsBlock,
   onInsertSavedBlock,
+  readOnly,
+  onRestore,
 }: ToolbarProps) {
   return (
     <div className="flex flex-col gap-2 border-b bg-white px-4 py-2">
@@ -93,22 +102,26 @@ export function Toolbar({
           >
             Save as reusable block
           </button>
+          <VersionHistoryPanel siteId={siteId} pageId={pageId} canRestore={!readOnly} onRestore={onRestore} />
           <button
             onClick={onPublish}
-            disabled={publishing}
+            disabled={publishing || !canPublish}
+            title={canPublish ? undefined : "Only the site owner can publish"}
             className="rounded bg-black px-3 py-1 text-sm text-white disabled:opacity-50"
           >
             {publishing ? "Publishing..." : "Publish"}
           </button>
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs font-medium text-gray-500">Add block:</span>
-        {(Object.keys(blockRegistry) as Block["type"][]).map((t) => (
-          <PaletteItem key={t} type={t} label={blockRegistry[t].label} onAdd={onAdd} />
-        ))}
-      </div>
-      {savedBlocks.length > 0 && (
+      {!readOnly && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-gray-500">Add block:</span>
+          {(Object.keys(blockRegistry) as Block["type"][]).map((t) => (
+            <PaletteItem key={t} type={t} label={blockRegistry[t].label} onAdd={onAdd} />
+          ))}
+        </div>
+      )}
+      {!readOnly && savedBlocks.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-medium text-gray-500">Insert saved block:</span>
           {savedBlocks.map((saved) => (

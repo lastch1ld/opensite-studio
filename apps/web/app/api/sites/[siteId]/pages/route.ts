@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { requireSiteOwner } from "@/lib/permissions";
+import { requireSiteRole } from "@/lib/permissions";
 import { emptyPageContent } from "@/lib/pageContent";
 import type { Prisma } from "@prisma/client";
 
@@ -10,7 +10,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ siteId:
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { siteId } = await params;
-  const site = await requireSiteOwner(siteId, session.user.id);
+  const site = await requireSiteRole(siteId, session.user.id, ["OWNER", "EDITOR", "VIEWER"]);
   if (!site) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const pages = await db.page.findMany({ where: { siteId }, orderBy: { createdAt: "asc" } });
@@ -22,7 +22,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ siteId:
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { siteId } = await params;
-  const site = await requireSiteOwner(siteId, session.user.id);
+  const site = await requireSiteRole(siteId, session.user.id, ["OWNER", "EDITOR"]);
   if (!site) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const { title, slug, isHome } = await req.json();

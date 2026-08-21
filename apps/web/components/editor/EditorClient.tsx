@@ -30,11 +30,15 @@ export function EditorClient({
   pageId,
   pageTitle,
   initialContent,
+  canPublish = true,
+  readOnly = false,
 }: {
   siteId: string;
   pageId: string;
   pageTitle: string;
   initialContent: PageContent;
+  canPublish?: boolean;
+  readOnly?: boolean;
 }) {
   const { present: content, update: updateContent, undo, redo, canUndo, canRedo } = useHistory(initialContent);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -64,7 +68,8 @@ export function EditorClient({
       isFirstRender.current = false;
       return;
     }
-    setSaveStatus("saving");
+    if (readOnly) return;
+    queueMicrotask(() => setSaveStatus("saving"));
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
       await fetch(`/api/sites/${siteId}/pages/${pageId}`, {
@@ -115,7 +120,7 @@ export function EditorClient({
 
   const handleChange = useCallback(
     (group: "props" | "style", key: string, value: string | { $token: string }) => {
-      if (!selectedId) return;
+      if (!selectedId || readOnly) return;
       updateContent((prev) => ({
         ...prev,
         root: updateBlock(prev.root, selectedId, (block) => {
@@ -130,7 +135,7 @@ export function EditorClient({
         }),
       }));
     },
-    [selectedId, activeBreakpoint, updateContent],
+    [selectedId, activeBreakpoint, readOnly, updateContent],
   );
 
   const handleSaveAsBlock = useCallback(async () => {
@@ -170,6 +175,7 @@ export function EditorClient({
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
+      if (readOnly) return;
       const { active, over } = event;
       if (!over) return;
       const overData = over.data.current as { containerId: string; index: number } | undefined;
@@ -185,14 +191,22 @@ export function EditorClient({
         return { ...prev, root: moveBlock(prev.root, activeId, overData.containerId, overData.index) };
       });
     },
-    [updateContent],
+    [readOnly, updateContent],
   );
 
   async function handlePublish() {
+    if (!canPublish) return;
     setPublishing(true);
     await fetch(`/api/sites/${siteId}/pages/${pageId}/publish`, { method: "POST" });
     setPublishing(false);
   }
+
+  const handleRestore = useCallback(
+    (restoredContent: PageContent) => {
+      updateContent(() => restoredContent);
+    },
+    [updateContent],
+  );
 
   const selectedBlock = selectedId ? findBlock(content.root, selectedId) : null;
   const canvasWidth = BREAKPOINTS.find((bp) => bp.id === activeBreakpoint)?.previewWidth ?? 1200;
@@ -218,23 +232,27 @@ export function EditorClient({
       <div className="flex h-screen flex-col">
         <Toolbar
           siteId={siteId}
+          pageId={pageId}
           pageTitle={pageTitle}
           onAdd={handleAdd}
           onDelete={handleDelete}
-          canDelete={Boolean(selectedId && selectedId !== content.root.id)}
+          canDelete={Boolean(selectedId && selectedId !== content.root.id) && !readOnly}
           onPublish={handlePublish}
           publishing={publishing}
+          canPublish={canPublish}
           saveStatus={saveStatus}
           activeBreakpoint={activeBreakpoint}
           onBreakpointChange={setActiveBreakpoint}
           onUndo={undo}
           onRedo={redo}
-          canUndo={canUndo}
-          canRedo={canRedo}
+          canUndo={canUndo && !readOnly}
+          canRedo={canRedo && !readOnly}
           savedBlocks={savedBlocks}
-          canSaveAsBlock={Boolean(selectedId)}
+          canSaveAsBlock={Boolean(selectedId) && !readOnly}
           onSaveAsBlock={handleSaveAsBlock}
           onInsertSavedBlock={handleInsertSavedBlock}
+          readOnly={readOnly}
+          onRestore={handleRestore}
         />
         <div className="grid flex-1 grid-cols-[220px_1fr_280px] overflow-hidden">
           <LayersPanel root={content.root} selectedId={selectedId} onSelect={setSelectedId} />

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { requirePageOwner } from "@/lib/permissions";
+import { requirePageRole } from "@/lib/permissions";
 import type { Prisma } from "@prisma/client";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ pageId: string }> }) {
@@ -9,7 +9,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ pageId
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { pageId } = await params;
-  const page = await requirePageOwner(pageId, session.user.id);
+  const page = await requirePageRole(pageId, session.user.id, ["OWNER", "EDITOR"]);
   if (!page) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const { draftContent } = await req.json();
@@ -27,7 +27,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ page
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { pageId } = await params;
-  const page = await requirePageOwner(pageId, session.user.id);
+  const page = await requirePageRole(pageId, session.user.id, ["OWNER", "EDITOR"]);
   if (!page) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   await db.page.delete({ where: { id: pageId } });

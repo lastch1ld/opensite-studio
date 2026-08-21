@@ -34,19 +34,21 @@ file exists yet.
 ## Phase 2 — Real theming + collaboration
 
 - [x] Theme tokens + theme editor panel (blocks-and-theming.md)
-- Membership roles (OWNER/EDITOR/VIEWER) + invites (auth.md)
-- Revision history + restore (data-model.md)
+- [x] Membership roles (OWNER/EDITOR/VIEWER) + invites (auth.md)
+- [x] Revision history + restore (data-model.md)
 - [x] Saved/reusable blocks
 - Collections + dynamic/repeater pages + conditional visibility + dynamic field binding (collections.md)
 - Theme Builder: header/footer/page templates with conditional targeting (theme-builder.md)
 
-Note: Prisma migrations for the new `Theme` and `SavedBlock` tables still
-need to be generated (`npx prisma migrate dev`) once a dev Postgres is
-available — schema.prisma is updated and `prisma generate` succeeds, but no
-migration file exists yet (same situation as `Media` in Phase 1).
+Note: Prisma migrations for the new `Theme`, `SavedBlock`, `Membership`,
+`Invitation`, and `Revision` tables still need to be generated
+(`npx prisma migrate dev`) once a dev Postgres is available — schema.prisma
+is updated and `prisma generate` succeeds, but no migration file exists yet
+(same situation as `Media` in Phase 1).
 
 ## Phase 3 — Parity features
 
+- Content import: sitemap-based page-structure import + content clipboard for migrating old-page text (content-import.md)
 - Forms: fields, conditional logic, multi-step, submissions (forms.md)
 - Popups & modals with trigger rules (popups-and-modals.md)
 - SEO fields + sitemap/robots (integrations.md)

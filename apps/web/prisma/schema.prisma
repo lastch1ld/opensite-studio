@@ -18,9 +18,11 @@ model User {
   updatedAt     DateTime  @updatedAt
   emailVerified DateTime?
 
-  accounts Account[]
-  sessions Session[]
-  sites    Site[]
+  accounts    Account[]
+  sessions    Session[]
+  sites       Site[]
+  memberships Membership[]
+  revisions   Revision[]
 }
 
 model Account {
@@ -67,11 +69,45 @@ model Site {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  owner       User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner       User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   pages       Page[]
   media       Media[]
   theme       Theme?
   savedBlocks SavedBlock[]
+  memberships Membership[]
+  invitations Invitation[]
+}
+
+enum MembershipRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+model Membership {
+  id        String         @id @default(uuid())
+  siteId    String
+  userId    String
+  role      MembershipRole
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, userId])
+}
+
+model Invitation {
+  id         String         @id @default(uuid())
+  siteId     String
+  email      String
+  role       MembershipRole
+  token      String         @unique
+  createdAt  DateTime       @default(now())
+  acceptedAt DateTime?
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 }
 
 model Theme {
@@ -120,7 +156,20 @@ model Page {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  site      Site       @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  revisions Revision[]
 
   @@unique([siteId, slug])
+}
+
+model Revision {
+  id          String   @id @default(uuid())
+  pageId      String
+  content     Json
+  createdById String
+  createdAt   DateTime @default(now())
+  label       String?
+
+  page      Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  createdBy User @relation(fields: [createdById], references: [id], onDelete: Cascade)
 }

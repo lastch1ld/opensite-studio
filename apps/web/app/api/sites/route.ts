@@ -7,7 +7,7 @@ export async function GET() {
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const sites = await db.site.findMany({
-    where: { ownerId: session.user.id },
+    where: { OR: [{ ownerId: session.user.id }, { memberships: { some: { userId: session.user.id } } }] },
     orderBy: { createdAt: "desc" },
   });
   return NextResponse.json(sites);
@@ -29,7 +29,12 @@ export async function POST(req: Request) {
   if (existing) return NextResponse.json({ error: "That subdomain is already taken." }, { status: 409 });
 
   const site = await db.site.create({
-    data: { name, subdomain, ownerId: session.user.id },
+    data: {
+      name,
+      subdomain,
+      ownerId: session.user.id,
+      memberships: { create: { userId: session.user.id, role: "OWNER" } },
+    },
   });
   return NextResponse.json(site, { status: 201 });
 }
