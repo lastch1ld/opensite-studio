@@ -144,19 +144,37 @@ export function BlockRenderer({
     return renderNodeWrapper ? renderNodeWrapper(block, selectionNode, isRoot) : selectionNode;
   }
 
-  const childNodes = childBlocks.map((child) => (
-    <BlockRenderer
-      key={child.id}
-      block={child}
-      selectedId={selectedId}
-      onSelect={onSelect}
-      activeBreakpoint={activeBreakpoint}
-      theme={theme}
-      renderContext={ctx}
-      renderNodeWrapper={renderNodeWrapper}
-      renderChildrenWrapper={renderChildrenWrapper}
-    />
-  ));
+  const childNodes = childBlocks.map((child, index) => {
+    const rendered = (
+      <BlockRenderer
+        key={child.id}
+        block={child}
+        selectedId={selectedId}
+        onSelect={onSelect}
+        activeBreakpoint={activeBreakpoint}
+        theme={theme}
+        renderContext={ctx}
+        renderNodeWrapper={renderNodeWrapper}
+        renderChildrenWrapper={renderChildrenWrapper}
+      />
+    );
+    if (index !== 0) return rendered;
+    // A full-bleed first child (e.g. "hero") should touch this
+    // container's own top edge even though the container has top padding
+    // for its other children — cancel just that one gap with a matching
+    // negative margin instead of the container losing its padding
+    // altogether. The container's padding shorthand always lists its top
+    // value first regardless of how many values it has (1/2/3/4-value
+    // forms all start with top), so no side-specific parsing is needed.
+    if (!getBlockDefinition<RenderContext>(child.type)?.fullBleed) return rendered;
+    const paddingTop = String(resolvedStyle.padding ?? "").trim().split(/\s+/)[0];
+    if (!paddingTop || paddingTop === "0" || paddingTop === "0px") return rendered;
+    return (
+      <div key={`${child.id}-fullbleed-offset`} style={{ marginTop: `calc(-1 * ${paddingTop})` }}>
+        {rendered}
+      </div>
+    );
+  });
 
   const childrenContent = block.children
     ? renderChildrenWrapper

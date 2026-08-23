@@ -2,3 +2,7 @@
 # package/app also has its own .gitignore for build output.
 /node_modules
 npm-debug.log*
+
+# Local dev media uploads (MEDIA_STORAGE_PATH in apps/web/.env) — runtime
+# user content, not source.
+apps/web/.media/

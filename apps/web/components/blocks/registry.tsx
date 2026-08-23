@@ -150,35 +150,45 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
   // padding, which isn't true by default (the root section itself starts
   // with 24px padding, see lib/pageContent.ts's emptyPageContent). This
   // block ignores its container's padding entirely, by design.
+  // A real container (children, not flat props) so every part of a hero
+  // is fully editable/removable/rearrangeable like any other block tree —
+  // seeded with a finished eyebrow/heading/subheading/button composition
+  // on creation (see `heroDefaultChildren` + `createBlock` below) so it
+  // still looks complete the moment it's added, rather than starting
+  // empty like a plain Section does.
   hero: {
     label: "Hero",
-    defaultProps: {
-      eyebrow: "",
-      heading: "Your headline here",
-      subheading: "A short sentence that supports the headline above.",
-      buttonLabel: "Get started",
-      buttonHref: "#",
-      backgroundImage: "",
-    },
-    defaultStyle: { background: "#0B1120", color: "#ffffff", padding: "96px 24px", contentWidth: "700px" },
+    fullBleed: true,
+    defaultProps: { backgroundImage: "" },
+    defaultStyle: { background: "#0B1120", padding: "96px 24px", contentWidth: "700px", align: "center", gap: "20px" },
     inspector: [
-      { key: "eyebrow", label: "Eyebrow", friendlyLabel: "Small label above the headline", group: "props", input: "text", translatable: true },
-      { key: "heading", label: "Heading", group: "props", input: "text", translatable: true },
-      { key: "subheading", label: "Subheading", group: "props", input: "textarea", translatable: true },
-      { key: "buttonLabel", label: "Button text", group: "props", input: "text", translatable: true },
-      { key: "buttonHref", label: "Button link", group: "props", input: "url" },
       { key: "backgroundImage", label: "Background image", friendlyLabel: "Background image (optional)", group: "props", input: "image" },
       { key: "background", label: "Background color", group: "style", input: "color", tokenCategory: "colors" },
-      { key: "color", label: "Text color", group: "style", input: "color", tokenCategory: "colors" },
       { key: "padding", label: "Padding", friendlyLabel: "Inner spacing", group: "style", input: "text", tokenCategory: "spacing" },
       { key: "contentWidth", label: "Content width", group: "style", input: "text" },
+      {
+        key: "align",
+        label: "Align items (cross-axis)",
+        friendlyLabel: "Alignment",
+        group: "style",
+        input: "select",
+        options: [
+          { label: "Center (default)", value: "center" },
+          { label: "Start", value: "flex-start" },
+          { label: "End", value: "flex-end" },
+          { label: "Stretch", value: "stretch" },
+        ],
+      },
+      { key: "gap", label: "Gap", friendlyLabel: "Space between items", group: "style", input: "text", tokenCategory: "spacing" },
     ],
-    render(props, style) {
+    render(props, style, children) {
       const bgImage = str(props.backgroundImage);
       const outerStyle: CSSProperties = {
         // The full-bleed breakout: spans the viewport regardless of any
         // padded/max-width-capped ancestor, without needing the page's
-        // block tree to be restructured.
+        // block tree to be restructured. BlockRenderer.tsx separately
+        // cancels a container's top-padding gap when this is its first
+        // child (see `fullBleed` on this definition).
         width: "100vw",
         position: "relative",
         left: "50%",
@@ -189,7 +199,6 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         background: bgImage
           ? `linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.45)), url(${bgImage}) center/cover no-repeat`
           : str(style.background, "#0B1120"),
-        color: str(style.color, "#ffffff"),
         padding: str(style.padding, "96px 24px"),
         display: "flex",
         justifyContent: "center",
@@ -199,35 +208,13 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         maxWidth: str(style.contentWidth, "700px"),
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
-        gap: "20px",
-        textAlign: "center",
+        alignItems: str(style.align, "center") as CSSProperties["alignItems"],
+        gap: str(style.gap, "20px"),
+        minHeight: "40px",
       };
-      const eyebrow = str(props.eyebrow);
       return (
         <div style={outerStyle}>
-          <div style={innerStyle}>
-            {eyebrow && <span style={{ fontSize: "13px", fontWeight: 700, letterSpacing: "0.04em", opacity: 0.75 }}>{eyebrow}</span>}
-            <h1 style={{ margin: 0, fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 700, lineHeight: 1.15 }}>{str(props.heading, "Your headline here")}</h1>
-            {str(props.subheading) && <p style={{ margin: 0, fontSize: "19px", opacity: 0.85 }}>{str(props.subheading)}</p>}
-            {str(props.buttonLabel) && (
-              <a
-                href={str(props.buttonHref, "#")}
-                style={{
-                  marginTop: "8px",
-                  padding: "14px 28px",
-                  borderRadius: "8px",
-                  fontSize: "16px",
-                  fontWeight: 600,
-                  textDecoration: "none",
-                  background: "#F59E0B",
-                  color: "#0B1120",
-                }}
-              >
-                {str(props.buttonLabel)}
-              </a>
-            )}
-          </div>
+          <div style={innerStyle}>{children}</div>
         </div>
       );
     },
@@ -297,15 +284,50 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
           { label: "Fill", value: "fill" },
         ],
       },
+      {
+        // A discrete preset list (rather than only the free-text
+        // `maxWidth`/`aspectRatio` fields below) so picking a size/format
+        // is a one-click choice, matching how a non-technical editor
+        // expects "small/medium/large" rather than typing raw CSS.
+        key: "sizePreset",
+        label: "Size",
+        friendlyLabel: "Image size",
+        group: "style",
+        input: "select",
+        options: [
+          { label: "Full width (default)", value: "" },
+          { label: "Large (75%)", value: "75%" },
+          { label: "Medium (50%)", value: "50%" },
+          { label: "Small (25%)", value: "25%" },
+        ],
+      },
+      { key: "maxWidth", label: "Max width", friendlyLabel: "Custom size (overrides preset)", group: "style", input: "text" },
+      {
+        key: "aspectRatio",
+        label: "Aspect ratio",
+        friendlyLabel: "Shape",
+        group: "style",
+        input: "select",
+        options: [
+          { label: "Original (default)", value: "" },
+          { label: "Square (1:1)", value: "1 / 1" },
+          { label: "Landscape (16:9)", value: "16 / 9" },
+          { label: "Portrait (4:5)", value: "4 / 5" },
+          { label: "Wide (21:9)", value: "21 / 9" },
+        ],
+      },
       { key: "borderRadius", label: "Corner radius", friendlyLabel: "Rounded corners", group: "style", input: "text" },
       ...OFFSET_FIELDS,
     ],
     render(props, style) {
+      const maxWidth = str(style.maxWidth) || str(style.sizePreset);
       const cssStyle: CSSProperties = {
         width: "100%",
         display: "block",
         objectFit: str(props.objectFit, "cover") as CSSProperties["objectFit"],
         borderRadius: str(style.borderRadius, "0"),
+        ...(maxWidth ? { maxWidth, marginLeft: "auto", marginRight: "auto" } : {}),
+        ...(str(style.aspectRatio) ? { aspectRatio: str(style.aspectRatio) } : {}),
         ...offsetStyle(style),
       };
       // eslint-disable-next-line @next/next/no-img-element
@@ -590,6 +612,41 @@ for (const [type, def] of Object.entries(builtinBlocks)) {
 // so it can't accidentally run before the built-ins are registered.
 export { getBlockDefinition, getAllBlockDefinitions };
 
+// The hero's starting composition (docs/ui-ux-roadmap.md: "full control
+// of the content inside the hero section") — real child blocks, not
+// flat props, so a user can freely edit/remove/reorder/add to any of
+// this exactly like any other container's children. Only applied once,
+// at creation time, in createBlock below; an empty hero (all children
+// deleted) stays empty rather than being re-seeded.
+function heroDefaultChildren(): Block[] {
+  return [
+    {
+      id: crypto.randomUUID(),
+      type: "text",
+      props: { content: "EYEBROW TEXT" },
+      style: { base: { fontSize: "13px", fontWeight: "700", color: "#F59E0B", textAlign: "center" } },
+    },
+    {
+      id: crypto.randomUUID(),
+      type: "heading",
+      props: { text: "Your headline here", level: "h1" },
+      style: { base: { fontSize: "56px", fontWeight: "700", color: "#F8FAFC", textAlign: "center" } },
+    },
+    {
+      id: crypto.randomUUID(),
+      type: "text",
+      props: { content: "A short sentence that supports the headline above." },
+      style: { base: { fontSize: "19px", fontWeight: "400", color: "#94A3B8", textAlign: "center" } },
+    },
+    {
+      id: crypto.randomUUID(),
+      type: "button",
+      props: { label: "Get started", href: "#", variant: "primary" },
+      style: { base: { padding: "14px 28px", borderRadius: "8px", fontSize: "16px", fontWeight: "600", background: "#F59E0B", color: "#0B1120" } },
+    },
+  ];
+}
+
 export function createBlock(type: string): Block {
   const def = getBlockDefinition<RenderContext>(type);
   if (!def) throw new Error(`createBlock: no block registered for type "${type}"`);
@@ -598,6 +655,6 @@ export function createBlock(type: string): Block {
     type,
     props: { ...def.defaultProps },
     style: { base: { ...def.defaultStyle } },
-    children: hasContainerChildren(type) ? [] : undefined,
+    children: type === "hero" ? heroDefaultChildren() : hasContainerChildren(type) ? [] : undefined,
   };
 }

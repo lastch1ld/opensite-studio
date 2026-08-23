@@ -68,6 +68,16 @@ export type BlockDefinition<TCtx = unknown> = {
   label: string;
   defaultProps: Record<string, unknown>;
   defaultStyle?: Record<string, unknown>;
+  // Renders edge-to-edge regardless of an ancestor's padding (e.g.
+  // apps/web/components/blocks/registry.tsx's "hero" block, via the
+  // 100vw/-50vw CSS breakout). Purely horizontal on its own — a container
+  // with top padding still leaves a visible gap above a full-bleed first
+  // child, since the breakout only escapes the parent's box sideways, not
+  // vertically. BlockRenderer.tsx reads this flag to cancel exactly that
+  // gap (a matching negative margin-top) when such a block is the first
+  // child of a container, rather than the container losing its padding
+  // for every other child too.
+  fullBleed?: boolean;
   inspector: FieldSchema[];
   render: (
     props: Record<string, unknown>,
