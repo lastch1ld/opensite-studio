@@ -499,6 +499,30 @@ export function EditorClient({
     return { collectionId: pageCollectionId, id: item.id, data: item.data };
   }, [mode, pageCollectionId, collections]);
 
+  // The Inspector's "Bind" toggle (docs/collections.md) only offers a
+  // `currentItem` binding when it knows a `currentItem` will actually
+  // exist at render time — otherwise it defaults to a *fixed* single-item
+  // binding (always item[0], never varying), which is correct for a
+  // dynamic/repeater page (`pageCollectionId` above) but wrong for a field
+  // nested inside a "list" block's own item template, which supplies its
+  // own per-repeat `currentItem` regardless of the page. Walks up from the
+  // selection to find the nearest ancestor "list" and its collectionId,
+  // taking priority over the page's own binding since it's the more local
+  // repeating context.
+  const nearestListCollectionId = useMemo(() => {
+    if (!selectedId) return null;
+    let id = selectedId;
+    for (let i = 0; i < 50; i++) {
+      const parent = findParent(content.root, id);
+      if (!parent) return null;
+      if (parent.type === "list" && typeof parent.props.collectionId === "string" && parent.props.collectionId) {
+        return parent.props.collectionId;
+      }
+      id = parent.id;
+    }
+    return null;
+  }, [content.root, selectedId]);
+
   const renderContextValue = useMemo<RenderContext>(
     () => ({
       device: activeBreakpoint === "base" ? "desktop" : activeBreakpoint,
@@ -758,7 +782,7 @@ export function EditorClient({
                   onChange={handleChange}
                   collections={collections}
                   customFonts={customFonts}
-                  pageCollectionId={pageCollectionId}
+                  pageCollectionId={nearestListCollectionId ?? pageCollectionId}
                   readOnly={readOnly}
                   simpleMode={simpleMode}
                   activeLocale={activeLocale ? { id: activeLocale.id, isDefault: activeLocale.isDefault } : null}

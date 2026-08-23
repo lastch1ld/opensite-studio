@@ -146,6 +146,46 @@ const BACKGROUND_TEXTURE_FIELD: FieldSchema = {
   ],
 };
 
+// docs/reference-sites-plan.md Tier 5: status/tag badges on Collection-
+// bound list items (Accoutrement's "Sold Out"/"Only 1 Room Left",
+// Banh Mi & You's "vegan" tag) — maps onto the existing `text` block
+// (typically bound via `$bind` to a Collection field inside a `list`
+// item template) rather than a new block type, per the plan's own framing.
+// A small closed set of semantic tones rather than a raw color picker,
+// matching how a non-technical editor thinks about status ("this is bad
+// news" vs "this is fine") rather than picking hex values.
+const BADGE_TONES: Record<string, { bg: string; fg: string }> = {
+  neutral: { bg: "#f3f4f6", fg: "#374151" },
+  success: { bg: "#dcfce7", fg: "#15803d" },
+  warning: { bg: "#fef3c7", fg: "#92400e" },
+  danger: { bg: "#fee2e2", fg: "#b91c1c" },
+};
+
+const DISPLAY_AS_BADGE_FIELD: FieldSchema = {
+  key: "displayAs",
+  label: "Display as",
+  friendlyLabel: "Show as a badge",
+  group: "style",
+  input: "select",
+  options: [
+    { label: "Text (default)", value: "" },
+    { label: "Badge", value: "badge" },
+  ],
+};
+
+const BADGE_TONE_FIELD: FieldSchema = {
+  key: "badgeTone",
+  label: "Badge color",
+  group: "style",
+  input: "select",
+  options: [
+    { label: "Neutral", value: "neutral" },
+    { label: "Success (green)", value: "success" },
+    { label: "Warning (amber)", value: "warning" },
+    { label: "Danger (red)", value: "danger" },
+  ],
+};
+
 function offsetStyle(style: Record<string, unknown>): CSSProperties {
   const x = str(style.offsetX);
   const y = str(style.offsetY);
@@ -412,8 +452,25 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
       },
       FONT_FIELD,
       ...OFFSET_FIELDS,
+      DISPLAY_AS_BADGE_FIELD,
+      BADGE_TONE_FIELD,
     ],
     render(props, style) {
+      if (str(style.displayAs) === "badge") {
+        const tone = BADGE_TONES[str(style.badgeTone, "neutral")] ?? BADGE_TONES.neutral;
+        const badgeStyle: CSSProperties = {
+          display: "inline-block",
+          padding: "4px 10px",
+          borderRadius: "999px",
+          fontSize: str(style.fontSize, "13px"),
+          fontWeight: str(style.fontWeight, "600") as CSSProperties["fontWeight"],
+          background: tone.bg,
+          color: tone.fg,
+          ...fontFamilyStyle(style),
+          ...offsetStyle(style),
+        };
+        return <span style={badgeStyle}>{str(props.content)}</span>;
+      }
       const cssStyle: CSSProperties = {
         fontSize: str(style.fontSize, "16px"),
         fontWeight: str(style.fontWeight, "400") as CSSProperties["fontWeight"],
@@ -689,7 +746,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
   // Inspector, palette). See BlockRenderer.tsx's "list" branch.
   list: {
     label: "List / Grid",
-    defaultProps: { collectionId: "", filterField: "", filterValue: "", sortField: "", sortDir: "asc", limit: "10", columns: "3" },
+    defaultProps: { collectionId: "", filterField: "", filterValue: "", filterTagField: "", sortField: "", sortDir: "asc", limit: "10", columns: "3" },
     defaultStyle: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" },
     inspector: [
       { key: "collectionId", label: "Collection", friendlyLabel: "Data source", group: "props", input: "collectionSelect" },
@@ -719,6 +776,20 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
           { label: "3", value: "3" },
           { label: "4", value: "4" },
         ],
+      },
+      {
+        // docs/reference-sites-plan.md Tier 5 (Mosaic's category filter bar):
+        // distinct from filterField/filterValue above, which are a static
+        // server-side "only show items where X equals Y" query — this
+        // instead renders a client-side tag bar built from every distinct
+        // value of the named field across the *matched* items, letting a
+        // visitor toggle between them without a page reload. Empty (the
+        // default) renders exactly as before — no filter bar at all.
+        key: "filterTagField",
+        label: "Client-side filter field",
+        friendlyLabel: "Let visitors filter by...",
+        group: "props",
+        input: "text",
       },
       { key: "gap", label: "Gap", friendlyLabel: "Space between items", group: "style", input: "text", tokenCategory: "spacing" },
     ],

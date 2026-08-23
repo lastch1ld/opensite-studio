@@ -9,6 +9,7 @@ import { queryListItems, resolveBoundProps, type RenderContext } from "@/lib/bin
 import { evaluateCondition } from "@/lib/condition";
 import { resolveTranslatedProps } from "@/lib/translations";
 import type { ThemeTokens } from "@/lib/theme";
+import { FilterableItemsGrid, type FilterableGridItem } from "./FilterableItemsGrid";
 
 type BlockRendererProps = {
   block: Block;
@@ -145,27 +146,49 @@ export function BlockRenderer({
       gridTemplateColumns: `repeat(${responsiveColumnCount(desktopColumns, activeBreakpoint)}, 1fr)`,
       gap: String(resolvedStyle.gap ?? "16px"),
     };
-    const content = (
+    // docs/reference-sites-plan.md Tier 5: an optional client-side tag
+    // filter bar (Mosaic's category filter) built from every distinct
+    // value of `filterTagField` across the matched items — see
+    // FilterableItemsGrid.tsx. Item nodes are built once here regardless
+    // of whether the bar renders, so the filterable and plain paths never
+    // diverge in what each item actually looks like.
+    const filterTagField = typeof block.props.filterTagField === "string" ? block.props.filterTagField : "";
+    const isFilterable = Boolean(filterTagField) && matched.length > 0;
+    const items: FilterableGridItem[] = instances.map((item, i) => ({
+      key: item?.id ?? `empty-${i}`,
+      tag: item && filterTagField ? String(item.data?.[filterTagField] ?? "") : "",
+      node: (
+        <>
+          {childBlocks.map((child) => (
+            <BlockRenderer
+              key={child.id}
+              block={child}
+              selectedId={selectedId}
+              onSelect={onSelect}
+              activeBreakpoint={activeBreakpoint}
+              theme={theme}
+              renderContext={{ ...ctx, currentItem: item ? { collectionId, id: item.id, data: item.data } : null }}
+              renderNodeWrapper={renderNodeWrapper}
+              renderChildrenWrapper={renderChildrenWrapper}
+            />
+          ))}
+        </>
+      ),
+    }));
+    const grid = isFilterable ? (
+      <FilterableItemsGrid blockId={block.id} gridStyle={cssStyle} items={items} />
+    ) : (
       <div style={cssStyle} data-block-id={block.id} data-columns-id={block.id}>
-        {instances.map((item, i) => (
-          <div key={item?.id ?? `empty-${i}`}>
-            {childBlocks.map((child) => (
-              <BlockRenderer
-                key={child.id}
-                block={child}
-                selectedId={selectedId}
-                onSelect={onSelect}
-                activeBreakpoint={activeBreakpoint}
-                theme={theme}
-                renderContext={{ ...ctx, currentItem: item ? { collectionId, id: item.id, data: item.data } : null }}
-                renderNodeWrapper={renderNodeWrapper}
-                renderChildrenWrapper={renderChildrenWrapper}
-              />
-            ))}
-          </div>
+        {items.map((it) => (
+          <div key={it.key}>{it.node}</div>
         ))}
-        <style dangerouslySetInnerHTML={{ __html: columnsResponsiveCss(block.id, desktopColumns) }} />
       </div>
+    );
+    const content = (
+      <>
+        {grid}
+        <style dangerouslySetInnerHTML={{ __html: columnsResponsiveCss(block.id, desktopColumns) }} />
+      </>
     );
     const animatedList = withAnimation(resolvedStyle, content);
     if (!onSelect) return <>{withSticky(resolvedStyle, animatedList)}</>;
