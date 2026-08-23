@@ -168,6 +168,30 @@ Phase B confirms the pattern generalizes (building it after Phase A
 alone risks baking in something SaaS-specific that doesn't fit
 Hotel/Restaurant's different page shapes).
 
+## Notes from later review (not yet scoped into phases above)
+
+- **Multiselect delete should extend beyond Collections.** Shipped for
+  Collection items (`CollectionEditorClient.tsx`'s Items table — header
+  select-all + per-row checkboxes + "Delete N selected", firing the
+  existing per-item DELETE route concurrently rather than adding a new
+  bulk endpoint). Direct feedback: the same pattern is wanted "not just
+  in collections but in the pages list etc." — `PageList.tsx`'s page
+  table (`handleDelete`, currently one-at-a-time via a per-row Delete
+  button) is the next candidate, and any other item-list-with-delete
+  surface in the dashboard should get the same treatment for
+  consistency. Not yet scoped as its own phase — pick up alongside or
+  after Phase G.
+- **Collections-as-data-binding is under reconsideration.** Direct
+  feedback: "I dont quite like that as a logical solution for connecting
+  data to Components" — the current Collection → `$bind` → block-prop
+  model (see `AGENTS.md`/`docs/index.md` for how `$bind` currently
+  resolves) is being questioned as the right mental model for wiring
+  data into components, but no alternative has been discussed yet.
+  Explicitly deferred: "we will review the collections thing later."
+  Don't invest further in the Collections binding UX (beyond what
+  already exists) until that review happens — flag before extending it
+  further (e.g. before building richer bind UI or new bind sources).
+
 ## Suggested subagent use
 
 Phases B–F are **structurally independent** of each other — different
