@@ -28,6 +28,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
       {
         key: "layout",
         label: "Layout",
+        friendlyLabel: "Arrange items",
         group: "props",
         input: "select",
         options: [
@@ -35,15 +36,16 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
           { label: "Row (horizontal)", value: "row" },
         ],
       },
-      { key: "padding", label: "Padding", group: "style", input: "text", tokenCategory: "spacing" },
-      { key: "background", label: "Background", group: "style", input: "color", tokenCategory: "colors" },
+      { key: "padding", label: "Padding", friendlyLabel: "Inner spacing", group: "style", input: "text", tokenCategory: "spacing" },
+      { key: "background", label: "Background", friendlyLabel: "Background color", group: "style", input: "color", tokenCategory: "colors" },
       // Optional: caps a section's content width and centers it (e.g.
       // "1100px"), so a full-bleed background can still hold a readable
       // centered column — unset behaves exactly as before (full-width).
-      { key: "maxWidth", label: "Max content width", group: "style", input: "text" },
+      { key: "maxWidth", label: "Max content width", friendlyLabel: "Content width", group: "style", input: "text" },
       {
         key: "align",
         label: "Align items (cross-axis)",
+        friendlyLabel: "Alignment",
         group: "style",
         input: "select",
         options: [
@@ -56,6 +58,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
       {
         key: "justify",
         label: "Justify content (main-axis)",
+        friendlyLabel: "Content position",
         group: "style",
         input: "select",
         options: [
@@ -65,8 +68,8 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
           { label: "Space between", value: "space-between" },
         ],
       },
-      { key: "gap", label: "Gap", group: "style", input: "text", tokenCategory: "spacing" },
-      { key: "borderRadius", label: "Corner radius", group: "style", input: "text" },
+      { key: "gap", label: "Gap", friendlyLabel: "Space between items", group: "style", input: "text", tokenCategory: "spacing" },
+      { key: "borderRadius", label: "Corner radius", friendlyLabel: "Rounded corners", group: "style", input: "text" },
     ],
     render(props, style, children) {
       const layout = str(props.layout, "stack");
@@ -94,11 +97,12 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
     defaultProps: { content: "New text block" },
     defaultStyle: { fontSize: "16px", fontWeight: "400", color: "#111111" },
     inspector: [
-      { key: "content", label: "Content", group: "props", input: "textarea", bindable: true, translatable: true },
-      { key: "fontSize", label: "Font size", group: "style", input: "text", tokenCategory: "typography" },
+      { key: "content", label: "Content", friendlyLabel: "Text", group: "props", input: "textarea", bindable: true, translatable: true },
+      { key: "fontSize", label: "Font size", friendlyLabel: "Text size", group: "style", input: "text", tokenCategory: "typography" },
       {
         key: "fontWeight",
         label: "Font weight",
+        friendlyLabel: "Boldness",
         group: "style",
         input: "select",
         options: [
@@ -107,7 +111,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
           { label: "Bold", value: "700" },
         ],
       },
-      { key: "color", label: "Color", group: "style", input: "color", tokenCategory: "colors" },
+      { key: "color", label: "Color", friendlyLabel: "Text color", group: "style", input: "color", tokenCategory: "colors" },
       {
         key: "textAlign",
         label: "Alignment",
@@ -138,10 +142,11 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
     defaultStyle: {},
     inspector: [
       { key: "src", label: "Image", group: "props", input: "image", bindable: true },
-      { key: "alt", label: "Alt text", group: "props", input: "text", translatable: true },
+      { key: "alt", label: "Alt text", friendlyLabel: "Description (for accessibility)", group: "props", input: "text", translatable: true },
       {
         key: "objectFit",
         label: "Object fit",
+        friendlyLabel: "Fit",
         group: "props",
         input: "select",
         options: [
@@ -150,7 +155,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
           { label: "Fill", value: "fill" },
         ],
       },
-      { key: "borderRadius", label: "Corner radius", group: "style", input: "text" },
+      { key: "borderRadius", label: "Corner radius", friendlyLabel: "Rounded corners", group: "style", input: "text" },
     ],
     render(props, style) {
       const cssStyle: CSSProperties = {
@@ -168,11 +173,12 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
     defaultProps: { label: "Click me", href: "#", variant: "primary", closesPopup: "" },
     defaultStyle: {},
     inspector: [
-      { key: "label", label: "Label", group: "props", input: "text", translatable: true },
-      { key: "href", label: "Link URL", group: "props", input: "url" },
+      { key: "label", label: "Label", friendlyLabel: "Button text", group: "props", input: "text", translatable: true },
+      { key: "href", label: "Link URL", friendlyLabel: "Link", group: "props", input: "url" },
       {
         key: "variant",
         label: "Variant",
+        friendlyLabel: "Style",
         group: "props",
         input: "select",
         options: [
@@ -183,6 +189,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
       {
         key: "closesPopup",
         label: "Closes popup (only has an effect inside a popup)",
+        friendlyLabel: "Closes the popup when clicked",
         group: "props",
         input: "select",
         options: [
@@ -190,12 +197,12 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
           { label: "Yes", value: "true" },
         ],
       },
-      { key: "padding", label: "Padding", group: "style", input: "text" },
-      { key: "borderRadius", label: "Corner radius", group: "style", input: "text" },
-      { key: "background", label: "Background (primary)", group: "style", input: "color", tokenCategory: "colors" },
+      { key: "padding", label: "Padding", friendlyLabel: "Button size", group: "style", input: "text" },
+      { key: "borderRadius", label: "Corner radius", friendlyLabel: "Rounded corners", group: "style", input: "text" },
+      { key: "background", label: "Background (primary)", friendlyLabel: "Button color", group: "style", input: "color", tokenCategory: "colors" },
       { key: "color", label: "Text color (primary)", group: "style", input: "color", tokenCategory: "colors" },
-      { key: "fontSize", label: "Font size", group: "style", input: "text", tokenCategory: "typography" },
-      { key: "fontWeight", label: "Font weight", group: "style", input: "text" },
+      { key: "fontSize", label: "Font size", friendlyLabel: "Text size", group: "style", input: "text", tokenCategory: "typography" },
+      { key: "fontWeight", label: "Font weight", friendlyLabel: "Boldness", group: "style", input: "text" },
     ],
     render(props, style) {
       const variant = str(props.variant, "primary");
@@ -228,10 +235,11 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
     defaultProps: { level: "h2", text: "Heading" },
     defaultStyle: { fontSize: "32px", fontWeight: "700", color: "#111111" },
     inspector: [
-      { key: "text", label: "Text", group: "props", input: "text", translatable: true },
+      { key: "text", label: "Text", friendlyLabel: "Heading text", group: "props", input: "text", translatable: true },
       {
         key: "level",
         label: "Level",
+        friendlyLabel: "Importance",
         group: "props",
         input: "select",
         options: [
@@ -243,8 +251,8 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
           { label: "H6", value: "h6" },
         ],
       },
-      { key: "fontSize", label: "Font size", group: "style", input: "text", tokenCategory: "typography" },
-      { key: "color", label: "Color", group: "style", input: "color", tokenCategory: "colors" },
+      { key: "fontSize", label: "Font size", friendlyLabel: "Text size", group: "style", input: "text", tokenCategory: "typography" },
+      { key: "color", label: "Color", friendlyLabel: "Text color", group: "style", input: "color", tokenCategory: "colors" },
       {
         key: "textAlign",
         label: "Alignment",
@@ -293,6 +301,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
       {
         key: "columns",
         label: "Columns",
+        friendlyLabel: "Number of columns",
         group: "props",
         input: "select",
         options: [
@@ -301,7 +310,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
           { label: "4", value: "4" },
         ],
       },
-      { key: "gap", label: "Gap", group: "style", input: "text", tokenCategory: "spacing" },
+      { key: "gap", label: "Gap", friendlyLabel: "Space between columns", group: "style", input: "text", tokenCategory: "spacing" },
     ],
     render(props, style, children) {
       const columns = str(props.columns, "2");
@@ -319,7 +328,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
     defaultProps: { html: "" },
     defaultStyle: { height: "300px" },
     inspector: [
-      { key: "html", label: "HTML embed (sandboxed - trusted content only)", group: "props", input: "textarea" },
+      { key: "html", label: "HTML embed (sandboxed - trusted content only)", friendlyLabel: "Custom code", group: "props", input: "textarea" },
       { key: "height", label: "Height", group: "style", input: "text" },
     ],
     render(props, style) {
@@ -343,13 +352,14 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
     defaultProps: { collectionId: "", filterField: "", filterValue: "", sortField: "", sortDir: "asc", limit: "10" },
     defaultStyle: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" },
     inspector: [
-      { key: "collectionId", label: "Collection", group: "props", input: "collectionSelect" },
-      { key: "filterField", label: "Filter field", group: "props", input: "text" },
-      { key: "filterValue", label: "Filter value", group: "props", input: "text" },
-      { key: "sortField", label: "Sort field", group: "props", input: "text" },
+      { key: "collectionId", label: "Collection", friendlyLabel: "Data source", group: "props", input: "collectionSelect" },
+      { key: "filterField", label: "Filter field", friendlyLabel: "Only show items where...", group: "props", input: "text" },
+      { key: "filterValue", label: "Filter value", friendlyLabel: "...equals", group: "props", input: "text" },
+      { key: "sortField", label: "Sort field", friendlyLabel: "Sort by", group: "props", input: "text" },
       {
         key: "sortDir",
         label: "Sort direction",
+        friendlyLabel: "Sort order",
         group: "props",
         input: "select",
         options: [
@@ -357,8 +367,8 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
           { label: "Descending", value: "desc" },
         ],
       },
-      { key: "limit", label: "Limit", group: "props", input: "number" },
-      { key: "gap", label: "Gap", group: "style", input: "text", tokenCategory: "spacing" },
+      { key: "limit", label: "Limit", friendlyLabel: "Max items to show", group: "props", input: "number" },
+      { key: "gap", label: "Gap", friendlyLabel: "Space between items", group: "style", input: "text", tokenCategory: "spacing" },
     ],
     render(props, style, children) {
       const cssStyle: CSSProperties = {
@@ -399,10 +409,10 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
     defaultProps: { placeholder: "you@example.com", submitLabel: "Subscribe", successMessage: "Thanks — you're subscribed." },
     defaultStyle: { padding: "16px" },
     inspector: [
-      { key: "placeholder", label: "Placeholder", group: "props", input: "text", translatable: true },
-      { key: "submitLabel", label: "Submit label", group: "props", input: "text", translatable: true },
+      { key: "placeholder", label: "Placeholder", friendlyLabel: "Placeholder text", group: "props", input: "text", translatable: true },
+      { key: "submitLabel", label: "Submit label", friendlyLabel: "Button text", group: "props", input: "text", translatable: true },
       { key: "successMessage", label: "Success message", group: "props", input: "text", translatable: true },
-      { key: "padding", label: "Padding", group: "style", input: "text", tokenCategory: "spacing" },
+      { key: "padding", label: "Padding", friendlyLabel: "Inner spacing", group: "style", input: "text", tokenCategory: "spacing" },
     ],
     render(props, style, _children, meta) {
       return (

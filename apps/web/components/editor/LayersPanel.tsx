@@ -19,9 +19,9 @@ function LayerNode({
     <div>
       <button
         onClick={() => onSelect(block.id)}
-        style={{ paddingLeft: `${depth * 16 + 8}px` }}
-        className={`block w-full truncate py-1 text-left text-sm ${
-          isSelected ? "bg-blue-100 font-medium text-blue-900" : "hover:bg-gray-100"
+        style={{ paddingLeft: `${depth * 16 + 12}px` }}
+        className={`block w-full truncate py-1.5 pr-3 text-left text-sm transition-colors ${
+          isSelected ? "bg-[var(--accent-soft)] font-medium text-[var(--accent)]" : "text-[var(--text)] hover:bg-[var(--surface-sunken)]"
         }`}
       >
         {getBlockDefinition(block.type)?.label ?? block.type}
@@ -33,6 +33,9 @@ function LayerNode({
   );
 }
 
+// docs/ui-ux-roadmap.md: no longer a permanent left rail — this renders
+// just the tree; the floating panel chrome (header, close button) lives in
+// whichever container mounts it (EditorClient.tsx).
 export function LayersPanel({
   root,
   selectedId,
@@ -43,8 +46,7 @@ export function LayersPanel({
   onSelect: (id: string) => void;
 }) {
   return (
-    <div className="h-full overflow-y-auto border-r bg-white">
-      <h2 className="border-b px-3 py-2 text-xs font-semibold uppercase text-gray-500">Layers</h2>
+    <div className="py-1.5">
       <LayerNode block={root} depth={0} selectedId={selectedId} onSelect={onSelect} />
     </div>
   );

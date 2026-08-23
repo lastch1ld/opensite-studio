@@ -25,6 +25,9 @@ type InspectorProps = {
   collections?: CollectionSummary[];
   pageCollectionId?: string | null;
   readOnly?: boolean;
+  // docs/ui-ux-roadmap.md's "not technical mode": swaps each field's
+  // `label` for its plain-language `friendlyLabel` where one exists.
+  simpleMode?: boolean;
   // The rest are all optional and only meaningful together — omitted
   // entirely by any caller that doesn't thread locale state through yet.
   activeLocale?: ActiveLocale;
@@ -40,6 +43,10 @@ function isTokenRef(v: unknown): v is { $token: string } {
 
 function isBindRef(v: unknown): v is { $bind: { source: string; collectionId?: string; field: string } } {
   return typeof v === "object" && v !== null && typeof (v as { $bind?: unknown }).$bind === "object";
+}
+
+function fieldLabel(field: FieldSchema, simpleMode: boolean): string {
+  return (simpleMode && field.friendlyLabel) || field.label;
 }
 
 function FieldInput({
@@ -59,12 +66,7 @@ function FieldInput({
 }) {
   if (field.input === "collectionSelect") {
     return (
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={readOnly}
-        className="w-full rounded border px-2 py-1 text-sm"
-      >
+      <select value={value} onChange={(e) => onChange(e.target.value)} disabled={readOnly} className="chrome-input w-full text-sm">
         <option value="">Select a collection...</option>
         {collections.map((c) => (
           <option key={c.id} value={c.id}>
@@ -76,12 +78,7 @@ function FieldInput({
   }
   if (field.input === "select") {
     return (
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={readOnly}
-        className="w-full rounded border px-2 py-1 text-sm"
-      >
+      <select value={value} onChange={(e) => onChange(e.target.value)} disabled={readOnly} className="chrome-input w-full text-sm">
         {field.options?.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.label}
@@ -97,7 +94,7 @@ function FieldInput({
         onChange={(e) => onChange(e.target.value)}
         disabled={readOnly}
         rows={3}
-        className="w-full rounded border px-2 py-1 text-sm"
+        className="chrome-input w-full text-sm"
       />
     );
   }
@@ -108,7 +105,7 @@ function FieldInput({
         value={/^#[0-9a-fA-F]{6}$/.test(value) ? value : "#000000"}
         onChange={(e) => onChange(e.target.value)}
         disabled={readOnly}
-        className="h-8 w-full rounded border"
+        className="h-8 w-full rounded-[var(--radius-sm)] border border-[var(--border-strong)]"
       />
     );
   }
@@ -117,21 +114,11 @@ function FieldInput({
       <div className="flex flex-col gap-2">
         {value && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={value} alt="" className="h-24 w-full rounded border object-cover" />
+          <img src={value} alt="" className="h-24 w-full rounded-[var(--radius-sm)] border border-[var(--border)] object-cover" />
         )}
         <div className="flex gap-2">
-          <input
-            type="text"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            disabled={readOnly}
-            className="w-full rounded border px-2 py-1 text-sm"
-          />
-          <button
-            onClick={onOpenMediaPicker}
-            disabled={readOnly}
-            className="whitespace-nowrap rounded border px-2 py-1 text-xs hover:bg-gray-50 disabled:opacity-50"
-          >
+          <input type="text" value={value} onChange={(e) => onChange(e.target.value)} disabled={readOnly} className="chrome-input w-full text-sm" />
+          <button onClick={onOpenMediaPicker} disabled={readOnly} className="chrome-btn chrome-btn-secondary shrink-0 !px-2 !py-1 text-xs">
             Choose
           </button>
         </div>
@@ -139,13 +126,7 @@ function FieldInput({
     );
   }
   return (
-    <input
-      type="text"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      disabled={readOnly}
-      className="w-full rounded border px-2 py-1 text-sm"
-    />
+    <input type="text" value={value} onChange={(e) => onChange(e.target.value)} disabled={readOnly} className="chrome-input w-full text-sm" />
   );
 }
 
@@ -173,13 +154,13 @@ function BindEditor({
     : collections.find((c) => c.id === boundRef.collectionId);
 
   return (
-    <div className="flex flex-col gap-1 rounded border border-dashed border-blue-300 bg-blue-50 p-2">
+    <div className="flex flex-col gap-1 rounded-[var(--radius-sm)] border border-dashed border-[var(--accent)] bg-[var(--accent-soft)] p-2">
       {!isCurrentItem && (
         <select
           value={boundRef.collectionId ?? ""}
           onChange={(e) => onChange({ ...boundRef, collectionId: e.target.value })}
           disabled={readOnly}
-          className="w-full rounded border px-2 py-1 text-xs"
+          className="chrome-input w-full !py-1 text-xs"
         >
           <option value="">Select a collection...</option>
           {collections.map((c) => (
@@ -193,7 +174,7 @@ function BindEditor({
         value={boundRef.field}
         onChange={(e) => onChange({ ...boundRef, field: e.target.value })}
         disabled={readOnly}
-        className="w-full rounded border px-2 py-1 text-xs"
+        className="chrome-input w-full !py-1 text-xs"
       >
         <option value="">Select a field...</option>
         {targetCollection?.fieldSchema.map((f) => (
@@ -215,6 +196,7 @@ export function Inspector({
   collections = [],
   pageCollectionId = null,
   readOnly = false,
+  simpleMode = false,
   activeLocale = null,
   translationEntity,
   translations = {},
@@ -231,9 +213,8 @@ export function Inspector({
 
   if (!block) {
     return (
-      <div className="h-full border-l bg-white p-4">
-        <h2 className="text-xs font-semibold uppercase text-gray-500">Inspector</h2>
-        <p className="mt-4 text-sm text-gray-500">Select a block to edit its properties.</p>
+      <div className="p-4">
+        <p className="text-sm text-[var(--text-muted)]">Select a block on the canvas to edit its properties.</p>
       </div>
     );
   }
@@ -242,8 +223,8 @@ export function Inspector({
   if (!def) return null;
 
   return (
-    <div className="h-full overflow-y-auto border-l bg-white p-4">
-      <h2 className="text-xs font-semibold uppercase text-gray-500">{def.label}</h2>
+    <div className="p-4">
+      <h2 className="text-sm font-semibold text-[var(--text)]">{def.label}</h2>
       {activeBreakpoint !== "base" && (
         <p className="mt-1 text-xs text-amber-600">
           Editing style overrides for {activeBreakpoint}. Leave a field blank to inherit desktop.
@@ -277,6 +258,7 @@ export function Inspector({
           const value = typeof raw === "string" ? raw : "";
           const tokenOptions = field.tokenCategory && theme ? tokenOptionsFor(theme, field.tokenCategory) : [];
           const bindable = field.bindable && collections.length > 0;
+          const label = fieldLabel(field, simpleMode);
 
           // docs/multilingual.md: a translatable prop field, under a
           // non-default Locale, reads/writes a Translation row instead of
@@ -299,13 +281,13 @@ export function Inspector({
             return (
               <div key={`${field.group}.${field.key}`}>
                 <div className="mb-1 flex items-center justify-between">
-                  <label className="block text-xs font-medium text-gray-600">{field.label}</label>
+                  <label className="chrome-label !mb-0">{label}</label>
                   {isTranslated ? (
                     <button
                       type="button"
                       disabled={readOnly}
                       onClick={() => onTranslationClear?.(block.id, `props.${field.key}`)}
-                      className="text-xs text-gray-400 underline disabled:opacity-50"
+                      className="text-xs text-[var(--text-faint)] underline disabled:opacity-50"
                     >
                       Reset to default
                     </button>
@@ -328,9 +310,9 @@ export function Inspector({
           return (
             <div key={`${field.group}.${field.key}`}>
               <div className="mb-1 flex items-center justify-between">
-                <label className="block text-xs font-medium text-gray-600">{field.label}</label>
+                <label className="chrome-label !mb-0">{label}</label>
                 {bindable && !translating && (
-                  <label className="flex items-center gap-1 text-xs text-gray-500">
+                  <label className="flex items-center gap-1 text-xs text-[var(--text-muted)]">
                     <input
                       type="checkbox"
                       checked={Boolean(boundRef)}
@@ -350,7 +332,7 @@ export function Inspector({
                         );
                       }}
                     />
-                    Bind
+                    {simpleMode ? "Use dynamic data" : "Bind"}
                   </label>
                 )}
               </div>
@@ -371,12 +353,12 @@ export function Inspector({
                     else onChange(field.group, field.key, { $token: e.target.value });
                   }}
                   disabled={readOnly}
-                  className="mb-1 w-full rounded border px-2 py-1 text-xs"
+                  className="chrome-input mb-1 w-full !py-1 text-xs"
                 >
                   <option value="__custom__">Custom value</option>
                   {tokenOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
-                      Token: {opt.label}
+                      Theme: {opt.label}
                     </option>
                   ))}
                 </select>

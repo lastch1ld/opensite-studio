@@ -17,6 +17,12 @@ export type BlockStyle = Partial<Record<Breakpoint, Record<string, unknown>>>;
 export type FieldSchema = {
   key: string;
   label: string;
+  // Plain-language alternative to `label`, shown instead of it when the
+  // editor's "Simple mode" is on (docs/ui-ux-roadmap.md) — e.g. label
+  // "Corner radius" / friendlyLabel "Rounded corners". Optional: falls
+  // back to `label` when unset, for fields already plain enough (e.g.
+  // "Text", "Link").
+  friendlyLabel?: string;
   group: "props" | "style";
   input: "text" | "textarea" | "number" | "color" | "select" | "url" | "image" | "collectionSelect";
   options?: { label: string; value: string }[];

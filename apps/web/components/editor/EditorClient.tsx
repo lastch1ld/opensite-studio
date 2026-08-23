@@ -26,7 +26,10 @@ import { Inspector } from "./Inspector";
 import { Toolbar } from "./Toolbar";
 import { ClipboardPanel } from "./ClipboardPanel";
 import { SeoPanel } from "./SeoPanel";
+import { FloatingPanel } from "./FloatingPanel";
 import { defaultPageSeo, type PageSeo } from "@/lib/seo";
+
+const SIMPLE_MODE_STORAGE_KEY = "opensite:editor:simpleMode";
 
 export type SavedBlockSummary = { id: string; name: string; content: Block };
 export type CollectionSummary = {
@@ -94,6 +97,44 @@ export function EditorClient({
   const { present: content, update: updateContent, undo, redo, canUndo, canRedo } = useHistory(initialContent);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [rightTab, setRightTab] = useState<"inspector" | "clipboard" | "seo">("inspector");
+  // docs/ui-ux-roadmap.md: the Layers/Inspector rails are now floating
+  // panels a user opens/closes, not permanently-reserved grid columns.
+  const [layersOpen, setLayersOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
+  // "Not technical mode" — persisted across sessions since it's a durable
+  // user preference, not per-page state. Starts `false` (matching SSR,
+  // which has no `window`) and is corrected from localStorage right after
+  // mount — a lazy useState initializer would read localStorage during
+  // the client's first render too, diverging from the server-rendered
+  // markup and triggering a hydration mismatch on the Toolbar's Simple
+  // mode button. This is exactly the "subscribe to external state on
+  // mount" case React's effect docs describe, not the cascading-render
+  // footgun the lint rule below is guarding against.
+  const [simpleMode, setSimpleMode] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (window.localStorage.getItem(SIMPLE_MODE_STORAGE_KEY) === "1") setSimpleMode(true);
+  }, []);
+  const toggleSimpleMode = useCallback(() => {
+    setSimpleMode((prev) => {
+      const next = !prev;
+      window.localStorage.setItem(SIMPLE_MODE_STORAGE_KEY, next ? "1" : "0");
+      return next;
+    });
+  }, []);
+  // Selecting a block (canvas click or Layers tree click) surfaces its
+  // properties automatically; deselecting closes the panel again — this is
+  // the "context menu switching per current work" behavior, replacing the
+  // old always-visible Inspector rail.
+  const selectBlock = useCallback((id: string | null) => {
+    setSelectedId(id);
+    if (id) {
+      setRightTab("inspector");
+      setPanelOpen(true);
+    } else {
+      setPanelOpen(false);
+    }
+  }, []);
   const [seo, setSeo] = useState<PageSeo>(initialSeo ?? defaultPageSeo());
   const seoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
@@ -250,16 +291,16 @@ export function EditorClient({
         selectedId && findBlock(content.root, selectedId)?.children !== undefined ? selectedId : content.root.id;
       const newBlock = createBlock(type);
       updateContent((prev) => ({ ...prev, root: addBlock(prev.root, parentId, newBlock) }));
-      setSelectedId(newBlock.id);
+      selectBlock(newBlock.id);
     },
-    [content.root, selectedId, updateContent],
+    [content.root, selectedId, updateContent, selectBlock],
   );
 
   const handleDelete = useCallback(() => {
     if (!selectedId || selectedId === content.root.id) return;
     updateContent((prev) => ({ ...prev, root: deleteBlock(prev.root, selectedId) }));
-    setSelectedId(null);
-  }, [selectedId, content.root, updateContent]);
+    selectBlock(null);
+  }, [selectedId, content.root, updateContent, selectBlock]);
 
   const handleChange = useCallback(
     (group: "props" | "style", key: string, value: unknown) => {
@@ -309,9 +350,9 @@ export function EditorClient({
         selectedId && findBlock(content.root, selectedId)?.children !== undefined ? selectedId : content.root.id;
       const newBlock = cloneWithNewIds(saved.content);
       updateContent((prev) => ({ ...prev, root: addBlock(prev.root, parentId, newBlock) }));
-      setSelectedId(newBlock.id);
+      selectBlock(newBlock.id);
     },
-    [content.root, selectedId, updateContent],
+    [content.root, selectedId, updateContent, selectBlock],
   );
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
@@ -486,10 +527,15 @@ export function EditorClient({
           readOnly={readOnly}
           onRestore={handleRestore}
           extraToolbar={extraToolbar}
+          layersOpen={layersOpen}
+          onToggleLayers={() => setLayersOpen((v) => !v)}
+          panelOpen={panelOpen}
+          onTogglePanel={() => setPanelOpen((v) => !v)}
+          simpleMode={simpleMode}
+          onToggleSimpleMode={toggleSimpleMode}
         />
-        <div className="grid flex-1 grid-cols-[220px_1fr_280px] overflow-hidden">
-          <LayersPanel root={content.root} selectedId={selectedId} onSelect={setSelectedId} />
-          <div className="overflow-y-auto bg-gray-50 p-6" onClick={() => setSelectedId(null)}>
+        <div className="relative flex-1 overflow-hidden">
+          <div className="h-full overflow-y-auto bg-[var(--surface-sunken)] p-6" onClick={() => selectBlock(null)}>
             <div className="mx-auto bg-white shadow-sm" style={{ maxWidth: `${canvasWidth}px` }}>
               {showComposedPreview ? (
                 <>
@@ -497,7 +543,7 @@ export function EditorClient({
                     <BlockRenderer
                       block={content.root}
                       selectedId={selectedId}
-                      onSelect={setSelectedId}
+                      onSelect={selectBlock}
                       activeBreakpoint={activeBreakpoint}
                       theme={theme}
                       renderContext={renderContextValue}
@@ -520,7 +566,7 @@ export function EditorClient({
                     <BlockRenderer
                       block={content.root}
                       selectedId={selectedId}
-                      onSelect={setSelectedId}
+                      onSelect={selectBlock}
                       activeBreakpoint={activeBreakpoint}
                       theme={theme}
                       renderContext={renderContextValue}
@@ -543,7 +589,7 @@ export function EditorClient({
                 <BlockRenderer
                   block={content.root}
                   selectedId={selectedId}
-                  onSelect={setSelectedId}
+                  onSelect={selectBlock}
                   activeBreakpoint={activeBreakpoint}
                   theme={theme}
                   renderContext={renderContextValue}
@@ -559,39 +605,51 @@ export function EditorClient({
               )}
             </div>
           </div>
-          <div className="flex h-full flex-col overflow-hidden">
-            {!readOnly && (
-              <div className="flex border-b border-l bg-white">
-                <button
-                  onClick={() => setRightTab("inspector")}
-                  className={`flex-1 px-3 py-2 text-xs font-medium ${
-                    rightTab === "inspector" ? "border-b-2 border-black" : "text-gray-500 hover:bg-gray-50"
-                  }`}
-                >
-                  Inspector
-                </button>
-                <button
-                  onClick={() => setRightTab("clipboard")}
-                  className={`flex-1 px-3 py-2 text-xs font-medium ${
-                    rightTab === "clipboard" ? "border-b-2 border-black" : "text-gray-500 hover:bg-gray-50"
-                  }`}
-                >
-                  Import
-                </button>
-                {mode === "page" && (
+
+          {layersOpen && (
+            <FloatingPanel
+              title="Layers"
+              onClose={() => setLayersOpen(false)}
+              className="absolute left-3 top-3 bottom-3 z-20 w-60"
+            >
+              <LayersPanel root={content.root} selectedId={selectedId} onSelect={selectBlock} />
+            </FloatingPanel>
+          )}
+
+          {panelOpen && !readOnly && (
+            <FloatingPanel
+              title={rightTab === "inspector" ? "Properties" : rightTab === "clipboard" ? "Import" : "SEO"}
+              onClose={() => setPanelOpen(false)}
+              className="absolute right-3 top-3 bottom-3 z-20 w-80"
+              headerExtra={
+                <div className="flex gap-1">
                   <button
-                    onClick={() => setRightTab("seo")}
-                    className={`flex-1 px-3 py-2 text-xs font-medium ${
-                      rightTab === "seo" ? "border-b-2 border-black" : "text-gray-500 hover:bg-gray-50"
-                    }`}
+                    onClick={() => setRightTab("inspector")}
+                    className={`chrome-tab !px-2 !py-1 ${rightTab === "inspector" ? "" : "opacity-60"}`}
+                    data-state={rightTab === "inspector" ? "active" : undefined}
                   >
-                    SEO
+                    Properties
                   </button>
-                )}
-              </div>
-            )}
-            <div className="flex-1 overflow-hidden">
-              {rightTab === "clipboard" && !readOnly ? (
+                  <button
+                    onClick={() => setRightTab("clipboard")}
+                    className={`chrome-tab !px-2 !py-1 ${rightTab === "clipboard" ? "" : "opacity-60"}`}
+                    data-state={rightTab === "clipboard" ? "active" : undefined}
+                  >
+                    Import
+                  </button>
+                  {mode === "page" && (
+                    <button
+                      onClick={() => setRightTab("seo")}
+                      className={`chrome-tab !px-2 !py-1 ${rightTab === "seo" ? "" : "opacity-60"}`}
+                      data-state={rightTab === "seo" ? "active" : undefined}
+                    >
+                      SEO
+                    </button>
+                  )}
+                </div>
+              }
+            >
+              {rightTab === "clipboard" ? (
                 <ClipboardPanel siteId={siteId} selectedBlock={selectedBlock} onInsert={handleInsertFragment} />
               ) : rightTab === "seo" && mode === "page" ? (
                 <SeoPanel seo={seo} onChange={handleSeoChange} readOnly={readOnly} />
@@ -605,6 +663,7 @@ export function EditorClient({
                   collections={collections}
                   pageCollectionId={pageCollectionId}
                   readOnly={readOnly}
+                  simpleMode={simpleMode}
                   activeLocale={activeLocale ? { id: activeLocale.id, isDefault: activeLocale.isDefault } : null}
                   translationEntity={{ type: translationEntityType, id: pageId }}
                   translations={translations}
@@ -612,8 +671,8 @@ export function EditorClient({
                   onTranslationClear={handleTranslationClear}
                 />
               )}
-            </div>
-          </div>
+            </FloatingPanel>
+          )}
         </div>
       </div>
     </DndContext>

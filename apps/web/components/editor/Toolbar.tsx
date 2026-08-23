@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import * as ToggleGroup from "@radix-ui/react-toggle-group";
+import { Layers, SlidersHorizontal, Sparkles } from "lucide-react";
 import type { Block, Breakpoint, PageContent } from "@/components/blocks/types";
 import { getAllBlockDefinitions } from "@/components/blocks/registry";
 import { BREAKPOINTS } from "@/lib/responsiveStyle";
@@ -43,6 +44,17 @@ type ToolbarProps = {
   onInsertSavedBlock: (saved: SavedBlockSummary) => void;
   readOnly: boolean;
   onRestore: (content: PageContent) => void;
+  // docs/ui-ux-roadmap.md: the old permanent Layers/Inspector rails are now
+  // contextual floating panels — these two toggle their visibility.
+  layersOpen: boolean;
+  onToggleLayers: () => void;
+  panelOpen: boolean;
+  onTogglePanel: () => void;
+  // "Not technical mode": swaps field labels for plain-language ones
+  // (components/blocks/registry.tsx's `friendlyLabel`) across the
+  // floating properties panel.
+  simpleMode: boolean;
+  onToggleSimpleMode: () => void;
 };
 
 export function Toolbar({
@@ -74,6 +86,12 @@ export function Toolbar({
   onInsertSavedBlock,
   readOnly,
   onRestore,
+  layersOpen,
+  onToggleLayers,
+  panelOpen,
+  onTogglePanel,
+  simpleMode,
+  onToggleSimpleMode,
 }: ToolbarProps) {
   return (
     <div className="flex flex-col gap-2.5 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-2.5">
@@ -87,6 +105,33 @@ export function Toolbar({
           </span>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={onToggleLayers}
+            aria-pressed={layersOpen}
+            title="Layers"
+            className={`chrome-btn !px-2 !py-1 ${layersOpen ? "chrome-btn-primary" : "chrome-btn-secondary"}`}
+          >
+            <Layers size={14} />
+          </button>
+          {!readOnly && (
+            <button
+              onClick={onTogglePanel}
+              aria-pressed={panelOpen}
+              title="Properties"
+              className={`chrome-btn !px-2 !py-1 ${panelOpen ? "chrome-btn-primary" : "chrome-btn-secondary"}`}
+            >
+              <SlidersHorizontal size={14} />
+            </button>
+          )}
+          <button
+            onClick={onToggleSimpleMode}
+            aria-pressed={simpleMode}
+            title={simpleMode ? "Simple mode is on — plain-language field names" : "Turn on simple mode for plain-language field names"}
+            className={`chrome-btn !px-2 !py-1 ${simpleMode ? "chrome-btn-primary" : "chrome-btn-secondary"}`}
+          >
+            <Sparkles size={14} />
+            <span className="hidden sm:inline">Simple mode</span>
+          </button>
           <ToggleGroup.Root
             type="single"
             value={activeBreakpoint}
