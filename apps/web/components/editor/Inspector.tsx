@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Block, Breakpoint, FieldSchema } from "@/components/blocks/types";
-import { blockRegistry } from "@/components/blocks/registry";
+import { getBlockDefinition } from "@/components/blocks/registry";
 import { tokenOptionsFor, type ThemeTokens } from "@/lib/theme";
 import type { CollectionSummary } from "./EditorClient";
 import { MediaPicker } from "./MediaPicker";
@@ -213,7 +213,8 @@ export function Inspector({
     );
   }
 
-  const def = blockRegistry[block.type];
+  const def = getBlockDefinition(block.type);
+  if (!def) return null;
 
   return (
     <div className="h-full overflow-y-auto border-l bg-white p-4">
@@ -240,7 +241,7 @@ export function Inspector({
         </div>
       )}
       <div className="mt-4 flex flex-col gap-4">
-        {block.type !== "form" && def.fields.map((field) => {
+        {block.type !== "form" && def.inspector.map((field) => {
           const isStyle = field.group === "style";
           // Props are global (not breakpoint-scoped); style edits write into
           // the currently active breakpoint's override bucket.

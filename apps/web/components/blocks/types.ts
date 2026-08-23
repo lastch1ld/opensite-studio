@@ -1,6 +1,21 @@
 import type { Condition } from "@/lib/condition";
+import type { Breakpoint, BlockStyle, FieldSchema } from "@opensite/block-sdk";
 
-export type BlockType =
+// `Breakpoint`/`BlockStyle`/`FieldSchema` moved to @opensite/block-sdk as
+// part of the Block SDK extraction (docs/plugin-sdk.md) — re-exported here
+// so existing imports of `./types` keep working unchanged. `base` holds
+// the desktop/default style values (always present once a block is
+// created); `tablet`/`mobile` hold sparse overrides only for the props
+// that differ at that breakpoint. See lib/responsiveStyle.ts for how
+// these merge.
+export type { Breakpoint, BlockStyle, FieldSchema };
+
+// The block types opensite-studio ships with out of the box. `Block.type`
+// itself (below) is the wider `string`, not this union — plugins register
+// additional types at runtime (docs/plugin-sdk.md) via
+// @opensite/block-sdk's `registerBlock`, and the block tree has to be able
+// to hold whatever a site actually uses, built-in or plugin-authored.
+export type BuiltinBlockType =
   | "section"
   | "text"
   | "image"
@@ -13,12 +28,7 @@ export type BlockType =
   | "form"
   | "newsletter";
 
-export type Breakpoint = "base" | "tablet" | "mobile";
-
-// `base` holds the desktop/default values (always present once a block is
-// created); `tablet`/`mobile` hold sparse overrides only for the props that
-// differ at that breakpoint. See lib/responsiveStyle.ts for how these merge.
-export type BlockStyle = Partial<Record<Breakpoint, Record<string, unknown>>>;
+export type BlockType = string;
 
 export type Block = {
   id: string;
@@ -69,18 +79,4 @@ export type NewsletterBlockProps = {
   placeholder: string;
   submitLabel: string;
   successMessage: string;
-};
-
-export type FieldSchema = {
-  key: string;
-  label: string;
-  group: "props" | "style";
-  input: "text" | "textarea" | "number" | "color" | "select" | "url" | "image" | "collectionSelect";
-  options?: { label: string; value: string }[];
-  // Props fields only: whether the Inspector should offer a "bind to
-  // collection field" toggle alongside the literal-value input.
-  bindable?: boolean;
-  // Style fields only: which Theme token category this field may bind to
-  // (see lib/theme.ts) instead of a literal value.
-  tokenCategory?: "colors" | "typography" | "spacing";
 };

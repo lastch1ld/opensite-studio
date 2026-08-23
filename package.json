@@ -1,0 +1,8 @@
+{
+  "name": "opensite-studio",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}

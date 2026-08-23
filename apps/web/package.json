@@ -11,6 +11,8 @@
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",
     "@dnd-kit/core": "^6.3.1",
+    "@opensite/block-sdk": "*",
+    "@opensite/plugin-api": "*",
     "@prisma/client": "^6.19.3",
     "bcryptjs": "^3.0.3",
     "next": "16.3.1",

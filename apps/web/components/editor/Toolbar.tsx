@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { Block, Breakpoint, PageContent } from "@/components/blocks/types";
-import { blockRegistry } from "@/components/blocks/registry";
+import { getAllBlockDefinitions } from "@/components/blocks/registry";
 import { BREAKPOINTS } from "@/lib/responsiveStyle";
 import { PaletteItem } from "./dnd/PaletteItem";
 import { VersionHistoryPanel } from "./VersionHistoryPanel";
@@ -127,8 +127,8 @@ export function Toolbar({
       {!readOnly && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-medium text-gray-500">Add block:</span>
-          {(Object.keys(blockRegistry) as Block["type"][]).map((t) => (
-            <PaletteItem key={t} type={t} label={blockRegistry[t].label} onAdd={onAdd} />
+          {getAllBlockDefinitions().map((def) => (
+            <PaletteItem key={def.type} type={def.type} label={def.label} onAdd={onAdd} />
           ))}
         </div>
       )}

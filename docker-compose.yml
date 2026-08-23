@@ -13,7 +13,8 @@ services:
 
   web:
     build:
-      context: ./apps/web
+      context: .
+      dockerfile: apps/web/Dockerfile
     restart: unless-stopped
     depends_on:
       - db
@@ -25,6 +26,11 @@ services:
       MEDIA_STORAGE_PATH: /data/media
     volumes:
       - media-data:/data/media
+      # Self-hosted plugin install model (docs/plugin-sdk.md): drop a
+      # plugin directory in ./plugins on the host, then `docker compose
+      # restart web` — bind-mounted so that doesn't require rebuilding
+      # the image.
+      - ./plugins:/app/plugins
     ports:
       - "3000:3000"
 
