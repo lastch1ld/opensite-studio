@@ -53,6 +53,15 @@ export type FieldSchema = {
 export type BlockRenderMeta<TCtx = unknown> = {
   blockId: string;
   ctx: TCtx;
+  // Which breakpoint this render is *for* — "base" (desktop), "tablet",
+  // or "mobile". The editor canvas re-renders once per selected
+  // breakpoint tab (no real viewport resize happening), so a block whose
+  // layout should adapt per breakpoint (e.g. a column count) needs this
+  // to make that decision inside render() itself; the public renderer
+  // always renders once at "base" and relies on real CSS media queries
+  // instead (see apps/web/lib/responsiveStyle.ts's columnsResponsiveCss)
+  // for the same effect at actual browser resize.
+  breakpoint: Breakpoint;
 };
 
 // The `registerBlock({ type, render, inspector, defaultProps })` interface

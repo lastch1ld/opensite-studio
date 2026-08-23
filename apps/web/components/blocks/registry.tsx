@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 import { registerBlock, getBlockDefinition, getAllBlockDefinitions } from "@opensite/block-sdk";
 import type { BlockDefinition } from "@opensite/block-sdk";
 import type { Block, FieldSchema, FormField } from "./types";
-import { hasContainerChildren } from "@/lib/responsiveStyle";
+import { columnsResponsiveCss, hasContainerChildren, responsiveColumnCount } from "@/lib/responsiveStyle";
 import { FormBlock } from "./FormBlock";
 import { NewsletterBlock } from "./NewsletterBlock";
 import type { RenderContext } from "@/lib/bind";
@@ -521,15 +521,25 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
       },
       { key: "gap", label: "Gap", friendlyLabel: "Space between columns", group: "style", input: "text", tokenCategory: "spacing" },
     ],
-    render(props, style, children) {
-      const columns = str(props.columns, "2");
+    render(props, style, children, meta) {
+      const desktopColumns = Number(str(props.columns, "2")) || 2;
       const cssStyle: CSSProperties = {
         display: "grid",
-        gridTemplateColumns: `repeat(${columns}, 1fr)`,
+        // Editor accuracy: re-renders per selected breakpoint tab, so the
+        // column count itself must already reflect meta.breakpoint here.
+        gridTemplateColumns: `repeat(${responsiveColumnCount(desktopColumns, meta.breakpoint)}, 1fr)`,
         gap: str(style.gap, "16px"),
         minHeight: "40px",
       };
-      return <div style={cssStyle}>{children}</div>;
+      return (
+        <div style={cssStyle} data-columns-id={meta.blockId}>
+          {children}
+          {/* Public-renderer real-resize equivalent of the above — the
+              editor never needs this since it re-renders per breakpoint
+              tab instead of a live viewport resize. */}
+          <style dangerouslySetInnerHTML={{ __html: columnsResponsiveCss(meta.blockId, desktopColumns) }} />
+        </div>
+      );
     },
   },
   embed: {
@@ -558,7 +568,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
   // Inspector, palette). See BlockRenderer.tsx's "list" branch.
   list: {
     label: "List / Grid",
-    defaultProps: { collectionId: "", filterField: "", filterValue: "", sortField: "", sortDir: "asc", limit: "10" },
+    defaultProps: { collectionId: "", filterField: "", filterValue: "", sortField: "", sortDir: "asc", limit: "10", columns: "3" },
     defaultStyle: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" },
     inspector: [
       { key: "collectionId", label: "Collection", friendlyLabel: "Data source", group: "props", input: "collectionSelect" },
@@ -577,12 +587,32 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         ],
       },
       { key: "limit", label: "Limit", friendlyLabel: "Max items to show", group: "props", input: "number" },
+      {
+        key: "columns",
+        label: "Columns",
+        friendlyLabel: "Number of columns",
+        group: "props",
+        input: "select",
+        options: [
+          { label: "2", value: "2" },
+          { label: "3", value: "3" },
+          { label: "4", value: "4" },
+        ],
+      },
       { key: "gap", label: "Gap", friendlyLabel: "Space between items", group: "style", input: "text", tokenCategory: "spacing" },
     ],
-    render(props, style, children) {
+    // NOTE: BlockRenderer.tsx special-cases "list" (it needs to repeat the
+    // child subtree once per matched CollectionItem, which this single
+    // render() call over already-built `children` can't do) and never
+    // actually calls this function for real content — it's kept correct
+    // anyway as the registry's source of truth for the type. See
+    // BlockRenderer.tsx's own "list" branch for the responsive-columns
+    // logic that's actually live.
+    render(props, style, children, meta) {
+      const desktopColumns = Number(str(props.columns, "3")) || 3;
       const cssStyle: CSSProperties = {
         display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
+        gridTemplateColumns: `repeat(${responsiveColumnCount(desktopColumns, meta.breakpoint)}, 1fr)`,
         gap: str(style.gap, "16px"),
         minHeight: "40px",
       };

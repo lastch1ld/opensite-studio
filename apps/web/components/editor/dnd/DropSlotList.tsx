@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useDroppable } from "@dnd-kit/core";
+import { useDndContext, useDroppable } from "@dnd-kit/core";
 import type { Block } from "@/components/blocks/types";
 
 function DropSlot({ containerId, index }: { containerId: string; index: number }) {
@@ -9,6 +9,17 @@ function DropSlot({ containerId, index }: { containerId: string; index: number }
     id: `slot:${containerId}:${index}`,
     data: { containerId, index },
   });
+  // Only takes up real layout space while a drag is in progress
+  // (`display: contents` when idle removes it from the render tree
+  // entirely, same as not being there at all). A CSS Grid container
+  // (the "columns"/"list" blocks) treats every direct child — including
+  // an always-present drop-slot div — as its own grid cell, which shoves
+  // real content out of the intended N-column pattern; a permanently
+  // "invisible" 6px-tall slot is still a real, layout-participating grid
+  // item. Idle-hiding it is what makes the editor canvas match the real
+  // published grid instead of only resembling it.
+  const { active } = useDndContext();
+  if (!active) return <div ref={setNodeRef} style={{ display: "contents" }} />;
   return (
     <div
       ref={setNodeRef}

@@ -4,7 +4,7 @@ import { cloneElement, isValidElement, type CSSProperties, type ReactElement, ty
 import { motion, type Target } from "motion/react";
 import type { Block, Breakpoint } from "./types";
 import { getBlockDefinition } from "./registry";
-import { buildResponsiveCss, resolveStyle, resolveTokens } from "@/lib/responsiveStyle";
+import { buildResponsiveCss, columnsResponsiveCss, resolveStyle, resolveTokens, responsiveColumnCount } from "@/lib/responsiveStyle";
 import { queryListItems, resolveBoundProps, type RenderContext } from "@/lib/bind";
 import { evaluateCondition } from "@/lib/condition";
 import { resolveTranslatedProps } from "@/lib/translations";
@@ -105,9 +105,14 @@ export function BlockRenderer({
     // With no matched items, still render one empty pass so the template
     // subtree stays visible/selectable in the editor.
     const instances = matched.length ? matched : [null];
-    const cssStyle: CSSProperties = { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: String(resolvedStyle.gap ?? "16px") };
+    const desktopColumns = Number(typeof block.props.columns === "string" ? block.props.columns : "3") || 3;
+    const cssStyle: CSSProperties = {
+      display: "grid",
+      gridTemplateColumns: `repeat(${responsiveColumnCount(desktopColumns, activeBreakpoint)}, 1fr)`,
+      gap: String(resolvedStyle.gap ?? "16px"),
+    };
     const content = (
-      <div style={cssStyle} data-block-id={block.id}>
+      <div style={cssStyle} data-block-id={block.id} data-columns-id={block.id}>
         {instances.map((item, i) => (
           <div key={item?.id ?? `empty-${i}`}>
             {childBlocks.map((child) => (
@@ -125,6 +130,7 @@ export function BlockRenderer({
             ))}
           </div>
         ))}
+        <style dangerouslySetInnerHTML={{ __html: columnsResponsiveCss(block.id, desktopColumns) }} />
       </div>
     );
     const animatedList = withAnimation(resolvedStyle.animation, content);
@@ -202,7 +208,7 @@ export function BlockRenderer({
     ctx.translationEntity,
     block.id,
   );
-  const rawContent = def.render(resolvedProps, resolvedStyle, childrenContent, { blockId: block.id, ctx });
+  const rawContent = def.render(resolvedProps, resolvedStyle, childrenContent, { blockId: block.id, ctx, breakpoint: activeBreakpoint });
   // Public renderer always tags the root element with its block id (not
   // just when responsive CSS needs it) — popup elementClick triggers
   // (docs/popups-and-modals.md) delegate a click listener off this
