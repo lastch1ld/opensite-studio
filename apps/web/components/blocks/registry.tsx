@@ -1,35 +1,30 @@
-import type { CSSProperties, ReactNode } from "react";
-import type { Block, FieldSchema, FormField } from "./types";
+import type { CSSProperties } from "react";
+import { registerBlock, getBlockDefinition, getAllBlockDefinitions } from "@opensite/block-sdk";
+import type { BlockDefinition } from "@opensite/block-sdk";
+import type { Block, FormField } from "./types";
 import { hasContainerChildren } from "@/lib/responsiveStyle";
 import { FormBlock } from "./FormBlock";
 import { NewsletterBlock } from "./NewsletterBlock";
 import type { RenderContext } from "@/lib/bind";
 
-// Extra per-render info a block's `render()` doesn't get from props/style
-// alone: which block this is (`blockId`, for the `form` block's submit
-// endpoint and popup elementClick triggers) and the shared RenderContext
-// (`ctx`, for the `form` block's siteId/pageId). Optional 4th param so
-// every other block's `render()` stays unchanged.
-type RenderMeta = { blockId: string; ctx: RenderContext };
-
-type BlockDef = {
-  label: string;
-  defaultProps: Record<string, unknown>;
-  defaultStyle: Record<string, unknown>;
-  fields: FieldSchema[];
-  render: (props: Record<string, unknown>, style: Record<string, unknown>, children: ReactNode, meta: RenderMeta) => ReactNode;
-};
+// This file is the one place apps/web's built-in blocks get registered —
+// the registration *mechanism* itself (types + `registerBlock` + lookup)
+// lives in @opensite/block-sdk (docs/plugin-sdk.md), shared with whatever
+// plugins get loaded from /plugins (lib/plugins/loadPlugins.ts). Built-in
+// blocks stay defined here; they don't need to move into the SDK package,
+// only the mechanism does.
+export type AppBlockDef = BlockDefinition<RenderContext>;
 
 function str(v: unknown, fallback = ""): string {
   return typeof v === "string" ? v : fallback;
 }
 
-export const blockRegistry: Record<Block["type"], BlockDef> = {
+const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
   section: {
     label: "Section",
     defaultProps: { layout: "stack" },
     defaultStyle: { padding: "24px", background: "#ffffff" },
-    fields: [
+    inspector: [
       {
         key: "layout",
         label: "Layout",
@@ -60,7 +55,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
     label: "Text",
     defaultProps: { content: "New text block" },
     defaultStyle: { fontSize: "16px", fontWeight: "400", color: "#111111" },
-    fields: [
+    inspector: [
       { key: "content", label: "Content", group: "props", input: "textarea", bindable: true },
       { key: "fontSize", label: "Font size", group: "style", input: "text", tokenCategory: "typography" },
       {
@@ -91,7 +86,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
     label: "Image",
     defaultProps: { src: "https://placehold.co/600x300", alt: "", objectFit: "cover" },
     defaultStyle: {},
-    fields: [
+    inspector: [
       { key: "src", label: "Image", group: "props", input: "image", bindable: true },
       { key: "alt", label: "Alt text", group: "props", input: "text" },
       {
@@ -119,7 +114,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
     label: "Button",
     defaultProps: { label: "Click me", href: "#", variant: "primary", closesPopup: "" },
     defaultStyle: {},
-    fields: [
+    inspector: [
       { key: "label", label: "Label", group: "props", input: "text" },
       { key: "href", label: "Link URL", group: "props", input: "url" },
       {
@@ -160,7 +155,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
     label: "Heading",
     defaultProps: { level: "h2", text: "Heading" },
     defaultStyle: { fontSize: "32px", fontWeight: "700", color: "#111111" },
-    fields: [
+    inspector: [
       { key: "text", label: "Text", group: "props", input: "text" },
       {
         key: "level",
@@ -200,7 +195,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
     label: "Spacer",
     defaultProps: {},
     defaultStyle: { height: "32px" },
-    fields: [{ key: "height", label: "Height", group: "style", input: "text", tokenCategory: "spacing" }],
+    inspector: [{ key: "height", label: "Height", group: "style", input: "text", tokenCategory: "spacing" }],
     render(_props, style) {
       return <div style={{ height: str(style.height, "32px") }} />;
     },
@@ -209,7 +204,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
     label: "Columns",
     defaultProps: { columns: "2" },
     defaultStyle: { gap: "16px" },
-    fields: [
+    inspector: [
       {
         key: "columns",
         label: "Columns",
@@ -238,7 +233,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
     label: "Embed",
     defaultProps: { html: "" },
     defaultStyle: { height: "300px" },
-    fields: [
+    inspector: [
       { key: "html", label: "HTML embed (sandboxed - trusted content only)", group: "props", input: "textarea" },
       { key: "height", label: "Height", group: "style", input: "text" },
     ],
@@ -256,13 +251,13 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
   // Repeating is handled directly by BlockRenderer (it needs to render the
   // child subtree once per matched CollectionItem, which a single `render`
   // call over already-built `children` can't do) — this entry only supplies
-  // defaults/fields/style for the registry-driven parts (createBlock,
+  // defaults/inspector/style for the registry-driven parts (createBlock,
   // Inspector, palette). See BlockRenderer.tsx's "list" branch.
   list: {
     label: "List / Grid",
     defaultProps: { collectionId: "", filterField: "", filterValue: "", sortField: "", sortDir: "asc", limit: "10" },
     defaultStyle: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" },
-    fields: [
+    inspector: [
       { key: "collectionId", label: "Collection", group: "props", input: "collectionSelect" },
       { key: "filterField", label: "Filter field", group: "props", input: "text" },
       { key: "filterValue", label: "Filter value", group: "props", input: "text" },
@@ -292,12 +287,12 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
   },
   // Field list/steps/onSubmit are managed by a dedicated Inspector panel
   // (components/editor/FormFieldsEditor.tsx), not the generic FieldSchema
-  // loop — `fields` here stays empty on purpose (docs/forms.md).
+  // loop — `inspector` stays empty on purpose (docs/forms.md).
   form: {
     label: "Form",
     defaultProps: { fields: [] as FormField[], submitLabel: "Submit", onSubmit: { action: "storeOnly" } },
     defaultStyle: { padding: "16px" },
-    fields: [],
+    inspector: [],
     render(props, style, _children, meta) {
       const fields = Array.isArray(props.fields) ? (props.fields as FormField[]) : [];
       const steps = Array.isArray(props.steps) ? (props.steps as string[][]) : undefined;
@@ -318,7 +313,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
     label: "Newsletter",
     defaultProps: { placeholder: "you@example.com", submitLabel: "Subscribe", successMessage: "Thanks — you're subscribed." },
     defaultStyle: { padding: "16px" },
-    fields: [
+    inspector: [
       { key: "placeholder", label: "Placeholder", group: "props", input: "text" },
       { key: "submitLabel", label: "Submit label", group: "props", input: "text" },
       { key: "successMessage", label: "Success message", group: "props", input: "text" },
@@ -340,8 +335,20 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
   },
 };
 
-export function createBlock(type: Block["type"]): Block {
-  const def = blockRegistry[type];
+for (const [type, def] of Object.entries(builtinBlocks)) {
+  registerBlock<RenderContext>({ type, ...def });
+}
+
+// Re-exported (rather than imported piecemeal elsewhere) so importing
+// "./registry" is what guarantees the `registerBlock` calls above have
+// run — anything that looks up a block definition should go through
+// these, not import @opensite/block-sdk's registry functions directly,
+// so it can't accidentally run before the built-ins are registered.
+export { getBlockDefinition, getAllBlockDefinitions };
+
+export function createBlock(type: string): Block {
+  const def = getBlockDefinition<RenderContext>(type);
+  if (!def) throw new Error(`createBlock: no block registered for type "${type}"`);
   return {
     id: crypto.randomUUID(),
     type,

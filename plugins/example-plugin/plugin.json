@@ -1,0 +1,7 @@
+{
+  "name": "example-plugin",
+  "version": "0.1.0",
+  "description": "Reference plugin for opensite-studio's Block SDK — registers one custom 'Callout' block. Copy this directory as a starting point for your own plugin.",
+  "main": "./index.mjs",
+  "permissions": ["adds:block"]
+}

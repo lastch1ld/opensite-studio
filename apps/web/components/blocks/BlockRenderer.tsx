@@ -2,7 +2,7 @@
 
 import { cloneElement, isValidElement, type CSSProperties, type ReactElement, type ReactNode } from "react";
 import type { Block, Breakpoint } from "./types";
-import { blockRegistry } from "./registry";
+import { getBlockDefinition } from "./registry";
 import { buildResponsiveCss, resolveStyle, resolveTokens } from "@/lib/responsiveStyle";
 import { queryListItems, resolveBoundProps, type RenderContext } from "@/lib/bind";
 import { evaluateCondition } from "@/lib/condition";
@@ -49,7 +49,7 @@ export function BlockRenderer({
   renderChildrenWrapper,
   isRoot = false,
 }: BlockRendererProps) {
-  const def = blockRegistry[block.type];
+  const def = getBlockDefinition<RenderContext>(block.type);
   if (!def) return null;
 
   const ctx: RenderContext = renderContext ?? { device: deviceFor(activeBreakpoint) };

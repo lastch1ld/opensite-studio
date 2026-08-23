@@ -1,0 +1,20 @@
+{
+  "name": "@opensite/plugin-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plugin manifest schema/validation and the restricted PluginApiClient shape a plugin's server-side code should use instead of the host app's raw Prisma client (see docs/plugin-sdk.md).",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

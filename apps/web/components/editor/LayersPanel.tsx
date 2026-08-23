@@ -1,7 +1,7 @@
 "use client";
 
 import type { Block } from "@/components/blocks/types";
-import { blockRegistry } from "@/components/blocks/registry";
+import { getBlockDefinition } from "@/components/blocks/registry";
 
 function LayerNode({
   block,
@@ -24,7 +24,7 @@ function LayerNode({
           isSelected ? "bg-blue-100 font-medium text-blue-900" : "hover:bg-gray-100"
         }`}
       >
-        {blockRegistry[block.type]?.label ?? block.type}
+        {getBlockDefinition(block.type)?.label ?? block.type}
       </button>
       {block.children?.map((child) => (
         <LayerNode key={child.id} block={child} depth={depth + 1} selectedId={selectedId} onSelect={onSelect} />

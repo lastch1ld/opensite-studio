@@ -1,0 +1,25 @@
+{
+  "name": "@opensite/block-sdk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Stable registerBlock() interface for opensite-studio's block registry — used by apps/web's built-in blocks and by third-party plugins (see docs/plugin-sdk.md).",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "react": "19.2.8",
+    "typescript": "^5"
+  }
+}
