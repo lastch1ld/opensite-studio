@@ -125,6 +125,27 @@ export const STICKY_OFFSET_FIELD: FieldSchema = {
   input: "text",
 };
 
+// docs/reference-sites-plan.md Tier 4 (Métier's paper-grain background).
+// A single feTurbulence-filtered SVG, tiled at 200x200px — cheap (one
+// data URI, no image upload) and generic enough to layer under any solid
+// background color. Only offered on "section"/"hero" (the two block
+// types with a background at all), not appended universally like
+// ANIMATION_FIELD/STICKY_FIELD.
+const NOISE_TEXTURE_DATA_URI =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E";
+
+const BACKGROUND_TEXTURE_FIELD: FieldSchema = {
+  key: "backgroundTexture",
+  label: "Background texture",
+  friendlyLabel: "Add a subtle texture",
+  group: "style",
+  input: "select",
+  options: [
+    { label: "None (default)", value: "" },
+    { label: "Paper grain", value: "grain" },
+  ],
+};
+
 function offsetStyle(style: Record<string, unknown>): CSSProperties {
   const x = str(style.offsetX);
   const y = str(style.offsetY);
@@ -172,6 +193,14 @@ const FONT_FIELD: FieldSchema = {
 
 function fontFamilyStyle(style: Record<string, unknown>): CSSProperties {
   const key = str(style.fontFamily);
+  // A site's uploaded fonts (lib/customFonts.ts's customFontFieldValue) —
+  // the value itself already carries the exact CSS font-family name to
+  // use, so this needs no lookup against the site's font list; it just
+  // needs the matching @font-face to be present somewhere on the page
+  // (injected by CustomFontStyles wherever pages render).
+  if (key.startsWith("custom:")) {
+    return { fontFamily: `"${key.slice(7)}", ui-sans-serif, sans-serif` };
+  }
   const stack = FONT_STACKS[key];
   return stack ? { fontFamily: stack } : {};
 }
@@ -227,15 +256,18 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
       },
       { key: "gap", label: "Gap", friendlyLabel: "Space between items", group: "style", input: "text", tokenCategory: "spacing" },
       { key: "borderRadius", label: "Corner radius", friendlyLabel: "Rounded corners", group: "style", input: "text" },
+      BACKGROUND_TEXTURE_FIELD,
     ],
     render(props, style, children) {
       const layout = str(props.layout, "stack");
       const maxWidth = str(style.maxWidth);
       const align = str(style.align);
       const justify = str(style.justify);
+      const texture = str(style.backgroundTexture) === "grain";
       const cssStyle: CSSProperties = {
         padding: str(style.padding, "24px"),
-        background: str(style.background, "#ffffff"),
+        backgroundColor: str(style.background, "#ffffff"),
+        ...(texture ? { backgroundImage: `url("${NOISE_TEXTURE_DATA_URI}")`, backgroundSize: "200px 200px", backgroundRepeat: "repeat" } : {}),
         display: "flex",
         flexDirection: layout === "row" ? "row" : "column",
         gap: str(style.gap, "12px"),
@@ -288,9 +320,28 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         ],
       },
       { key: "gap", label: "Gap", friendlyLabel: "Space between items", group: "style", input: "text", tokenCategory: "spacing" },
+      BACKGROUND_TEXTURE_FIELD,
     ],
     render(props, style, children) {
       const bgImage = str(props.backgroundImage);
+      const texture = str(style.backgroundTexture) === "grain";
+      // Combined as explicit multi-layer background-image (rather than the
+      // `background` shorthand) so the noise texture and the bgImage's own
+      // gradient+photo layer can coexist — each layer needs its own
+      // matching backgroundSize/backgroundRepeat entry, comma-aligned.
+      const imageLayers: string[] = [];
+      const sizeLayers: string[] = [];
+      const repeatLayers: string[] = [];
+      if (texture) {
+        imageLayers.push(`url("${NOISE_TEXTURE_DATA_URI}")`);
+        sizeLayers.push("200px 200px");
+        repeatLayers.push("repeat");
+      }
+      if (bgImage) {
+        imageLayers.push("linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.45))", `url(${bgImage})`);
+        sizeLayers.push("cover", "cover");
+        repeatLayers.push("no-repeat", "no-repeat");
+      }
       const outerStyle: CSSProperties = {
         // The full-bleed breakout: spans the viewport regardless of any
         // padded/max-width-capped ancestor, without needing the page's
@@ -304,9 +355,10 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         marginLeft: "-50vw",
         marginRight: "-50vw",
         boxSizing: "border-box",
-        background: bgImage
-          ? `linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.45)), url(${bgImage}) center/cover no-repeat`
-          : str(style.background, "#0B1120"),
+        backgroundColor: bgImage ? undefined : str(style.background, "#0B1120"),
+        ...(imageLayers.length
+          ? { backgroundImage: imageLayers.join(", "), backgroundSize: sizeLayers.join(", "), backgroundRepeat: repeatLayers.join(", "), backgroundPosition: "center" }
+          : {}),
         padding: str(style.padding, "96px 24px"),
         display: "flex",
         justifyContent: "center",

@@ -21,6 +21,8 @@ import type {
   FormOnSubmit,
   PricingTier,
 } from "@/components/blocks/types";
+import { customFontFieldValue } from "@/lib/customFonts";
+import type { CustomFont } from "@/lib/siteSettings";
 
 // docs/multilingual.md's editor UX: when a non-default Locale is selected,
 // present but not the "isDefault" one — `null` means either no Locale
@@ -35,6 +37,7 @@ type InspectorProps = {
   theme: ThemeTokens | null;
   onChange: (group: "props" | "style", key: string, value: unknown) => void;
   collections?: CollectionSummary[];
+  customFonts?: CustomFont[];
   pageCollectionId?: string | null;
   readOnly?: boolean;
   // docs/ui-ux-roadmap.md's "not technical mode": swaps each field's
@@ -67,6 +70,7 @@ function FieldInput({
   onChange,
   onOpenMediaPicker,
   collections,
+  customFonts,
   readOnly = false,
 }: {
   field: FieldSchema;
@@ -74,6 +78,7 @@ function FieldInput({
   onChange: (v: string) => void;
   onOpenMediaPicker: () => void;
   collections: CollectionSummary[];
+  customFonts: CustomFont[];
   readOnly?: boolean;
 }) {
   if (field.input === "collectionSelect") {
@@ -89,6 +94,12 @@ function FieldInput({
     );
   }
   if (field.input === "select") {
+    // The shared FONT_FIELD (registry.tsx) has one fixed, static option
+    // list at block-registration time — a site's uploaded fonts
+    // (docs/reference-sites-plan.md Tier 4) are per-site data, so they're
+    // merged in here at render time instead, keyed off the field's known
+    // key rather than a new FieldSchema input type just for this one case.
+    const isFontField = field.key === "fontFamily";
     return (
       <select value={value} onChange={(e) => onChange(e.target.value)} disabled={readOnly} className="chrome-input w-full text-sm">
         {field.options?.map((opt) => (
@@ -96,6 +107,15 @@ function FieldInput({
             {opt.label}
           </option>
         ))}
+        {isFontField && customFonts.length > 0 && (
+          <optgroup label="Custom fonts">
+            {customFonts.map((font) => (
+              <option key={font.id} value={customFontFieldValue(font.id)}>
+                {font.name}
+              </option>
+            ))}
+          </optgroup>
+        )}
       </select>
     );
   }
@@ -206,6 +226,7 @@ export function Inspector({
   theme,
   onChange,
   collections = [],
+  customFonts = [],
   pageCollectionId = null,
   readOnly = false,
   simpleMode = false,
@@ -353,6 +374,7 @@ export function Inspector({
                   onChange={(v) => onTranslationChange?.(block.id, `props.${field.key}`, v)}
                   onOpenMediaPicker={() => setMediaFieldKey(field.key)}
                   collections={collections}
+                  customFonts={customFonts}
                   readOnly={readOnly}
                 />
               </div>
@@ -422,6 +444,7 @@ export function Inspector({
                   onChange={(v) => onChange(field.group, field.key, v)}
                   onOpenMediaPicker={() => setMediaFieldKey(field.key)}
                   collections={collections}
+                  customFonts={customFonts}
                   readOnly={readOnly}
                 />
               )}

@@ -30,6 +30,8 @@ import { SeoPanel } from "./SeoPanel";
 import { FloatingPanel } from "./FloatingPanel";
 import { SectionPicker } from "./SectionPicker";
 import { defaultPageSeo, type PageSeo } from "@/lib/seo";
+import { CustomFontStyles } from "@/components/CustomFontStyles";
+import type { CustomFont } from "@/lib/siteSettings";
 
 const SIMPLE_MODE_STORAGE_KEY = "opensite:editor:simpleMode";
 
@@ -147,6 +149,7 @@ export function EditorClient({
   const [savedBlocks, setSavedBlocks] = useState<SavedBlockSummary[]>([]);
   const [collections, setCollections] = useState<CollectionSummary[]>([]);
   const [locales, setLocales] = useState<LocaleSummary[]>([]);
+  const [customFonts, setCustomFonts] = useState<CustomFont[]>([]);
   const [activeLocaleId, setActiveLocaleId] = useState<string | null>(null);
   // Raw fetched map for whichever non-default locale was last active;
   // `translations` below derives the value actually used for rendering
@@ -172,6 +175,9 @@ export function EditorClient({
     fetch(`/api/sites/${siteId}/locales`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data: LocaleSummary[]) => setLocales(data));
+    fetch(`/api/sites/${siteId}/fonts`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: CustomFont[]) => setCustomFonts(data));
     refreshSavedBlocks();
   }, [siteId, refreshSavedBlocks]);
 
@@ -555,6 +561,7 @@ export function EditorClient({
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+      <CustomFontStyles fonts={customFonts} />
       <div className="flex h-screen flex-col">
         <Toolbar
           siteId={siteId}
@@ -750,6 +757,7 @@ export function EditorClient({
                   theme={theme}
                   onChange={handleChange}
                   collections={collections}
+                  customFonts={customFonts}
                   pageCollectionId={pageCollectionId}
                   readOnly={readOnly}
                   simpleMode={simpleMode}

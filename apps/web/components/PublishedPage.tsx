@@ -8,11 +8,13 @@ import { PopupHost, type PopupSpec } from "@/components/PopupHost";
 import { defaultPopupSettings, type PopupSettings } from "@/lib/popupTrigger";
 import { CookieBanner } from "@/components/CookieBanner";
 import { ChatbotEmbed } from "@/components/ChatbotEmbed";
+import { CustomFontStyles } from "@/components/CustomFontStyles";
 import {
   defaultCookieBannerSettings,
   defaultChatbotEmbedSettings,
   type CookieBannerSettings,
   type ChatbotEmbedSettings,
+  type CustomFont,
 } from "@/lib/siteSettings";
 
 // Composes header Template + (page content, or a matching pageTemplate /
@@ -27,6 +29,7 @@ export function PublishedPage({
   renderContext,
   cookieBannerSettings = null,
   chatbotEmbedSettings = null,
+  customFonts = [],
 }: {
   content: PageContent | null;
   theme?: ThemeTokens | null;
@@ -34,6 +37,7 @@ export function PublishedPage({
   renderContext?: RenderContext;
   cookieBannerSettings?: CookieBannerSettings | null;
   chatbotEmbedSettings?: ChatbotEmbedSettings | null;
+  customFonts?: CustomFont[];
 }) {
   const ctx: RenderContext = renderContext ?? { device: "desktop" };
 
@@ -81,6 +85,7 @@ export function PublishedPage({
 
   return (
     <>
+      <CustomFontStyles fonts={customFonts} />
       {header && <BlockRenderer block={(header.content as PageContent).root} theme={theme} renderContext={headerCtx} isRoot />}
       <BlockRenderer block={bodyRoot} theme={theme} renderContext={bodyCtx} isRoot />
       {footer && <BlockRenderer block={(footer.content as PageContent).root} theme={theme} renderContext={footerCtx} isRoot />}

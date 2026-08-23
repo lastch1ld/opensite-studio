@@ -7,7 +7,7 @@ import type { PageContent } from "@/components/blocks/types";
 import type { ThemeTokens } from "@/lib/theme";
 import type { CollectionItemLite, RenderContext } from "@/lib/bind";
 import type { TemplateLite } from "@/lib/templates";
-import type { CookieBannerSettings, ChatbotEmbedSettings } from "@/lib/siteSettings";
+import { defaultCustomFonts, type CookieBannerSettings, type ChatbotEmbedSettings, type CustomFont } from "@/lib/siteSettings";
 
 // A real look at a Page's *draft* content — the public routes
 // (app/(public)/**) only ever read `publishedContent` by design
@@ -73,6 +73,7 @@ export default async function DraftPreviewPage({
         renderContext={renderContext}
         cookieBannerSettings={(site.settings?.cookieBanner as unknown as CookieBannerSettings | undefined) ?? null}
         chatbotEmbedSettings={(site.settings?.chatbotEmbed as unknown as ChatbotEmbedSettings | undefined) ?? null}
+        customFonts={(site.settings?.customFonts as unknown as CustomFont[] | undefined) ?? defaultCustomFonts()}
       />
     </>
   );

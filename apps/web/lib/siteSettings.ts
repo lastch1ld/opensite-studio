@@ -97,3 +97,54 @@ export function redactAiChatSettings(settings: AiChatSettings): AiChatSettingsPu
   const { apiKeyEncrypted, ...rest } = settings;
   return { ...rest, hasApiKey: Boolean(apiKeyEncrypted) };
 }
+
+// docs/reference-sites-plan.md Tier 4's custom font upload (5/13 reference
+// sites use a bespoke/licensed display face). `format` drives the
+// `@font-face` `src: url(...) format(...)` hint (lib/customFonts.ts) —
+// derived once at upload time from the file's mimeType rather than
+// re-sniffed on every render.
+export type CustomFontFormat = "woff2" | "woff" | "truetype" | "opentype";
+
+export type CustomFont = {
+  id: string;
+  name: string;
+  mediaId: string;
+  url: string;
+  format: CustomFontFormat;
+};
+
+export function defaultCustomFonts(): CustomFont[] {
+  return [];
+}
+
+const FONT_FORMAT_BY_MIME_TYPE: Record<string, CustomFontFormat> = {
+  "font/woff2": "woff2",
+  "font/woff": "woff",
+  "font/ttf": "truetype",
+  "font/otf": "opentype",
+  "application/font-woff2": "woff2",
+  "application/font-woff": "woff",
+  "application/x-font-ttf": "truetype",
+  "application/x-font-truetype": "truetype",
+  "application/vnd.ms-opentype": "opentype",
+  "application/x-font-opentype": "opentype",
+};
+
+// Falls back to the file extension when the browser sent a generic/empty
+// mimeType (common for .ttf/.otf uploads), then to "truetype" as the most
+// permissive guess rather than rejecting the upload outright.
+export function customFontFormat(mimeType: string, filename: string): CustomFontFormat {
+  if (FONT_FORMAT_BY_MIME_TYPE[mimeType]) return FONT_FORMAT_BY_MIME_TYPE[mimeType];
+  const ext = filename.toLowerCase().split(".").pop() ?? "";
+  if (ext === "woff2") return "woff2";
+  if (ext === "woff") return "woff";
+  if (ext === "otf") return "opentype";
+  return "truetype";
+}
+
+const FONT_EXTENSIONS = [".woff2", ".woff", ".ttf", ".otf"];
+
+export function isFontFilename(filename: string): boolean {
+  const lower = filename.toLowerCase();
+  return FONT_EXTENSIONS.some((ext) => lower.endsWith(ext));
+}

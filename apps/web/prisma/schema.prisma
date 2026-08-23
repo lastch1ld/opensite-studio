@@ -192,6 +192,12 @@ model SiteSettings {
   // Site's `mode` is AI_CHAT, but lives here alongside the other per-site
   // integration settings rather than a bespoke table.
   aiChat       Json?
+  // docs/reference-sites-plan.md Tier 4: uploaded WOFF/WOFF2/TTF/OTF files a
+  // block's `fontFamily` style field can select alongside the curated
+  // Google Fonts list — see lib/siteSettings.ts's CustomFont[]. Each entry
+  // references a Media row (the uploaded file itself); this array is just
+  // the site-scoped "which uploads are registered as a font" index.
+  customFonts  Json?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
