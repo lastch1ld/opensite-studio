@@ -86,6 +86,13 @@ model Site {
   customDomain            String?  @unique
   customDomainVerified    Boolean  @default(false)
   customDomainVerifyToken String?
+  // docs/multilingual.md "Routing": whether the default Locale's path is
+  // also prefixed (`/en/about`) or bare (`/about`). Non-default locales are
+  // always prefixed regardless of this flag. Lives directly on Site (like
+  // `mode`) rather than in SiteSettings' Json blob since it's a small
+  // structural routing flag read on every public request, not an
+  // integration config value.
+  defaultLocalePrefixed   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -101,7 +108,71 @@ model Site {
   settings      SiteSettings?
   siteVisitors  SiteVisitor[]
   aiConversations AiConversation[]
-  apiKeys       ApiKey[]
+  apiKeys         ApiKey[]
+  locales         Locale[]
+  translations    Translation[]
+}
+
+// docs/multilingual.md. A Site declares a set of supported Locales, one
+// marked default. Exactly-one-default is an application-layer invariant
+// (see lib/locales.ts's setDefaultLocale), not a DB constraint — Postgres
+// has no direct "unique where isDefault" primitive Prisma can express, and
+// every write path that changes the default goes through that one
+// transaction (unset old, set new) so it can't drift outside a crash
+// mid-transaction.
+model Locale {
+  id        String   @id @default(uuid())
+  siteId    String
+  code      String
+  label     String
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  site         Site          @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  translations Translation[]
+
+  @@unique([siteId, code])
+}
+
+enum TranslationEntityType {
+  page
+  template
+  collectionItem
+}
+
+// Sparse per-locale override on top of a base/default-locale value
+// (docs/multilingual.md "Data model implications") — covers a Page/Template
+// block's prop (`blockId` set, `field` e.g. "props.text") or an
+// entity-level field like SEO meta title (`blockId` null, `field` e.g.
+// "seo.metaTitle"), and a CollectionItem's translatable field (`blockId`
+// null, `field` is the CollectionField key). Structural changes
+// (add/remove/reorder blocks) always happen on the base tree and are never
+// represented here.
+//
+// The compound unique index below is what makes upserts natural, but
+// Postgres treats every NULL in a unique index as distinct from every other
+// NULL — so for the common `blockId: null` case (entity-level fields,
+// CollectionItem fields) two rows with otherwise-identical keys would NOT
+// collide at the DB level. lib/translations.ts's write path does a
+// find-then-write instead of relying on Prisma's native upsert/ON CONFLICT
+// for this reason; the index still exists to keep lookups fast and to
+// enforce uniqueness for the `blockId`-set case.
+model Translation {
+  id         String                @id @default(uuid())
+  siteId     String
+  localeId   String
+  entityType TranslationEntityType
+  entityId   String
+  blockId    String?
+  field      String
+  value      String                @db.Text
+  createdAt  DateTime              @default(now())
+  updatedAt  DateTime              @updatedAt
+
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  locale Locale @relation(fields: [localeId], references: [id], onDelete: Cascade)
+
+  @@unique([localeId, entityType, entityId, blockId, field])
 }
 
 // Site-level settings/secrets store (docs/integrations.md "Shared plumbing

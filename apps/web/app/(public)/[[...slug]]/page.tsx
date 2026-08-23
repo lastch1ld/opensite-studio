@@ -7,7 +7,7 @@ import { AiChatApp } from "@/components/aiChat/AiChatApp";
 import type { PageContent } from "@/components/blocks/types";
 import type { ThemeTokens } from "@/lib/theme";
 import { auth } from "@/lib/auth";
-import { buildPageMetadata, type PageSeo } from "@/lib/seo";
+import { buildPageMetadata, buildHreflangAlternates, resolveTranslatedSeo, type PageSeo } from "@/lib/seo";
 import type { CookieBannerSettings, ChatbotEmbedSettings } from "@/lib/siteSettings";
 
 async function resolve(slug: string[]) {
@@ -27,7 +27,10 @@ export async function generateMetadata({
   const { slug } = await params;
   const result = await resolve(slug ?? []);
   if (!result) return {};
-  return buildPageMetadata({ title: result.page.title, seo: result.page.seo as PageSeo | null }, result.site.name);
+  const seo = resolveTranslatedSeo(result.page.seo as PageSeo | null, result.translations, result.page.id);
+  const origin = host ? `${host.includes("localhost") ? "http" : "https"}://${host}` : "";
+  const hreflang = buildHreflangAlternates(origin, result.slugPath, result.locales, result.site.defaultLocalePrefixed);
+  return buildPageMetadata({ title: result.page.title, seo }, result.site.name, hreflang);
 }
 
 export default async function PublicSitePage({ params }: { params: Promise<{ slug?: string[] }> }) {

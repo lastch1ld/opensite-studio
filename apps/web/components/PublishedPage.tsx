@@ -43,12 +43,30 @@ export function PublishedPage({
   const bodyTemplate = resolveTemplate(templates, bodyTemplateType, ctx);
   const bodyRoot = bodyTemplate ? (bodyTemplate.content as PageContent).root : content?.root;
 
+  // Header/footer/body can each come from a different entity (a Template
+  // for header/footer, either the Page itself or a matching pageTemplate/
+  // collectionItemTemplate Template for the body) — docs/multilingual.md's
+  // Translation rows are keyed per (entityType, entityId), so each slot
+  // gets its own `translationEntity` spliced onto the shared base ctx
+  // rather than one context serving all three.
+  const headerCtx: RenderContext = header ? { ...ctx, translationEntity: { type: "template", id: header.id } } : ctx;
+  const footerCtx: RenderContext = footer ? { ...ctx, translationEntity: { type: "template", id: footer.id } } : ctx;
+  const bodyCtx: RenderContext = {
+    ...ctx,
+    translationEntity: bodyTemplate
+      ? { type: "template", id: bodyTemplate.id }
+      : content
+        ? { type: "page", id: ctx.pageId ?? "" }
+        : undefined,
+  };
+
   // Popups aren't single-slot like header/footer/pageTemplate — every
   // eligible one mounts, each independently trigger-gated by PopupHost.
   const popups: PopupSpec[] = resolveTemplates(templates, "popup", ctx).map((t) => ({
     id: t.id,
     content: t.content as PageContent,
     settings: (t.trigger as PopupSettings | undefined) ?? defaultPopupSettings(),
+    renderContext: { ...ctx, translationEntity: { type: "template", id: t.id } },
   }));
 
   const resolvedCookieBanner = cookieBannerSettings ?? defaultCookieBannerSettings();
@@ -63,9 +81,9 @@ export function PublishedPage({
 
   return (
     <>
-      {header && <BlockRenderer block={(header.content as PageContent).root} theme={theme} renderContext={ctx} isRoot />}
-      <BlockRenderer block={bodyRoot} theme={theme} renderContext={ctx} isRoot />
-      {footer && <BlockRenderer block={(footer.content as PageContent).root} theme={theme} renderContext={ctx} isRoot />}
+      {header && <BlockRenderer block={(header.content as PageContent).root} theme={theme} renderContext={headerCtx} isRoot />}
+      <BlockRenderer block={bodyRoot} theme={theme} renderContext={bodyCtx} isRoot />
+      {footer && <BlockRenderer block={(footer.content as PageContent).root} theme={theme} renderContext={footerCtx} isRoot />}
       <PopupHost popups={popups} theme={theme} renderContext={ctx} />
       <CookieBanner settings={resolvedCookieBanner} />
       <ChatbotEmbed settings={chatbotEmbedSettings ?? defaultChatbotEmbedSettings()} cookieBannerSettings={resolvedCookieBanner} />

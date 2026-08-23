@@ -18,6 +18,7 @@ import type { ThemeTokens } from "@/lib/theme";
 import type { CollectionField } from "@/lib/collectionSchema";
 import type { CollectionItemLite, RenderContext } from "@/lib/bind";
 import { resolveTemplate, type TemplateLite } from "@/lib/templates";
+import { translationKey } from "@/lib/translations";
 import { DragHandleWrapper } from "./dnd/DragHandleWrapper";
 import { DropSlotList } from "./dnd/DropSlotList";
 import { LayersPanel } from "./LayersPanel";
@@ -34,6 +35,7 @@ export type CollectionSummary = {
   fieldSchema: CollectionField[];
   items: { id: string; data: Record<string, unknown> }[];
 };
+export type LocaleSummary = { id: string; code: string; label: string; isDefault: boolean };
 
 const AUTOSAVE_DELAY_MS = 1000;
 
@@ -100,6 +102,13 @@ export function EditorClient({
   const [theme, setTheme] = useState<ThemeTokens | null>(null);
   const [savedBlocks, setSavedBlocks] = useState<SavedBlockSummary[]>([]);
   const [collections, setCollections] = useState<CollectionSummary[]>([]);
+  const [locales, setLocales] = useState<LocaleSummary[]>([]);
+  const [activeLocaleId, setActiveLocaleId] = useState<string | null>(null);
+  // Raw fetched map for whichever non-default locale was last active;
+  // `translations` below derives the value actually used for rendering
+  // (empty for the default locale) rather than resetting this via a
+  // synchronous setState in the fetch effect.
+  const [fetchedTranslations, setFetchedTranslations] = useState<Record<string, string>>({});
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isFirstRender = useRef(true);
 
@@ -116,8 +125,84 @@ export function EditorClient({
     fetch(`/api/sites/${siteId}/collections`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data: CollectionSummary[]) => setCollections(data));
+    fetch(`/api/sites/${siteId}/locales`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: LocaleSummary[]) => setLocales(data));
     refreshSavedBlocks();
   }, [siteId, refreshSavedBlocks]);
+
+  // docs/multilingual.md's editor locale switcher (a sibling of the
+  // responsive-breakpoint switcher above, same "scoped state, not a new
+  // paradigm" shape): fetches this entity's Translation overrides for the
+  // selected non-default Locale, so both the canvas preview and the
+  // Inspector resolve through the same map BlockRenderer reads.
+  const translationEntityType = mode === "template" ? "template" : "page";
+  const activeLocale = useMemo<LocaleSummary | null>(
+    () => locales.find((l) => l.id === activeLocaleId) ?? null,
+    [locales, activeLocaleId],
+  );
+
+  useEffect(() => {
+    if (!activeLocale || activeLocale.isDefault) return;
+    let cancelled = false;
+    fetch(
+      `/api/sites/${siteId}/translations?entityType=${translationEntityType}&entityId=${pageId}&localeId=${activeLocale.id}`,
+    )
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((data: Record<string, string>) => {
+        if (!cancelled) setFetchedTranslations(data);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [siteId, pageId, translationEntityType, activeLocale]);
+
+  // Empty for the default locale (or no locale selected) without needing a
+  // separate reset effect — the default locale's content always lives on
+  // the base Block/entity, never in a Translation row.
+  const translations = useMemo<Record<string, string>>(
+    () => (activeLocale && !activeLocale.isDefault ? fetchedTranslations : {}),
+    [activeLocale, fetchedTranslations],
+  );
+
+  const handleTranslationChange = useCallback(
+    (blockId: string, field: string, value: string) => {
+      if (!activeLocale || activeLocale.isDefault || readOnly) return;
+      const key = translationKey({ entityType: translationEntityType, entityId: pageId, blockId, field });
+      setFetchedTranslations((prev) => ({ ...prev, [key]: value }));
+      fetch(`/api/sites/${siteId}/translations`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          localeId: activeLocale.id,
+          entityType: translationEntityType,
+          entityId: pageId,
+          blockId,
+          field,
+          value,
+        }),
+      });
+    },
+    [activeLocale, readOnly, translationEntityType, pageId, siteId],
+  );
+
+  const handleTranslationClear = useCallback(
+    (blockId: string, field: string) => {
+      if (!activeLocale || activeLocale.isDefault || readOnly) return;
+      const key = translationKey({ entityType: translationEntityType, entityId: pageId, blockId, field });
+      setFetchedTranslations((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+      fetch(`/api/sites/${siteId}/translations`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ localeId: activeLocale.id, entityType: translationEntityType, entityId: pageId, blockId, field }),
+      });
+    },
+    [activeLocale, readOnly, translationEntityType, pageId, siteId],
+  );
 
   useEffect(() => {
     if (isFirstRender.current) {
@@ -324,8 +409,15 @@ export function EditorClient({
       pageId: mode === "page" ? pageId : undefined,
       collectionItems,
       currentItem,
+      // Same shared resolution as the public renderer (lib/translations.ts)
+      // — the canvas preview shows translated content under a selected
+      // Locale exactly like a visitor would see it, never a separate
+      // "editor preview" rendering path.
+      localeId: activeLocale?.id ?? null,
+      translations,
+      translationEntity: { type: translationEntityType, id: pageId },
     }),
-    [activeBreakpoint, siteId, pageId, mode, collectionItems, currentItem],
+    [activeBreakpoint, siteId, pageId, mode, collectionItems, currentItem, activeLocale, translations, translationEntityType],
   );
 
   // Composed preview for header/footer Templates only — mirrors
@@ -380,6 +472,9 @@ export function EditorClient({
           saveStatus={saveStatus}
           activeBreakpoint={activeBreakpoint}
           onBreakpointChange={setActiveBreakpoint}
+          locales={locales}
+          activeLocaleId={activeLocaleId}
+          onLocaleChange={setActiveLocaleId}
           onUndo={undo}
           onRedo={redo}
           canUndo={canUndo && !readOnly}
@@ -510,6 +605,11 @@ export function EditorClient({
                   collections={collections}
                   pageCollectionId={pageCollectionId}
                   readOnly={readOnly}
+                  activeLocale={activeLocale ? { id: activeLocale.id, isDefault: activeLocale.isDefault } : null}
+                  translationEntity={{ type: translationEntityType, id: pageId }}
+                  translations={translations}
+                  onTranslationChange={handleTranslationChange}
+                  onTranslationClear={handleTranslationClear}
                 />
               )}
             </div>

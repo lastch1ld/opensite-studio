@@ -6,6 +6,7 @@ import { getBlockDefinition } from "./registry";
 import { buildResponsiveCss, resolveStyle, resolveTokens } from "@/lib/responsiveStyle";
 import { queryListItems, resolveBoundProps, type RenderContext } from "@/lib/bind";
 import { evaluateCondition } from "@/lib/condition";
+import { resolveTranslatedProps } from "@/lib/translations";
 import type { ThemeTokens } from "@/lib/theme";
 
 type BlockRendererProps = {
@@ -135,7 +136,19 @@ export function BlockRenderer({
   // is active, since its canvas isn't a real responsive viewport.
   const responsiveCss = onSelect ? null : buildResponsiveCss(block.id, block.style, theme);
 
-  const resolvedProps = resolveBoundProps(block.props, ctx);
+  const boundProps = resolveBoundProps(block.props, ctx);
+  // docs/multilingual.md: applies Translation overrides on top of $bind
+  // resolution, for whichever of this block type's fields are marked
+  // `translatable` — same shared resolve-through-one-function shape as
+  // resolveTokens/resolveBind above, a no-op when no locale is active.
+  const resolvedProps = resolveTranslatedProps(
+    block.props,
+    boundProps,
+    def.inspector,
+    ctx.translations,
+    ctx.translationEntity,
+    block.id,
+  );
   const rawContent = def.render(resolvedProps, resolvedStyle, childrenContent, { blockId: block.id, ctx });
   // Public renderer always tags the root element with its block id (not
   // just when responsive CSS needs it) — popup elementClick triggers
