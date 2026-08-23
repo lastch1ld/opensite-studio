@@ -11,7 +11,7 @@ import {
 import type { Block, Breakpoint, PageContent } from "@/components/blocks/types";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { createBlock, getAllBlockDefinitions } from "@/components/blocks/registry";
-import { addBlock, addBlockAt, cloneWithNewIds, deleteBlock, findBlock, moveBlock, updateBlock } from "@/lib/blockTree";
+import { addBlock, addBlockAt, cloneWithNewIds, deleteBlock, findBlock, findParent, moveBlock, updateBlock } from "@/lib/blockTree";
 import { useHistory } from "@/lib/useHistory";
 import { BREAKPOINTS } from "@/lib/responsiveStyle";
 import type { ThemeTokens } from "@/lib/theme";
@@ -297,11 +297,38 @@ export function EditorClient({
     [content.root, selectedId, updateContent, selectBlock],
   );
 
-  const handleDelete = useCallback(() => {
-    if (!selectedId || selectedId === content.root.id) return;
-    updateContent((prev) => ({ ...prev, root: deleteBlock(prev.root, selectedId) }));
-    selectBlock(null);
-  }, [selectedId, content.root, updateContent, selectBlock]);
+  // Accepts an explicit `id` (context menu) or falls back to the current
+  // selection (toolbar button) — a context-menu action selects and acts
+  // in one handler, and `selectedId` wouldn't reflect that yet within the
+  // same synchronous call (React state updates aren't visible until the
+  // next render), so this can't just close over `selectedId` alone.
+  const handleDelete = useCallback(
+    (id?: string) => {
+      const targetId = id ?? selectedId;
+      if (!targetId || targetId === content.root.id) return;
+      updateContent((prev) => ({ ...prev, root: deleteBlock(prev.root, targetId) }));
+      selectBlock(null);
+    },
+    [selectedId, content.root, updateContent, selectBlock],
+  );
+
+  // Inserted as the next sibling of the original (docs/ui-ux-roadmap.md's
+  // right-click menu) — a fresh id per node via cloneWithNewIds, same
+  // "detached copy" semantics as inserting a saved block.
+  const handleDuplicate = useCallback(
+    (id: string) => {
+      if (readOnly || id === content.root.id) return;
+      const parent = findParent(content.root, id);
+      if (!parent) return;
+      const index = (parent.children ?? []).findIndex((c) => c.id === id);
+      const original = findBlock(content.root, id);
+      if (!original || index === -1) return;
+      const clone = cloneWithNewIds(original);
+      updateContent((prev) => ({ ...prev, root: addBlockAt(prev.root, parent.id, clone, index + 1) }));
+      selectBlock(clone.id);
+    },
+    [content.root, readOnly, updateContent, selectBlock],
+  );
 
   const handleChange = useCallback(
     (group: "props" | "style", key: string, value: unknown) => {
@@ -323,9 +350,10 @@ export function EditorClient({
     [selectedId, activeBreakpoint, readOnly, updateContent],
   );
 
-  const handleSaveAsBlock = useCallback(async () => {
-    if (!selectedId) return;
-    const block = findBlock(content.root, selectedId);
+  const handleSaveAsBlock = useCallback(async (id?: string) => {
+    const targetId = id ?? selectedId;
+    if (!targetId) return;
+    const block = findBlock(content.root, targetId);
     if (!block) return;
     const name = window.prompt("Name this reusable block:");
     if (!name || !name.trim()) return;
@@ -482,11 +510,19 @@ export function EditorClient({
 
   const renderNodeWrapper = useCallback(
     (block: Block, node: ReactNode, isRoot: boolean) => (
-      <DragHandleWrapper block={block} isRoot={isRoot}>
+      <DragHandleWrapper
+        block={block}
+        isRoot={isRoot}
+        readOnly={readOnly}
+        onSelect={selectBlock}
+        onDelete={handleDelete}
+        onDuplicate={handleDuplicate}
+        onSaveAsBlock={handleSaveAsBlock}
+      >
         {node}
       </DragHandleWrapper>
     ),
-    [],
+    [readOnly, selectBlock, handleDelete, handleDuplicate, handleSaveAsBlock],
   );
 
   const renderChildrenWrapper = useCallback(

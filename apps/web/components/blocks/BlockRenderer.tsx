@@ -1,6 +1,7 @@
 "use client";
 
 import { cloneElement, isValidElement, type CSSProperties, type ReactElement, type ReactNode } from "react";
+import { motion, type Target } from "motion/react";
 import type { Block, Breakpoint } from "./types";
 import { getBlockDefinition } from "./registry";
 import { buildResponsiveCss, resolveStyle, resolveTokens } from "@/lib/responsiveStyle";
@@ -34,6 +35,39 @@ type BlockRendererProps = {
 
 function deviceFor(breakpoint: Breakpoint): RenderContext["device"] {
   return breakpoint === "base" ? "desktop" : breakpoint;
+}
+
+// Scroll-in animation (components/blocks/registry.tsx's shared
+// `ANIMATION_FIELD`, appended to every built-in block's inspector)
+// resolved here once, generically, rather than per block-type — so any
+// block, built-in or plugin-authored, gets the same motion.dev-powered
+// options for free the moment its style carries an `animation` key.
+// `viewport={{ once: true }}` means it plays once when scrolled into
+// view, both on the public site and (harmlessly) while previewing in the
+// editor canvas, not on every re-render.
+const ANIMATION_VARIANTS: Record<string, Target> = {
+  "fade-in": { opacity: 0 },
+  "slide-up": { opacity: 0, y: 32 },
+  "slide-down": { opacity: 0, y: -32 },
+  "slide-left": { opacity: 0, x: -32 },
+  "slide-right": { opacity: 0, x: 32 },
+  "scale-in": { opacity: 0, scale: 0.92 },
+};
+
+function withAnimation(animation: unknown, node: ReactNode): ReactNode {
+  const key = typeof animation === "string" ? animation : "";
+  const initial = ANIMATION_VARIANTS[key];
+  if (!initial) return node;
+  return (
+    <motion.div
+      initial={initial}
+      whileInView={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+    >
+      {node}
+    </motion.div>
+  );
 }
 
 // Editor canvas and public renderer both call this component with the same
@@ -93,7 +127,8 @@ export function BlockRenderer({
         ))}
       </div>
     );
-    if (!onSelect) return <>{content}</>;
+    const animatedList = withAnimation(resolvedStyle.animation, content);
+    if (!onSelect) return <>{animatedList}</>;
     const isSelected = block.id === selectedId;
     const selectionNode = (
       <div
@@ -103,7 +138,7 @@ export function BlockRenderer({
         }}
         style={{ outline: isSelected ? "2px solid #2563eb" : "1px dashed transparent", outlineOffset: "-1px", cursor: "pointer", position: "relative" }}
       >
-        {content}
+        {animatedList}
       </div>
     );
     return renderNodeWrapper ? renderNodeWrapper(block, selectionNode, isRoot) : selectionNode;
@@ -167,8 +202,9 @@ export function BlockRenderer({
   ) : (
     content
   );
+  const animated = withAnimation(resolvedStyle.animation, withCss);
 
-  if (!onSelect) return <>{withCss}</>;
+  if (!onSelect) return <>{animated}</>;
 
   const isSelected = block.id === selectedId;
   const selectionNode = (
@@ -190,7 +226,7 @@ export function BlockRenderer({
         if (!isSelected) e.currentTarget.style.outline = "1px dashed transparent";
       }}
     >
-      {withCss}
+      {animated}
     </div>
   );
 

@@ -34,6 +34,28 @@ const OFFSET_FIELDS: FieldSchema[] = [
   { key: "zIndex", label: "Stack order", friendlyLabel: "Bring to front / send to back", group: "style", input: "text" },
 ];
 
+// Scroll-in animation (docs/ui-ux-roadmap.md: "add motion.dev ... where
+// possible as options") — one shared field appended to every built-in
+// block's inspector below, resolved generically in BlockRenderer.tsx
+// (not per block-type) so it works uniformly across the whole registry,
+// built-in or plugin-authored, without each block having to opt in.
+export const ANIMATION_FIELD: FieldSchema = {
+  key: "animation",
+  label: "Animation",
+  friendlyLabel: "Animate in on scroll",
+  group: "style",
+  input: "select",
+  options: [
+    { label: "None", value: "" },
+    { label: "Fade in", value: "fade-in" },
+    { label: "Slide up", value: "slide-up" },
+    { label: "Slide down", value: "slide-down" },
+    { label: "Slide in from left", value: "slide-left" },
+    { label: "Slide in from right", value: "slide-right" },
+    { label: "Scale in", value: "scale-in" },
+  ],
+};
+
 function offsetStyle(style: Record<string, unknown>): CSSProperties {
   const x = str(style.offsetX);
   const y = str(style.offsetY);
@@ -553,7 +575,12 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
 };
 
 for (const [type, def] of Object.entries(builtinBlocks)) {
-  registerBlock<RenderContext>({ type, ...def });
+  // "form"'s inspector array is never read by the generic Inspector.tsx
+  // loop (a dedicated FormFieldsEditor handles it instead — see the
+  // comment above the `form` entry above), so appending here would be a
+  // no-op there; skipped to avoid a misleading dead field.
+  const inspector = type === "form" ? def.inspector : [...def.inspector, ANIMATION_FIELD];
+  registerBlock<RenderContext>({ type, ...def, inspector });
 }
 
 // Re-exported (rather than imported piecemeal elsewhere) so importing
