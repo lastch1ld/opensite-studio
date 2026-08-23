@@ -1,0 +1,130 @@
+# UI/UX Roadmap
+
+Every functional phase in [roadmap.md](roadmap.md) (0–4) is complete. This
+doc is the next roadmap: OpenSite Studio works end-to-end but looks like
+unstyled HTML forms throughout the dashboard/editor, and a brand-new Site
+starts from a completely blank page with no visual starting point. Neither
+blocks a self-hoster from using the product; both make it a much harder
+sell to hand off to the non-technical EDITOR persona (see
+[apps/web/PRODUCT.md](../apps/web/PRODUCT.md)) that's the actual point of
+a Wix/Elementor alternative.
+
+Two surfaces, two different design modes (see PRODUCT.md's Operating
+Context) — they get separate phases below because they have different
+goals, audiences, and even different visual worlds:
+
+- **Product chrome** (dashboard + editor): an **Operate** surface. The
+  visitor is doing a task; scanability and density beat expression. This
+  is OpenSite Studio's own UI.
+- **Default page templates + theme presets**: a **Persuade** surface. A
+  new Site's first page needs to look like a real business's homepage, not
+  a wireframe — this is content a site owner ships to *their* visitors.
+
+## Phase A — Product chrome: real visual design system
+
+Currently: native unstyled `<input>`/`<select>`/`<button>` elements, no
+consistent spacing/type scale, no color system beyond black-on-white,
+hand-rolled modals with real accessibility gaps (no focus trap, no
+`Escape` handling, no `aria-modal` — see
+[editor-ui-stack.md](editor-ui-stack.md), which already scoped the tooling
+decision: Tailwind (already installed) + Radix Primitives directly, no
+shadcn, `lucide-react` for icons. This phase is the actual *design* pass
+editor-ui-stack.md deliberately left out of scope ("tooling, not a new
+visual language").
+
+- [ ] Design tokens for the product chrome: a real color scale (not just
+  `#111`/`#fff`), spacing scale, and type scale as CSS custom properties
+  or a Tailwind theme extension — applied consistently across dashboard
+  and editor, not per-component ad hoc values.
+- [ ] Dashboard screens (site list, site detail, Collections, Theme
+  Builder list, Settings, Members, API keys): replace bare forms/tables
+  with a consistent card/section/table visual language, real empty states
+  (the "No sites yet. Create one above." pattern, but designed, with an
+  actual illustration/icon and a clearer call to action), and consistent
+  button hierarchy (primary/secondary/destructive).
+- [ ] Editor chrome: toolbar, layers panel, inspector polish — keep the
+  existing dense/tool-like layout (this is right for an Operate surface,
+  per editor-ui-stack.md's Puck/Craft.js rejection reasoning) but apply
+  the same token system, fix the two known-broken modals
+  (`MediaPicker`/`VersionHistoryPanel`) via `@radix-ui/react-dialog`
+  (focus trap, Escape, `aria-modal`), and swap the breakpoint toggle to
+  `@radix-ui/react-toggle-group`.
+- [ ] Auth screens (login/signup/invite-accept): currently the plainest
+  screens in the product and every self-hoster's and every invited
+  EDITOR's literal first impression — bring them up to the same token
+  system first, before the denser dashboard/editor screens, since they're
+  the highest-leverage low-effort fix.
+- [ ] Empty/first-run states across the dashboard (no sites, no pages, no
+  collections, no members, no API keys) — each currently a single gray
+  line of text; this is the actual onboarding experience for a fresh
+  self-host install and deserves real design, not an afterthought.
+- [ ] Accessibility pass once the above lands: keyboard operability
+  through the editor canvas/layers tree, focus-visible states, color
+  contrast against the new token system (see PRODUCT.md's Accessibility
+  & Inclusion — no elevated bar established, but standard web a11y
+  practice is the floor).
+
+## Phase B — Default page templates + theme presets
+
+Currently: a new Page starts as one empty `section` block. A new Site's
+`Theme` starts with whatever bare default tokens `lib/theme.ts` seeds —
+there is no "pick a starting point" moment anywhere in the product. This
+phase is the one the roadmap conversation that produced this doc explicitly
+asked to build next.
+
+- [ ] **A small set of polished page templates** (not a huge marketplace —
+  quality over quantity), each a real, finished-looking composition of
+  existing block types (section/text/image/button/heading/spacer/columns/
+  embed/list/form/newsletter — see
+  [blocks-and-theming.md](blocks-and-theming.md)) with good copy,
+  spacing, and imagery placeholders. Starting set: a **Landing/Home**
+  page (hero + feature grid + testimonial-style section + CTA + footer
+  handoff), an **About** page, a **Contact** page (form block wired to
+  `storeOnly`), and a **Blog index + post** pair (uses the existing
+  Collections/dynamic-page system, not a bespoke blog engine — see
+  [collections.md](collections.md)). This supersedes the old
+  [starter-templates.md](starter-templates.md) "port an external repo"
+  plan — that doc assumed access to a sibling `../blog-template` repo
+  that was never actually available in this workspace; build the
+  equivalent presentational quality directly as block-tree templates
+  here instead of depending on that port.
+- [ ] **A handful of theme presets** (color palette + typography pairing,
+  `Theme.tokens` — see blocks-and-theming.md) a new Site can start from
+  at creation time instead of the current bare default — e.g. 3–4
+  genuinely distinct, well-chosen palettes rather than a color picker
+  with no starting point.
+- [ ] **"Start from a template" step** in the site/page creation flow —
+  today `Create page` always creates one empty section; offer a small
+  template picker (uses this phase's templates) as an alternative to
+  blank, wired through the existing Page/Template content model (no new
+  storage mechanism — a starter template's content is just the
+  `draftContent` a new Page is seeded with).
+- [ ] Extend the Theme Builder's existing header/footer template system
+  (theme-builder.md) with **1–2 polished default header/footer templates**
+  so a new Site's site-wide chrome doesn't start empty either — same
+  content model, just better authored starting content.
+- [ ] Once this phase has shipped enough real visual work under one
+  identity, consider `/impeccable document` to record it as this
+  surface's `DESIGN.md` — not before there's an actual visual world to
+  document.
+
+## Sequencing
+
+Phase A (product chrome) and Phase B (default templates/themes) are
+independent — different files, different visual worlds, no shared
+component surface — and can be worked in either order or in parallel.
+Phase B was the one requested first; Phase A's auth-screens item is the
+best next pickup after it given its effort-to-visibility ratio.
+
+## Explicitly out of scope
+
+- A full marketplace or gallery of many templates — this roadmap is about
+  a small number of genuinely polished starting points, not breadth.
+- Redesigning `BlockRenderer`/the block registry/the public renderer's
+  mechanics — this whole doc is visual/content work on top of the
+  existing, unchanged block system (architecture.md's shared-codepath
+  rule is untouched by anything here).
+- A rebrand or new product name/logo for OpenSite Studio itself — Phase A
+  is a design system for the *existing* identity, not a new one (see
+  PRODUCT.md's Brand Commitments: no logo/color identity confirmed yet,
+  and this doc doesn't decide one unprompted).

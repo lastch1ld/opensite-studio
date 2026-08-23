@@ -1,5 +1,15 @@
 # Roadmap
 
+**2026-08-23**: `npx prisma migrate dev` was run against a live local
+Postgres for the first time (`prisma/migrations/20260823124539_init`),
+generating a single initial migration covering the entire schema as it
+stood at that point (every table across Phases 0–4). Every individual
+"a Prisma migration for the new `X` table still needs to be generated"
+note below is now historical — it documents *when* each table was added
+to `schema.prisma`, not a still-outstanding migration. Future schema
+changes should get their own incremental `prisma migrate dev` migration
+as normal, not another such note.
+
 ## Phase 0 — MVP (this pass)
 
 Minimal end-to-end slice proving the core loop: sign up → create a site →
