@@ -28,6 +28,7 @@ import { Toolbar } from "./Toolbar";
 import { ClipboardPanel } from "./ClipboardPanel";
 import { SeoPanel } from "./SeoPanel";
 import { FloatingPanel } from "./FloatingPanel";
+import { SectionPicker } from "./SectionPicker";
 import { defaultPageSeo, type PageSeo } from "@/lib/seo";
 
 const SIMPLE_MODE_STORAGE_KEY = "opensite:editor:simpleMode";
@@ -102,6 +103,7 @@ export function EditorClient({
   // panels a user opens/closes, not permanently-reserved grid columns.
   const [layersOpen, setLayersOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [sectionPickerOpen, setSectionPickerOpen] = useState(false);
   // "Not technical mode" — persisted across sessions since it's a durable
   // user preference, not per-page state. Starts `false` (matching SSR,
   // which has no `window`) and is corrected from localStorage right after
@@ -384,6 +386,25 @@ export function EditorClient({
     [content.root, selectedId, updateContent, selectBlock],
   );
 
+  // lib/sectionPresets.ts's ready-made section catalog — the preset's own
+  // `build()` already mints fresh ids (unlike a saved block, which needs
+  // cloneWithNewIds since the same stored subtree gets inserted repeatedly).
+  // Always inserts at the page root, never into whatever's currently
+  // selected — unlike handleAdd/handleInsertSavedBlock (fine-grained
+  // block-level composition), "sections" are page-level building blocks
+  // (matches how Wix/Squarespace's own "Add Section" behaves). This also
+  // sidesteps a real bug the naive selected-container targeting had: each
+  // inserted preset auto-selects itself, so a second preset insert would
+  // land *inside* the first one instead of beside it — compounding
+  // full-bleed blocks' `left: 50%` breakout math with every nesting level.
+  const handleInsertSectionPreset = useCallback(
+    (newBlock: Block) => {
+      updateContent((prev) => ({ ...prev, root: addBlock(prev.root, prev.root.id, newBlock) }));
+      selectBlock(newBlock.id);
+    },
+    [updateContent, selectBlock],
+  );
+
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
   const handleDragEnd = useCallback(
@@ -652,7 +673,10 @@ export function EditorClient({
             >
               {!readOnly && (
                 <div className="border-b border-[var(--border)] p-3">
-                  <p className="mb-1.5 text-xs font-medium text-[var(--text-muted)]">Add block</p>
+                  <button onClick={() => setSectionPickerOpen(true)} className="chrome-btn chrome-btn-primary w-full !py-1.5 text-xs">
+                    Add a section…
+                  </button>
+                  <p className="mt-3 mb-1.5 text-xs font-medium text-[var(--text-muted)]">Add block</p>
                   <div className="flex flex-wrap gap-1.5">
                     {getAllBlockDefinitions().map((def) => (
                       <PaletteItem key={def.type} type={def.type} label={def.label} onAdd={handleAdd} />
@@ -740,6 +764,9 @@ export function EditorClient({
           )}
         </div>
       </div>
+      {!readOnly && (
+        <SectionPicker open={sectionPickerOpen} onOpenChange={setSectionPickerOpen} onInsert={handleInsertSectionPreset} />
+      )}
     </DndContext>
   );
 }

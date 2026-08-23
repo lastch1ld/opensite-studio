@@ -68,6 +68,45 @@ function offsetStyle(style: Record<string, unknown>): CSSProperties {
   };
 }
 
+// Maps a select value to the CSS variable next/font/google set up in
+// app/layout.tsx — never an inline family name, so every font reference
+// stays a named token (same reasoning as Theme's colour/spacing tokens):
+// changing a font later is a one-line swap in layout.tsx, not a find-
+// replace across every block that used it. Deliberately a short, curated
+// list (one geometric-sans, one high-contrast serif, one classical serif,
+// one mono, one rounded-humanist-sans) rather than open-ended Google
+// Fonts access — enough to pair a distinctive display face against the
+// body default without turning this into a general font-picker feature.
+const FONT_STACKS: Record<string, string> = {
+  "space-grotesk": "var(--font-space-grotesk), ui-sans-serif, sans-serif",
+  fraunces: "var(--font-fraunces), ui-serif, serif",
+  "instrument-serif": "var(--font-instrument-serif), ui-serif, serif",
+  "plex-mono": "var(--font-plex-mono), ui-monospace, monospace",
+  "jakarta-sans": "var(--font-jakarta-sans), ui-sans-serif, sans-serif",
+};
+
+const FONT_FIELD: FieldSchema = {
+  key: "fontFamily",
+  label: "Font",
+  friendlyLabel: "Font style",
+  group: "style",
+  input: "select",
+  options: [
+    { label: "Default", value: "" },
+    { label: "Space Grotesk (geometric)", value: "space-grotesk" },
+    { label: "Fraunces (editorial serif)", value: "fraunces" },
+    { label: "Instrument Serif (classical)", value: "instrument-serif" },
+    { label: "IBM Plex Mono (technical)", value: "plex-mono" },
+    { label: "Plus Jakarta Sans (rounded)", value: "jakarta-sans" },
+  ],
+};
+
+function fontFamilyStyle(style: Record<string, unknown>): CSSProperties {
+  const key = str(style.fontFamily);
+  const stack = FONT_STACKS[key];
+  return stack ? { fontFamily: stack } : {};
+}
+
 const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
   section: {
     label: "Section",
@@ -250,6 +289,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
           { label: "Right", value: "right" },
         ],
       },
+      FONT_FIELD,
       ...OFFSET_FIELDS,
     ],
     render(props, style) {
@@ -260,6 +300,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         margin: 0,
         whiteSpace: "pre-wrap",
         textAlign: (str(style.textAlign, "left") as CSSProperties["textAlign"]),
+        ...fontFamilyStyle(style),
         ...offsetStyle(style),
       };
       return <p style={cssStyle}>{str(props.content)}</p>;
@@ -430,6 +471,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
           { label: "Right", value: "right" },
         ],
       },
+      FONT_FIELD,
     ],
     render(props, style) {
       const Tag = (["h1", "h2", "h3", "h4", "h5", "h6"].includes(str(props.level)) ? str(props.level) : "h2") as
@@ -446,6 +488,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         margin: 0,
         lineHeight: 1.15,
         textAlign: (str(style.textAlign, "left") as CSSProperties["textAlign"]),
+        ...fontFamilyStyle(style),
       };
       return <Tag style={cssStyle}>{str(props.text, "Heading")}</Tag>;
     },
