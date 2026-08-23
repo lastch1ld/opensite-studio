@@ -1,0 +1,23 @@
+{
+  "name": "@opensite/cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Thin CLI client for the OpenSite Studio public API.",
+  "bin": {
+    "opensite": "./dist/index.js"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "commander": "^15.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "tsx": "^4.19.2",
+    "typescript": "^5"
+  }
+}

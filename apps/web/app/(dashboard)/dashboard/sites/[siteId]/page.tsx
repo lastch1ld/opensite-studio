@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { getSiteRole } from "@/lib/permissions";
 import { PageList } from "@/components/dashboard/PageList";
 import { MembersPanel } from "@/components/dashboard/MembersPanel";
+import { ApiKeysPanel } from "@/components/dashboard/ApiKeysPanel";
 
 export default async function SitePagesPage({ params }: { params: Promise<{ siteId: string }> }) {
   const { siteId } = await params;
@@ -16,6 +17,7 @@ export default async function SitePagesPage({ params }: { params: Promise<{ site
   const pages = await db.page.findMany({ where: { siteId }, orderBy: { createdAt: "asc" } });
   const collections = await db.collection.findMany({ where: { siteId }, orderBy: { createdAt: "asc" } });
   const invitations = role === "OWNER" ? await db.invitation.findMany({ where: { siteId }, orderBy: { createdAt: "desc" } }) : [];
+  const apiKeys = role === "OWNER" ? await db.apiKey.findMany({ where: { siteId }, orderBy: { createdAt: "desc" } }) : [];
 
   return (
     <div>
@@ -53,6 +55,20 @@ export default async function SitePagesPage({ params }: { params: Promise<{ site
             role: i.role,
             token: i.token,
             acceptedAt: i.acceptedAt ? i.acceptedAt.toISOString() : null,
+          }))}
+        />
+      )}
+      {role === "OWNER" && (
+        <ApiKeysPanel
+          siteId={site.id}
+          initialKeys={apiKeys.map((k) => ({
+            id: k.id,
+            name: k.name,
+            keyPrefix: k.keyPrefix,
+            scopes: k.scopes,
+            createdAt: k.createdAt.toISOString(),
+            lastUsedAt: k.lastUsedAt ? k.lastUsedAt.toISOString() : null,
+            revokedAt: k.revokedAt ? k.revokedAt.toISOString() : null,
           }))}
         />
       )}

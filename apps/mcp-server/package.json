@@ -1,0 +1,24 @@
+{
+  "name": "@opensite/mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MCP server exposing OpenSite Studio's public API as tools for an AI agent.",
+  "bin": {
+    "opensite-mcp-server": "./dist/index.js"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "tsx": "^4.19.2",
+    "typescript": "^5"
+  }
+}

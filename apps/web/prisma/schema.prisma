@@ -23,6 +23,7 @@ model User {
   sites       Site[]
   memberships Membership[]
   revisions   Revision[]
+  apiKeys     ApiKey[]
 }
 
 model Account {
@@ -100,6 +101,7 @@ model Site {
   settings      SiteSettings?
   siteVisitors  SiteVisitor[]
   aiConversations AiConversation[]
+  apiKeys       ApiKey[]
 }
 
 // Site-level settings/secrets store (docs/integrations.md "Shared plumbing
@@ -328,6 +330,33 @@ model Template {
   updatedAt DateTime     @updatedAt
 
   site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+}
+
+// Programmatic access credential (docs/programmatic-access.md): scoped to
+// exactly one Site, matching that doc's "scoped to a Site" requirement — not
+// a global-to-instance credential. The raw key is only ever returned from
+// the create endpoint (lib/apiAuth.ts); only its SHA-256 hash is persisted,
+// same non-recoverable-secret UX as a GitHub PAT. keyPrefix is the first
+// several characters of the raw key, kept in the clear so the owner can
+// visually distinguish keys in the dashboard without re-displaying the
+// secret. Effective permissions are the createdByUser's *current*
+// Membership/ownership role (looked up fresh via lib/permissions.ts on every
+// request, same as session auth — see lib/apiAuth.ts) intersected with
+// `scopes`; scopes only ever narrow, never grant beyond the creator's role.
+model ApiKey {
+  id              String    @id @default(uuid())
+  siteId          String
+  createdByUserId String
+  name            String
+  hashedKey       String    @unique
+  keyPrefix       String
+  scopes          String[]
+  createdAt       DateTime  @default(now())
+  lastUsedAt      DateTime?
+  revokedAt       DateTime?
+
+  site          Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  createdByUser User @relation(fields: [createdByUserId], references: [id], onDelete: Cascade)
 }
 
 model Revision {

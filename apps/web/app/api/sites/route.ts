@@ -1,16 +1,24 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { actorHasScope, getRequestActorAnySite } from "@/lib/apiAuth";
 import type { SiteMode } from "@prisma/client";
 
 const SITE_MODES: SiteMode[] = ["BUILDER", "AI_CHAT"];
 
-export async function GET() {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function GET(req: Request) {
+  const resolved = await getRequestActorAnySite(req);
+  if (!resolved) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { actor, siteId } = resolved;
+  if (!actorHasScope(actor, "read")) return NextResponse.json({ error: "This API key's scopes don't allow read access." }, { status: 403 });
 
+  // An API key is scoped to a single Site (docs/programmatic-access.md), so
+  // "list my sites" for a key-authenticated request means that one Site —
+  // not every Site the key's creator happens to belong to.
   const sites = await db.site.findMany({
-    where: { OR: [{ ownerId: session.user.id }, { memberships: { some: { userId: session.user.id } } }] },
+    where: siteId
+      ? { id: siteId, OR: [{ ownerId: actor.userId }, { memberships: { some: { userId: actor.userId } } }] }
+      : { OR: [{ ownerId: actor.userId }, { memberships: { some: { userId: actor.userId } } }] },
     orderBy: { createdAt: "desc" },
   });
   return NextResponse.json(sites);

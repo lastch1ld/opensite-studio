@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { requireSiteRole } from "@/lib/permissions";
+import { actorHasScope, getRequestActor } from "@/lib/apiAuth";
 import type { Prisma } from "@prisma/client";
 
 async function requireItem(siteId: string, collectionId: string, itemId: string) {
@@ -14,11 +14,12 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ siteId: string; collectionId: string; itemId: string }> },
 ) {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { siteId, collectionId, itemId } = await params;
-  const site = await requireSiteRole(siteId, session.user.id, ["OWNER", "EDITOR"]);
+  const actor = await getRequestActor(req, siteId);
+  if (!actor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!actorHasScope(actor, "write")) return NextResponse.json({ error: "This API key's scopes don't allow write access." }, { status: 403 });
+
+  const site = await requireSiteRole(siteId, actor.userId, ["OWNER", "EDITOR"]);
   if (!site) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const item = await requireItem(siteId, collectionId, itemId);
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -36,14 +37,15 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ siteId: string; collectionId: string; itemId: string }> },
 ) {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { siteId, collectionId, itemId } = await params;
-  const site = await requireSiteRole(siteId, session.user.id, ["OWNER", "EDITOR"]);
+  const actor = await getRequestActor(req, siteId);
+  if (!actor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!actorHasScope(actor, "write")) return NextResponse.json({ error: "This API key's scopes don't allow write access." }, { status: 403 });
+
+  const site = await requireSiteRole(siteId, actor.userId, ["OWNER", "EDITOR"]);
   if (!site) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const item = await requireItem(siteId, collectionId, itemId);
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
