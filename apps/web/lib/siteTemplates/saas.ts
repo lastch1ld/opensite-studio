@@ -1,15 +1,12 @@
 import type { Block, PageContent } from "@/components/blocks/types";
 import { randomUUID } from "crypto";
+import { mk, heading, body, cta, bleed } from "./_shared";
 
-// Full multi-page site templates (docs/reference-sites-plan.md's block
-// library now has enough range — accordion, pricing table, stat counter,
-// content switcher, marquee, comparison table — to build a genuinely
-// finished-looking site per genre, not just a single landing page like
-// lib/pageTemplates.ts's original `landingPageTemplateContent`). Each
-// genre gets its own palette/type system and its own set of page-builder
-// functions below; `SITE_TEMPLATES` (site-templates.options.ts-shaped,
-// but kept in this one server-only file since nothing here needs to be
-// client-safe) is the catalog the "create a full site" flow reads.
+// SaaS / tech product genre — docs/site-templates-plan.md Phase A.
+// Palette: near-black ink + one vivid indigo accent on a warm-white body —
+// distinct from lib/pageTemplates.ts's amber/ink pairing so the two don't
+// read as the same template recolored. Space Grotesk (already a curated
+// FONT_STACKS entry) carries the confident, geometric SaaS voice.
 //
 // Every page repeats the same simple nav/footer band rather than relying
 // on a Theme Builder header/footer Template — those are a separate,
@@ -20,64 +17,6 @@ import { randomUUID } from "crypto";
 // model. All copy is deliberately generic/placeholder — replace-me text,
 // never a fabricated real testimonial or metric (same rule
 // lib/pageTemplates.ts's own comment already states).
-
-function mk(type: string, props: Record<string, unknown>, style: Record<string, unknown>, children?: Block[]): Block {
-  return { id: randomUUID(), type, props, style: { base: style }, children };
-}
-
-function heading(text: string, opts: { size: string; color: string; align?: string; level?: string; weight?: string; font?: string }): Block {
-  return mk(
-    "heading",
-    { text, level: opts.level ?? "h2" },
-    {
-      fontSize: opts.size,
-      fontWeight: opts.weight ?? "700",
-      color: opts.color,
-      textAlign: opts.align ?? "left",
-      ...(opts.font ? { fontFamily: opts.font } : {}),
-    },
-  );
-}
-
-function body(text: string, opts: { size?: string; color: string; align?: string; weight?: string; font?: string }): Block {
-  return mk(
-    "text",
-    { content: text },
-    {
-      fontSize: opts.size ?? "17px",
-      fontWeight: opts.weight ?? "400",
-      color: opts.color,
-      textAlign: opts.align ?? "left",
-      ...(opts.font ? { fontFamily: opts.font } : {}),
-    },
-  );
-}
-
-function cta(label: string, opts: { background: string; color: string; variant?: string }): Block {
-  return mk(
-    "button",
-    { label, href: "#", variant: opts.variant ?? "primary" },
-    { padding: "15px 30px", borderRadius: "8px", fontSize: "16px", fontWeight: "600", background: opts.background, color: opts.color },
-  );
-}
-
-/** Full-bleed background band wrapping a centered, width-capped content column — every genre's recurring section shape. */
-function bleed(background: string, padding: string, content: Block[], contentWidth = "1100px", gap = "24px", extra: Record<string, unknown> = {}): Block {
-  return mk(
-    "section",
-    { layout: "stack" },
-    { background, padding, align: "center", gap: "0" },
-    [mk("section", { layout: "stack" }, { background: "transparent", padding: "0", maxWidth: contentWidth, align: "center", gap, ...extra }, content)],
-  );
-}
-
-// ============================================================
-// SaaS / tech product genre
-// ============================================================
-// Palette: near-black ink + one vivid indigo accent on a warm-white body —
-// distinct from lib/pageTemplates.ts's amber/ink pairing so the two don't
-// read as the same template recolored. Space Grotesk (already a curated
-// FONT_STACKS entry) carries the confident, geometric SaaS voice.
 const SAAS = {
   ink: "#0B0B12",
   inkMuted: "#9CA3AF",
@@ -142,6 +81,8 @@ function saasPageHero(eyebrow: string, title: string, sub: string): Block {
   );
 }
 
+type AccordionSeed = { q: string; a: string };
+
 function saasFaq(): Block {
   const items: AccordionSeed[] = [
     { q: "Replace with a real pricing question.", a: "Replace with the answer — keep it short and specific." },
@@ -156,8 +97,6 @@ function saasFaq(): Block {
   );
 }
 
-type AccordionSeed = { q: string; a: string };
-
 function saasLogoMarquee(): Block {
   const names = ["Company A", "Company B", "Company C", "Company D", "Company E", "Company F"];
   return mk(
@@ -170,7 +109,8 @@ function saasLogoMarquee(): Block {
 
 // Always dropped onto a dark SAAS.ink band in this template (both
 // callers below) — light values, not SAAS.text/textFaint, or the numbers
-// are unreadable against the dark background.
+// are unreadable against the dark background. (Found live while
+// verifying Phase A — see docs/site-templates-plan.md's checklist.)
 function saasStatRow(stats: { value: string; suffix: string; label: string }[]): Block {
   return mk(
     "columns",
@@ -348,6 +288,8 @@ export function saasFeaturesTemplate(): PageContent {
   };
 }
 
+type PricingTierSeed = { name: string; price: string; period: string; features: string; ctaLabel: string; highlighted: boolean };
+
 export function saasPricingTemplate(): PageContent {
   const heroBlock = saasPageHero("Pricing", "Replace with a pricing-page headline", "Replace with a sentence about your pricing philosophy — transparent, usage-based, whatever's true.");
 
@@ -378,7 +320,7 @@ export function saasPricingTemplate(): PageContent {
   };
 }
 
-type PricingTierSeed = { name: string; price: string; period: string; features: string; ctaLabel: string; highlighted: boolean };
+type TeamSeed = { name: string; role: string };
 
 export function saasAboutTemplate(): PageContent {
   const heroBlock = saasPageHero("About", "Replace with why this company exists", "Replace with two or three sentences about the mission — enough to build trust, not a full history.");
@@ -428,8 +370,6 @@ export function saasAboutTemplate(): PageContent {
   };
 }
 
-type TeamSeed = { name: string; role: string };
-
 export function saasContactTemplate(): PageContent {
   const heroBlock = saasPageHero("Contact", "Replace with a contact-page headline", "Replace with a sentence about response time or what to expect.");
 
@@ -472,29 +412,4 @@ export function saasContactTemplate(): PageContent {
     version: 1,
     root: mk("section", { layout: "stack" }, { padding: "0", background: "#ffffff", gap: "0" }, [saasNav("Contact"), heroBlock, formSection, saasFooter()]),
   };
-}
-
-// ============================================================
-// Dispatch — (templateId, slug) -> that page's real content. Slugs here
-// must match lib/siteTemplateOptions.ts's SITE_TEMPLATES exactly (that
-// file is the client-safe catalog of which pages a template creates; this
-// function is where each one's actual block tree lives).
-// ============================================================
-
-export function siteTemplatePageContent(templateId: string, slug: string): PageContent | null {
-  if (templateId !== "saas") return null;
-  switch (slug) {
-    case "home":
-      return saasHomeTemplate();
-    case "features":
-      return saasFeaturesTemplate();
-    case "pricing":
-      return saasPricingTemplate();
-    case "about":
-      return saasAboutTemplate();
-    case "contact":
-      return saasContactTemplate();
-    default:
-      return null;
-  }
 }
