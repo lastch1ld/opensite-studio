@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { SitemapImportPanel } from "./SitemapImportPanel";
+import { PAGE_TEMPLATES } from "@/lib/pageTemplateOptions";
 
 type Page = { id: string; title: string; slug: string; isHome: boolean; collectionId: string | null };
 type CollectionOption = { id: string; name: string };
@@ -22,6 +23,7 @@ export function PageList({
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [isHome, setIsHome] = useState(false);
+  const [template, setTemplate] = useState(PAGE_TEMPLATES[0].id);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +35,7 @@ export function PageList({
     const res = await fetch(`/api/sites/${siteId}/pages`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, slug, isHome }),
+      body: JSON.stringify({ title, slug, isHome, template }),
     });
 
     setLoading(false);
@@ -47,6 +49,7 @@ export function PageList({
     setTitle("");
     setSlug("");
     setIsHome(false);
+    setTemplate(PAGE_TEMPLATES[0].id);
     router.refresh();
   }
 
@@ -87,6 +90,21 @@ export function PageList({
             pattern="[a-z0-9-]*"
             className="rounded border px-3 py-2"
           />
+        </div>
+        <div>
+          <label className="block text-sm text-gray-600">Start from</label>
+          <select
+            value={template}
+            onChange={(e) => setTemplate(e.target.value)}
+            className="rounded border px-3 py-2"
+            title={PAGE_TEMPLATES.find((t) => t.id === template)?.description}
+          >
+            {PAGE_TEMPLATES.map((t) => (
+              <option key={t.id} value={t.id} title={t.description}>
+                {t.label}
+              </option>
+            ))}
+          </select>
         </div>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={isHome} onChange={(e) => setIsHome(e.target.checked)} />

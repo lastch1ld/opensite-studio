@@ -37,16 +37,54 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
       },
       { key: "padding", label: "Padding", group: "style", input: "text", tokenCategory: "spacing" },
       { key: "background", label: "Background", group: "style", input: "color", tokenCategory: "colors" },
+      // Optional: caps a section's content width and centers it (e.g.
+      // "1100px"), so a full-bleed background can still hold a readable
+      // centered column — unset behaves exactly as before (full-width).
+      { key: "maxWidth", label: "Max content width", group: "style", input: "text" },
+      {
+        key: "align",
+        label: "Align items (cross-axis)",
+        group: "style",
+        input: "select",
+        options: [
+          { label: "Stretch (default)", value: "" },
+          { label: "Start", value: "flex-start" },
+          { label: "Center", value: "center" },
+          { label: "End", value: "flex-end" },
+        ],
+      },
+      {
+        key: "justify",
+        label: "Justify content (main-axis)",
+        group: "style",
+        input: "select",
+        options: [
+          { label: "Start (default)", value: "" },
+          { label: "Center", value: "center" },
+          { label: "End", value: "flex-end" },
+          { label: "Space between", value: "space-between" },
+        ],
+      },
+      { key: "gap", label: "Gap", group: "style", input: "text", tokenCategory: "spacing" },
+      { key: "borderRadius", label: "Corner radius", group: "style", input: "text" },
     ],
     render(props, style, children) {
       const layout = str(props.layout, "stack");
+      const maxWidth = str(style.maxWidth);
+      const align = str(style.align);
+      const justify = str(style.justify);
       const cssStyle: CSSProperties = {
         padding: str(style.padding, "24px"),
         background: str(style.background, "#ffffff"),
         display: "flex",
         flexDirection: layout === "row" ? "row" : "column",
-        gap: "12px",
+        gap: str(style.gap, "12px"),
         minHeight: "40px",
+        boxSizing: "border-box",
+        borderRadius: str(style.borderRadius, "0"),
+        ...(maxWidth ? { maxWidth, marginLeft: "auto", marginRight: "auto" } : {}),
+        ...(align ? { alignItems: align as CSSProperties["alignItems"] } : {}),
+        ...(justify ? { justifyContent: justify as CSSProperties["justifyContent"] } : {}),
       };
       return <div style={cssStyle}>{children}</div>;
     },
@@ -70,6 +108,17 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         ],
       },
       { key: "color", label: "Color", group: "style", input: "color", tokenCategory: "colors" },
+      {
+        key: "textAlign",
+        label: "Alignment",
+        group: "style",
+        input: "select",
+        options: [
+          { label: "Left", value: "left" },
+          { label: "Center", value: "center" },
+          { label: "Right", value: "right" },
+        ],
+      },
     ],
     render(props, style) {
       const cssStyle: CSSProperties = {
@@ -78,6 +127,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         color: str(style.color, "#111111"),
         margin: 0,
         whiteSpace: "pre-wrap",
+        textAlign: (str(style.textAlign, "left") as CSSProperties["textAlign"]),
       };
       return <p style={cssStyle}>{str(props.content)}</p>;
     },
@@ -100,11 +150,14 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
           { label: "Fill", value: "fill" },
         ],
       },
+      { key: "borderRadius", label: "Corner radius", group: "style", input: "text" },
     ],
-    render(props) {
+    render(props, style) {
       const cssStyle: CSSProperties = {
         width: "100%",
+        display: "block",
         objectFit: str(props.objectFit, "cover") as CSSProperties["objectFit"],
+        borderRadius: str(style.borderRadius, "0"),
       };
       // eslint-disable-next-line @next/next/no-img-element
       return <img src={str(props.src)} alt={str(props.alt)} style={cssStyle} />;
@@ -137,13 +190,32 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
           { label: "Yes", value: "true" },
         ],
       },
+      { key: "padding", label: "Padding", group: "style", input: "text" },
+      { key: "borderRadius", label: "Corner radius", group: "style", input: "text" },
+      { key: "background", label: "Background (primary)", group: "style", input: "color", tokenCategory: "colors" },
+      { key: "color", label: "Text color (primary)", group: "style", input: "color", tokenCategory: "colors" },
+      { key: "fontSize", label: "Font size", group: "style", input: "text", tokenCategory: "typography" },
+      { key: "fontWeight", label: "Font weight", group: "style", input: "text" },
     ],
-    render(props) {
+    render(props, style) {
       const variant = str(props.variant, "primary");
+      const base: CSSProperties = {
+        padding: str(style.padding, "10px 18px"),
+        borderRadius: str(style.borderRadius, "6px"),
+        display: "inline-block",
+        textDecoration: "none",
+        fontSize: str(style.fontSize, "16px"),
+        fontWeight: str(style.fontWeight, "500") as CSSProperties["fontWeight"],
+      };
       const cssStyle: CSSProperties =
         variant === "secondary"
-          ? { padding: "10px 18px", borderRadius: "6px", background: "transparent", color: "#111", border: "1px solid #111", display: "inline-block", textDecoration: "none" }
-          : { padding: "10px 18px", borderRadius: "6px", background: "#111", color: "#fff", border: "1px solid #111", display: "inline-block", textDecoration: "none" };
+          ? { ...base, background: "transparent", color: str(style.color, "#111"), border: `1px solid ${str(style.color, "#111")}` }
+          : {
+              ...base,
+              background: str(style.background, "#111"),
+              color: str(style.color, "#fff"),
+              border: `1px solid ${str(style.background, "#111")}`,
+            };
       return (
         <a href={str(props.href, "#")} style={cssStyle} data-close-popup={str(props.closesPopup) === "true" ? "true" : undefined}>
           {str(props.label, "Button")}
@@ -173,6 +245,17 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
       },
       { key: "fontSize", label: "Font size", group: "style", input: "text", tokenCategory: "typography" },
       { key: "color", label: "Color", group: "style", input: "color", tokenCategory: "colors" },
+      {
+        key: "textAlign",
+        label: "Alignment",
+        group: "style",
+        input: "select",
+        options: [
+          { label: "Left", value: "left" },
+          { label: "Center", value: "center" },
+          { label: "Right", value: "right" },
+        ],
+      },
     ],
     render(props, style) {
       const Tag = (["h1", "h2", "h3", "h4", "h5", "h6"].includes(str(props.level)) ? str(props.level) : "h2") as
@@ -187,6 +270,8 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         fontWeight: str(style.fontWeight, "700") as CSSProperties["fontWeight"],
         color: str(style.color, "#111111"),
         margin: 0,
+        lineHeight: 1.15,
+        textAlign: (str(style.textAlign, "left") as CSSProperties["textAlign"]),
       };
       return <Tag style={cssStyle}>{str(props.text, "Heading")}</Tag>;
     },

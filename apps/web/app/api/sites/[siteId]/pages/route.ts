@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireSiteRole } from "@/lib/permissions";
-import { emptyPageContent } from "@/lib/pageContent";
+import { pageContentForTemplate } from "@/lib/pageTemplates";
 import { actorHasScope, getRequestActor } from "@/lib/apiAuth";
 import type { Prisma } from "@prisma/client";
 
@@ -27,7 +27,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ siteId:
   const site = await requireSiteRole(siteId, actor.userId, ["OWNER", "EDITOR"]);
   if (!site) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const { title, slug, isHome } = await req.json();
+  const { title, slug, isHome, template } = await req.json();
   if (typeof title !== "string" || !title.trim() || typeof slug !== "string" || !/^[a-z0-9-]*$/.test(slug)) {
     return NextResponse.json(
       { error: "Title is required and slug must be lowercase letters, numbers, and hyphens only." },
@@ -46,7 +46,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ siteId:
         title,
         slug,
         isHome: Boolean(isHome),
-        draftContent: emptyPageContent() as unknown as Prisma.InputJsonValue,
+        draftContent: pageContentForTemplate(typeof template === "string" ? template : "blank") as unknown as Prisma.InputJsonValue,
       },
     });
   });
