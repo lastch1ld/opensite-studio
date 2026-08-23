@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import { registerBlock, getBlockDefinition, getAllBlockDefinitions } from "@opensite/block-sdk";
 import type { BlockDefinition } from "@opensite/block-sdk";
-import type { Block, FormField } from "./types";
+import type { Block, FieldSchema, FormField } from "./types";
 import { hasContainerChildren } from "@/lib/responsiveStyle";
 import { FormBlock } from "./FormBlock";
 import { NewsletterBlock } from "./NewsletterBlock";
@@ -17,6 +17,33 @@ export type AppBlockDef = BlockDefinition<RenderContext>;
 
 function str(v: unknown, fallback = ""): string {
   return typeof v === "string" ? v : fallback;
+}
+
+// Shared "offset position" fields (docs/ui-ux-roadmap.md: "offset
+// positioning ... for more fluid layouts") — nudges a block via
+// `transform: translate()` rather than margin, so it shifts visually
+// without disturbing sibling layout or the flow container's own size,
+// enabling deliberately overlapping/organic compositions. `position:
+// relative` only applies once an offset is actually set, so a block with
+// no offset renders exactly as it did before this existed. `zIndex` lets
+// an offset block that now overlaps a neighbor control which one stacks
+// on top.
+const OFFSET_FIELDS: FieldSchema[] = [
+  { key: "offsetX", label: "Offset X", friendlyLabel: "Move sideways", group: "style", input: "text" },
+  { key: "offsetY", label: "Offset Y", friendlyLabel: "Move up/down", group: "style", input: "text" },
+  { key: "zIndex", label: "Stack order", friendlyLabel: "Bring to front / send to back", group: "style", input: "text" },
+];
+
+function offsetStyle(style: Record<string, unknown>): CSSProperties {
+  const x = str(style.offsetX);
+  const y = str(style.offsetY);
+  const z = str(style.zIndex);
+  if (!x && !y && !z) return {};
+  return {
+    position: "relative",
+    transform: x || y ? `translate(${x || "0"}, ${y || "0"})` : undefined,
+    zIndex: z || undefined,
+  };
 }
 
 const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
@@ -92,6 +119,97 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
       return <div style={cssStyle}>{children}</div>;
     },
   },
+  // A ready-made hero: eyebrow/heading/subheading/CTA bundled as flat
+  // props (no child blocks to assemble) so a non-technical editor gets a
+  // finished hero in one drop, not a section they have to compose
+  // themselves. Always breaks out to true full-bleed width via the
+  // standard 100vw/-50vw CSS technique — a plain `section` only reaches
+  // full width if EVERY ancestor up to the page root also has zero
+  // padding, which isn't true by default (the root section itself starts
+  // with 24px padding, see lib/pageContent.ts's emptyPageContent). This
+  // block ignores its container's padding entirely, by design.
+  hero: {
+    label: "Hero",
+    defaultProps: {
+      eyebrow: "",
+      heading: "Your headline here",
+      subheading: "A short sentence that supports the headline above.",
+      buttonLabel: "Get started",
+      buttonHref: "#",
+      backgroundImage: "",
+    },
+    defaultStyle: { background: "#0B1120", color: "#ffffff", padding: "96px 24px", contentWidth: "700px" },
+    inspector: [
+      { key: "eyebrow", label: "Eyebrow", friendlyLabel: "Small label above the headline", group: "props", input: "text", translatable: true },
+      { key: "heading", label: "Heading", group: "props", input: "text", translatable: true },
+      { key: "subheading", label: "Subheading", group: "props", input: "textarea", translatable: true },
+      { key: "buttonLabel", label: "Button text", group: "props", input: "text", translatable: true },
+      { key: "buttonHref", label: "Button link", group: "props", input: "url" },
+      { key: "backgroundImage", label: "Background image", friendlyLabel: "Background image (optional)", group: "props", input: "image" },
+      { key: "background", label: "Background color", group: "style", input: "color", tokenCategory: "colors" },
+      { key: "color", label: "Text color", group: "style", input: "color", tokenCategory: "colors" },
+      { key: "padding", label: "Padding", friendlyLabel: "Inner spacing", group: "style", input: "text", tokenCategory: "spacing" },
+      { key: "contentWidth", label: "Content width", group: "style", input: "text" },
+    ],
+    render(props, style) {
+      const bgImage = str(props.backgroundImage);
+      const outerStyle: CSSProperties = {
+        // The full-bleed breakout: spans the viewport regardless of any
+        // padded/max-width-capped ancestor, without needing the page's
+        // block tree to be restructured.
+        width: "100vw",
+        position: "relative",
+        left: "50%",
+        right: "50%",
+        marginLeft: "-50vw",
+        marginRight: "-50vw",
+        boxSizing: "border-box",
+        background: bgImage
+          ? `linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.45)), url(${bgImage}) center/cover no-repeat`
+          : str(style.background, "#0B1120"),
+        color: str(style.color, "#ffffff"),
+        padding: str(style.padding, "96px 24px"),
+        display: "flex",
+        justifyContent: "center",
+      };
+      const innerStyle: CSSProperties = {
+        width: "100%",
+        maxWidth: str(style.contentWidth, "700px"),
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "20px",
+        textAlign: "center",
+      };
+      const eyebrow = str(props.eyebrow);
+      return (
+        <div style={outerStyle}>
+          <div style={innerStyle}>
+            {eyebrow && <span style={{ fontSize: "13px", fontWeight: 700, letterSpacing: "0.04em", opacity: 0.75 }}>{eyebrow}</span>}
+            <h1 style={{ margin: 0, fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 700, lineHeight: 1.15 }}>{str(props.heading, "Your headline here")}</h1>
+            {str(props.subheading) && <p style={{ margin: 0, fontSize: "19px", opacity: 0.85 }}>{str(props.subheading)}</p>}
+            {str(props.buttonLabel) && (
+              <a
+                href={str(props.buttonHref, "#")}
+                style={{
+                  marginTop: "8px",
+                  padding: "14px 28px",
+                  borderRadius: "8px",
+                  fontSize: "16px",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                  background: "#F59E0B",
+                  color: "#0B1120",
+                }}
+              >
+                {str(props.buttonLabel)}
+              </a>
+            )}
+          </div>
+        </div>
+      );
+    },
+  },
   text: {
     label: "Text",
     defaultProps: { content: "New text block" },
@@ -123,6 +241,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
           { label: "Right", value: "right" },
         ],
       },
+      ...OFFSET_FIELDS,
     ],
     render(props, style) {
       const cssStyle: CSSProperties = {
@@ -132,6 +251,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         margin: 0,
         whiteSpace: "pre-wrap",
         textAlign: (str(style.textAlign, "left") as CSSProperties["textAlign"]),
+        ...offsetStyle(style),
       };
       return <p style={cssStyle}>{str(props.content)}</p>;
     },
@@ -156,6 +276,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         ],
       },
       { key: "borderRadius", label: "Corner radius", friendlyLabel: "Rounded corners", group: "style", input: "text" },
+      ...OFFSET_FIELDS,
     ],
     render(props, style) {
       const cssStyle: CSSProperties = {
@@ -163,6 +284,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         display: "block",
         objectFit: str(props.objectFit, "cover") as CSSProperties["objectFit"],
         borderRadius: str(style.borderRadius, "0"),
+        ...offsetStyle(style),
       };
       // eslint-disable-next-line @next/next/no-img-element
       return <img src={str(props.src)} alt={str(props.alt)} style={cssStyle} />;

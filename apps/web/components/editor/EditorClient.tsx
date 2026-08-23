@@ -10,7 +10,7 @@ import {
 } from "@dnd-kit/core";
 import type { Block, Breakpoint, PageContent } from "@/components/blocks/types";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
-import { createBlock } from "@/components/blocks/registry";
+import { createBlock, getAllBlockDefinitions } from "@/components/blocks/registry";
 import { addBlock, addBlockAt, cloneWithNewIds, deleteBlock, findBlock, moveBlock, updateBlock } from "@/lib/blockTree";
 import { useHistory } from "@/lib/useHistory";
 import { BREAKPOINTS } from "@/lib/responsiveStyle";
@@ -21,6 +21,7 @@ import { resolveTemplate, type TemplateLite } from "@/lib/templates";
 import { translationKey } from "@/lib/translations";
 import { DragHandleWrapper } from "./dnd/DragHandleWrapper";
 import { DropSlotList } from "./dnd/DropSlotList";
+import { PaletteItem } from "./dnd/PaletteItem";
 import { LayersPanel } from "./LayersPanel";
 import { Inspector } from "./Inspector";
 import { Toolbar } from "./Toolbar";
@@ -504,7 +505,6 @@ export function EditorClient({
           pageTitle={pageTitle}
           mode={mode}
           backHref={backHref}
-          onAdd={handleAdd}
           onDelete={handleDelete}
           canDelete={Boolean(selectedId && selectedId !== content.root.id) && !readOnly}
           onPublish={handlePublish}
@@ -520,10 +520,8 @@ export function EditorClient({
           onRedo={redo}
           canUndo={canUndo && !readOnly}
           canRedo={canRedo && !readOnly}
-          savedBlocks={savedBlocks}
           canSaveAsBlock={Boolean(selectedId) && !readOnly}
           onSaveAsBlock={handleSaveAsBlock}
-          onInsertSavedBlock={handleInsertSavedBlock}
           readOnly={readOnly}
           onRestore={handleRestore}
           extraToolbar={extraToolbar}
@@ -536,7 +534,11 @@ export function EditorClient({
         />
         <div className="relative flex-1 overflow-hidden">
           <div className="h-full overflow-y-auto bg-[var(--surface-sunken)] p-6" onClick={() => selectBlock(null)}>
-            <div className="mx-auto bg-white shadow-sm" style={{ maxWidth: `${canvasWidth}px` }}>
+            {/* overflow-x-hidden clips full-bleed blocks (e.g. "hero"'s 100vw
+                breakout, see registry.tsx) to this simulated-breakpoint
+                frame during editing — the real published page has no such
+                frame, so it stays genuinely edge-to-edge there. */}
+            <div className="mx-auto overflow-x-hidden bg-white shadow-sm" style={{ maxWidth: `${canvasWidth}px` }}>
               {showComposedPreview ? (
                 <>
                   {templateType === "header" ? (
@@ -610,8 +612,35 @@ export function EditorClient({
             <FloatingPanel
               title="Layers"
               onClose={() => setLayersOpen(false)}
-              className="absolute left-3 top-3 bottom-3 z-20 w-60"
+              className="absolute left-3 top-3 bottom-3 z-20 w-64"
             >
+              {!readOnly && (
+                <div className="border-b border-[var(--border)] p-3">
+                  <p className="mb-1.5 text-xs font-medium text-[var(--text-muted)]">Add block</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {getAllBlockDefinitions().map((def) => (
+                      <PaletteItem key={def.type} type={def.type} label={def.label} onAdd={handleAdd} />
+                    ))}
+                  </div>
+                  {savedBlocks.length > 0 && (
+                    <>
+                      <p className="mt-3 mb-1.5 text-xs font-medium text-[var(--text-muted)]">Insert saved block</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {savedBlocks.map((saved) => (
+                          <button
+                            key={saved.id}
+                            onClick={() => handleInsertSavedBlock(saved)}
+                            className="chrome-btn chrome-btn-secondary !py-1 text-xs"
+                            title="Insert a copy"
+                          >
+                            {saved.name}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
               <LayersPanel root={content.root} selectedId={selectedId} onSelect={selectBlock} />
             </FloatingPanel>
           )}

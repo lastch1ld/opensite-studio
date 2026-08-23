@@ -17,6 +17,7 @@ export type { Breakpoint, BlockStyle, FieldSchema };
 // to hold whatever a site actually uses, built-in or plugin-authored.
 export type BuiltinBlockType =
   | "section"
+  | "hero"
   | "text"
   | "image"
   | "button"

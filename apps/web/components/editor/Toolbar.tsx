@@ -3,13 +3,11 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import * as ToggleGroup from "@radix-ui/react-toggle-group";
-import { Layers, SlidersHorizontal, Sparkles } from "lucide-react";
-import type { Block, Breakpoint, PageContent } from "@/components/blocks/types";
-import { getAllBlockDefinitions } from "@/components/blocks/registry";
+import { Layers, Redo2, SlidersHorizontal, Sparkles, Trash2, Undo2 } from "lucide-react";
+import type { Breakpoint, PageContent } from "@/components/blocks/types";
 import { BREAKPOINTS } from "@/lib/responsiveStyle";
-import { PaletteItem } from "./dnd/PaletteItem";
 import { VersionHistoryPanel } from "./VersionHistoryPanel";
-import type { SavedBlockSummary, LocaleSummary } from "./EditorClient";
+import type { LocaleSummary } from "./EditorClient";
 
 type ToolbarProps = {
   siteId: string;
@@ -18,7 +16,6 @@ type ToolbarProps = {
   mode?: "page" | "template";
   backHref?: string;
   extraToolbar?: ReactNode;
-  onAdd: (type: Block["type"]) => void;
   onDelete: () => void;
   canDelete: boolean;
   onPublish: () => void;
@@ -38,14 +35,14 @@ type ToolbarProps = {
   onRedo: () => void;
   canUndo: boolean;
   canRedo: boolean;
-  savedBlocks: SavedBlockSummary[];
   canSaveAsBlock: boolean;
   onSaveAsBlock: () => void;
-  onInsertSavedBlock: (saved: SavedBlockSummary) => void;
   readOnly: boolean;
   onRestore: (content: PageContent) => void;
   // docs/ui-ux-roadmap.md: the old permanent Layers/Inspector rails are now
-  // contextual floating panels — these two toggle their visibility.
+  // contextual floating panels — these two toggle their visibility. Grouped
+  // together with the breakpoint switcher below (one "view controls" pill)
+  // since all three change what's visible, not what's edited.
   layersOpen: boolean;
   onToggleLayers: () => void;
   panelOpen: boolean;
@@ -64,7 +61,6 @@ export function Toolbar({
   mode = "page",
   backHref,
   extraToolbar,
-  onAdd,
   onDelete,
   canDelete,
   onPublish,
@@ -80,10 +76,8 @@ export function Toolbar({
   onRedo,
   canUndo,
   canRedo,
-  savedBlocks,
   canSaveAsBlock,
   onSaveAsBlock,
-  onInsertSavedBlock,
   readOnly,
   onRestore,
   layersOpen,
@@ -94,22 +88,26 @@ export function Toolbar({
   onToggleSimpleMode,
 }: ToolbarProps) {
   return (
-    <div className="flex flex-col gap-2.5 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-2.5">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href={backHref ?? `/dashboard/sites/${siteId}`} className="text-sm text-[var(--text-muted)] hover:text-[var(--text)]">
+    <div className="flex flex-col gap-2 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-2.5">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <Link href={backHref ?? `/dashboard/sites/${siteId}`} className="shrink-0 text-sm text-[var(--text-muted)] hover:text-[var(--text)]">
             &larr; {pageTitle}
           </Link>
-          <span className="text-xs text-[var(--text-faint)]">
+          <span className="shrink-0 text-xs text-[var(--text-faint)]">
             {saveStatus === "saving" ? "Saving…" : saveStatus === "saved" ? "Saved" : ""}
           </span>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-2 overflow-x-auto">
+        {/* View controls: what's shown on screen — Layers, Properties, breakpoint preview. */}
+        <div className="chrome-toolbar-group">
           <button
             onClick={onToggleLayers}
             aria-pressed={layersOpen}
             title="Layers"
-            className={`chrome-btn !px-2 !py-1 ${layersOpen ? "chrome-btn-primary" : "chrome-btn-secondary"}`}
+            className="chrome-toggle-item"
+            data-state={layersOpen ? "on" : "off"}
           >
             <Layers size={14} />
           </button>
@@ -118,25 +116,18 @@ export function Toolbar({
               onClick={onTogglePanel}
               aria-pressed={panelOpen}
               title="Properties"
-              className={`chrome-btn !px-2 !py-1 ${panelOpen ? "chrome-btn-primary" : "chrome-btn-secondary"}`}
+              className="chrome-toggle-item"
+              data-state={panelOpen ? "on" : "off"}
             >
               <SlidersHorizontal size={14} />
             </button>
           )}
-          <button
-            onClick={onToggleSimpleMode}
-            aria-pressed={simpleMode}
-            title={simpleMode ? "Simple mode is on — plain-language field names" : "Turn on simple mode for plain-language field names"}
-            className={`chrome-btn !px-2 !py-1 ${simpleMode ? "chrome-btn-primary" : "chrome-btn-secondary"}`}
-          >
-            <Sparkles size={14} />
-            <span className="hidden sm:inline">Simple mode</span>
-          </button>
+          <div className="chrome-divider" />
           <ToggleGroup.Root
             type="single"
             value={activeBreakpoint}
             onValueChange={(v) => v && onBreakpointChange(v as Breakpoint)}
-            className="chrome-toggle-group"
+            className="inline-flex items-center gap-1"
           >
             {BREAKPOINTS.map((bp) => (
               <ToggleGroup.Item key={bp.id} value={bp.id} className="chrome-toggle-item">
@@ -144,65 +135,69 @@ export function Toolbar({
               </ToggleGroup.Item>
             ))}
           </ToggleGroup.Root>
-          {locales.length > 0 && (
-            <select
-              value={activeLocaleId ?? locales.find((l) => l.isDefault)?.id ?? ""}
-              onChange={(e) => onLocaleChange(e.target.value || null)}
-              title="Locale being previewed/edited — switching doesn't change structure, only which Translation values the Inspector reads/writes"
-              className="chrome-input !py-1 text-xs"
+        </div>
+
+        <button
+          onClick={onToggleSimpleMode}
+          aria-pressed={simpleMode}
+          title={simpleMode ? "Simple mode is on — plain-language field names" : "Turn on simple mode for plain-language field names"}
+          className={`chrome-btn !px-2 !py-1 ${simpleMode ? "chrome-btn-primary" : "chrome-btn-secondary"}`}
+        >
+          <Sparkles size={14} />
+          <span className="hidden lg:inline">Simple mode</span>
+        </button>
+
+        {locales.length > 0 && (
+          <select
+            value={activeLocaleId ?? locales.find((l) => l.isDefault)?.id ?? ""}
+            onChange={(e) => onLocaleChange(e.target.value || null)}
+            title="Locale being previewed/edited — switching doesn't change structure, only which Translation values the Inspector reads/writes"
+            className="chrome-input !py-1 text-xs"
+          >
+            {locales.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.label} ({l.code}){l.isDefault ? " — default" : ""}
+              </option>
+            ))}
+          </select>
+        )}
+
+        <div className="chrome-divider" />
+
+        {/* Edit actions: what's being changed. */}
+        <div className="chrome-toolbar-group">
+          <button onClick={onUndo} disabled={!canUndo} title="Undo" className="chrome-toggle-item disabled:opacity-40">
+            <Undo2 size={14} />
+          </button>
+          <button onClick={onRedo} disabled={!canRedo} title="Redo" className="chrome-toggle-item disabled:opacity-40">
+            <Redo2 size={14} />
+          </button>
+          <button onClick={onDelete} disabled={!canDelete} title="Delete selected block" className="chrome-toggle-item text-[var(--danger)] disabled:opacity-40">
+            <Trash2 size={14} />
+          </button>
+        </div>
+
+        <button onClick={onSaveAsBlock} disabled={!canSaveAsBlock} className="chrome-btn chrome-btn-secondary !py-1">
+          Save as reusable block
+        </button>
+
+        {mode === "page" && (
+          <>
+            <div className="chrome-divider" />
+            <VersionHistoryPanel siteId={siteId} pageId={pageId} canRestore={!readOnly} onRestore={onRestore} />
+            <button
+              onClick={onPublish}
+              disabled={publishing || !canPublish}
+              title={canPublish ? undefined : "Only the site owner can publish"}
+              className="chrome-btn chrome-btn-primary !py-1"
             >
-              {locales.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.label} ({l.code}){l.isDefault ? " — default" : ""}
-                </option>
-              ))}
-            </select>
-          )}
-          <button onClick={onUndo} disabled={!canUndo} className="chrome-btn chrome-btn-secondary !px-2 !py-1">
-            Undo
-          </button>
-          <button onClick={onRedo} disabled={!canRedo} className="chrome-btn chrome-btn-secondary !px-2 !py-1">
-            Redo
-          </button>
-          <button onClick={onDelete} disabled={!canDelete} className="chrome-btn chrome-btn-danger !py-1">
-            Delete selected
-          </button>
-          <button onClick={onSaveAsBlock} disabled={!canSaveAsBlock} className="chrome-btn chrome-btn-secondary !py-1">
-            Save as reusable block
-          </button>
-          {mode === "page" && (
-            <>
-              <VersionHistoryPanel siteId={siteId} pageId={pageId} canRestore={!readOnly} onRestore={onRestore} />
-              <button
-                onClick={onPublish}
-                disabled={publishing || !canPublish}
-                title={canPublish ? undefined : "Only the site owner can publish"}
-                className="chrome-btn chrome-btn-primary !py-1"
-              >
-                {publishing ? "Publishing…" : "Publish"}
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-      {!readOnly && (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium text-[var(--text-muted)]">Add block:</span>
-          {getAllBlockDefinitions().map((def) => (
-            <PaletteItem key={def.type} type={def.type} label={def.label} onAdd={onAdd} />
-          ))}
-        </div>
-      )}
-      {!readOnly && savedBlocks.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium text-[var(--text-muted)]">Insert saved block:</span>
-          {savedBlocks.map((saved) => (
-            <button key={saved.id} onClick={() => onInsertSavedBlock(saved)} className="chrome-btn chrome-btn-secondary !py-1 text-xs" title="Insert a copy">
-              {saved.name}
+              {publishing ? "Publishing…" : "Publish"}
             </button>
-          ))}
-        </div>
-      )}
+          </>
+        )}
+      </div>
+      </div>
+
       {extraToolbar}
     </div>
   );

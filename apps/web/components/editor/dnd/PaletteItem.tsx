@@ -16,7 +16,7 @@ export function PaletteItem({ type, label, onAdd }: { type: Block["type"]; label
       {...listeners}
       onClick={() => onAdd(type)}
       style={{ opacity: isDragging ? 0.4 : 1 }}
-      className="cursor-grab whitespace-nowrap rounded border px-2 py-1 text-xs hover:bg-gray-50"
+      className="chrome-btn chrome-btn-secondary !py-1 cursor-grab text-xs"
       title="Click to add, or drag onto the canvas"
     >
       {label}
