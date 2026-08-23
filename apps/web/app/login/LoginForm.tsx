@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { PasswordInput } from "@/components/PasswordInput";
 
 export function LoginForm({ appName }: { appName: string }) {
   return (
@@ -59,13 +60,7 @@ function LoginFormInner({ appName }: { appName: string }) {
           </div>
           <div>
             <label className="chrome-label">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="chrome-input w-full"
-            />
+            <PasswordInput value={password} onChange={setPassword} required />
           </div>
           {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
           <button type="submit" disabled={loading} className="chrome-btn chrome-btn-primary mt-1 w-full py-2.5">

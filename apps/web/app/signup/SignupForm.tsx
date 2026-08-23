@@ -4,6 +4,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { PasswordInput } from "@/components/PasswordInput";
 
 export function SignupForm({ appName }: { appName: string }) {
   const router = useRouter();
@@ -62,14 +63,7 @@ export function SignupForm({ appName }: { appName: string }) {
           </div>
           <div>
             <label className="chrome-label">Password (min 8 characters)</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-              className="chrome-input w-full"
-            />
+            <PasswordInput value={password} onChange={setPassword} required minLength={8} />
           </div>
           {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
           <button type="submit" disabled={loading} className="chrome-btn chrome-btn-primary mt-1 w-full py-2.5">
