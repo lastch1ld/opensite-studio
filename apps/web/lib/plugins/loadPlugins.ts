@@ -112,7 +112,7 @@ export async function loadPlugins(): Promise<void> {
 
   const entries = fs.readdirSync(/* turbopackIgnore: true */ pluginsDir, { withFileTypes: true }).filter((e) => e.isDirectory());
   for (const entry of entries) {
-    const pluginDir = path.join(pluginsDir, entry.name);
+    const pluginDir = path.join(/* turbopackIgnore: true */ pluginsDir, entry.name);
     try {
       await loadOnePlugin(pluginDir);
     } catch (err) {
