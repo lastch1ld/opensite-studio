@@ -37,6 +37,7 @@ export function CollectionEditorClient({
   const [fieldSchema, setFieldSchema] = useState<CollectionField[]>(initialFieldSchema);
   const [items, setItems] = useState<Item[]>(initialItems);
   const [savingSchema, setSavingSchema] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   async function saveSchema(nextName: string, nextSchema: CollectionField[]) {
     setSavingSchema(true);
@@ -99,8 +100,39 @@ export function CollectionEditorClient({
     const res = await fetch(`/api/sites/${siteId}/collections/${collectionId}/items/${itemId}`, { method: "DELETE" });
     if (res.ok) {
       setItems((prev) => prev.filter((i) => i.id !== itemId));
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(itemId);
+        return next;
+      });
       router.refresh();
     }
+  }
+
+  function toggleSelected(itemId: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) next.delete(itemId);
+      else next.add(itemId);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    setSelectedIds((prev) => (prev.size === items.length ? new Set() : new Set(items.map((i) => i.id))));
+  }
+
+  // No bulk-delete API — the existing per-item DELETE route already
+  // exists and this is a "quick win," not new server surface; fired
+  // concurrently rather than one at a time.
+  async function deleteSelected() {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    if (!confirm(`Delete ${ids.length} item${ids.length === 1 ? "" : "s"}?`)) return;
+    await Promise.all(ids.map((id) => fetch(`/api/sites/${siteId}/collections/${collectionId}/items/${id}`, { method: "DELETE" })));
+    setItems((prev) => prev.filter((i) => !selectedIds.has(i.id)));
+    setSelectedIds(new Set());
+    router.refresh();
   }
 
   return (
@@ -169,13 +201,20 @@ export function CollectionEditorClient({
       <div className="rounded border p-4">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold">Items</h2>
-          <button
-            onClick={addItem}
-            disabled={fieldSchema.length === 0}
-            className="rounded bg-black px-3 py-1 text-xs text-white disabled:opacity-50"
-          >
-            + Add item
-          </button>
+          <div className="flex items-center gap-2">
+            {selectedIds.size > 0 && (
+              <button onClick={deleteSelected} className="rounded border border-red-600 px-3 py-1 text-xs text-red-600 hover:bg-red-50">
+                Delete {selectedIds.size} selected
+              </button>
+            )}
+            <button
+              onClick={addItem}
+              disabled={fieldSchema.length === 0}
+              className="rounded bg-black px-3 py-1 text-xs text-white disabled:opacity-50"
+            >
+              + Add item
+            </button>
+          </div>
         </div>
         {fieldSchema.length === 0 ? (
           <p className="mt-3 text-sm text-gray-500">Add fields before adding items.</p>
@@ -184,6 +223,14 @@ export function CollectionEditorClient({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left text-xs uppercase text-gray-500">
+                  <th className="p-2">
+                    <input
+                      type="checkbox"
+                      checked={items.length > 0 && selectedIds.size === items.length}
+                      onChange={toggleSelectAll}
+                      aria-label="Select all items"
+                    />
+                  </th>
                   {fieldSchema.map((field) => (
                     <th key={field.key} className="p-2">
                       {field.label}
@@ -195,6 +242,14 @@ export function CollectionEditorClient({
               <tbody>
                 {items.map((item) => (
                   <tr key={item.id} className="border-b">
+                    <td className="p-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(item.id)}
+                        onChange={() => toggleSelected(item.id)}
+                        aria-label={`Select item ${item.id}`}
+                      />
+                    </td>
                     {fieldSchema.map((field) => (
                       <td key={field.key} className="p-2">
                         {field.type === "boolean" ? (
