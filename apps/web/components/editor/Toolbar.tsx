@@ -172,12 +172,12 @@ export function Toolbar({
           <button onClick={onRedo} disabled={!canRedo} title="Redo" className="chrome-toggle-item disabled:opacity-40">
             <Redo2 size={14} />
           </button>
-          <button onClick={onDelete} disabled={!canDelete} title="Delete selected block" className="chrome-toggle-item text-[var(--danger)] disabled:opacity-40">
+          <button onClick={() => onDelete()} disabled={!canDelete} title="Delete selected block" className="chrome-toggle-item text-[var(--danger)] disabled:opacity-40">
             <Trash2 size={14} />
           </button>
         </div>
 
-        <button onClick={onSaveAsBlock} disabled={!canSaveAsBlock} className="chrome-btn chrome-btn-secondary !py-1">
+        <button onClick={() => onSaveAsBlock()} disabled={!canSaveAsBlock} className="chrome-btn chrome-btn-secondary !py-1">
           Save as reusable block
         </button>
 
