@@ -41,37 +41,44 @@ function LoginFormInner({ appName }: { appName: string }) {
   }
 
   return (
-    <div className="mx-auto mt-24 w-full max-w-sm">
-      <h1 className="text-2xl font-semibold">Log in to {appName}</h1>
-      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="rounded border px-3 py-2"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="rounded border px-3 py-2"
-        />
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded bg-black px-3 py-2 text-white disabled:opacity-50"
-        >
-          {loading ? "Logging in..." : "Log in"}
-        </button>
-      </form>
-      <p className="mt-4 text-sm text-gray-600">
-        No account? <Link href="/signup" className="underline">Sign up</Link>
-      </p>
+    <div className="flex min-h-screen items-center justify-center px-4">
+      <div className="chrome-card w-full max-w-sm p-8">
+        <h1 className="text-xl font-semibold tracking-tight text-[var(--text)]">Log in to {appName}</h1>
+        <p className="mt-1 text-sm text-[var(--text-muted)]">Welcome back — enter your details to continue.</p>
+        <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3">
+          <div>
+            <label className="chrome-label">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoFocus
+              className="chrome-input w-full"
+            />
+          </div>
+          <div>
+            <label className="chrome-label">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="chrome-input w-full"
+            />
+          </div>
+          {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
+          <button type="submit" disabled={loading} className="chrome-btn chrome-btn-primary mt-1 w-full py-2.5">
+            {loading ? "Logging in…" : "Log in"}
+          </button>
+        </form>
+        <p className="mt-5 text-center text-sm text-[var(--text-muted)]">
+          No account?{" "}
+          <Link href="/signup" className="font-medium text-[var(--accent)] hover:text-[var(--accent-hover)]">
+            Sign up
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

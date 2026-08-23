@@ -108,6 +108,23 @@ asked to build next.
   surface's `DESIGN.md` — not before there's an actual visual world to
   document.
 
+## Open question: component/styling framework
+
+editor-ui-stack.md already evaluated this once and landed on Tailwind
+(already installed) + Radix Primitives directly, explicitly rejecting
+shadcn/ui's copy-pasted, pre-styled components as fighting the editor
+chrome's dense, tool-like density. The user asked (2026-08-23) to use a
+styling framework "if possible" for this Phase A work — worth an explicit
+revisit rather than silently overriding that prior call: a component
+library (shadcn/ui, or a similar pre-built kit) could speed up the
+*dashboard* screens specifically (which are closer to a conventional
+SaaS admin UI than the dense editor canvas chrome is), even if the editor
+toolbar/layers/inspector still want the leaner direct-Radix approach.
+Revisit with the user before the next Phase A screen if this hasn't been
+resolved yet; the design tokens in `globals.css` (`.chrome-*` classes)
+were written framework-agnostic enough to not block that decision either
+way.
+
 ## Sequencing
 
 Phase A (product chrome) and Phase B (default templates/themes) are

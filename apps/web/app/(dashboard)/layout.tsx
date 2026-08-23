@@ -9,14 +9,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { appName, logoUrl, primaryColor } = getAppSettings();
   return (
     <div className="min-h-screen">
-      <header className="flex items-center justify-between border-b px-6 py-4">
-        <Link href="/dashboard" className="flex items-center gap-2 font-semibold" style={primaryColor ? { color: primaryColor } : undefined}>
-          {logoUrl && <img src={logoUrl} alt="" className="h-6 w-6" />}
-          {appName}
-        </Link>
-        <SignOutButton />
+      <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[var(--surface)]/90 backdrop-blur">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3.5">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 text-[15px] font-semibold tracking-tight"
+            style={primaryColor ? { color: primaryColor } : undefined}
+          >
+            {logoUrl && <img src={logoUrl} alt="" className="h-6 w-6 rounded" />}
+            {appName}
+          </Link>
+          <SignOutButton />
+        </div>
       </header>
-      <main className="mx-auto max-w-4xl px-6 py-8">{children}</main>
+      <main className="mx-auto max-w-5xl px-6 py-10">{children}</main>
     </div>
   );
 }

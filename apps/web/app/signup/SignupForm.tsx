@@ -41,45 +41,48 @@ export function SignupForm({ appName }: { appName: string }) {
   }
 
   return (
-    <div className="mx-auto mt-24 w-full max-w-sm">
-      <h1 className="text-2xl font-semibold">Sign up for {appName}</h1>
-      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3">
-        <input
-          type="text"
-          placeholder="Name (optional)"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="rounded border px-3 py-2"
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="rounded border px-3 py-2"
-        />
-        <input
-          type="password"
-          placeholder="Password (min 8 characters)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={8}
-          className="rounded border px-3 py-2"
-        />
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded bg-black px-3 py-2 text-white disabled:opacity-50"
-        >
-          {loading ? "Creating account..." : "Sign up"}
-        </button>
-      </form>
-      <p className="mt-4 text-sm text-gray-600">
-        Already have an account? <Link href="/login" className="underline">Log in</Link>
-      </p>
+    <div className="flex min-h-screen items-center justify-center px-4">
+      <div className="chrome-card w-full max-w-sm p-8">
+        <h1 className="text-xl font-semibold tracking-tight text-[var(--text)]">Sign up for {appName}</h1>
+        <p className="mt-1 text-sm text-[var(--text-muted)]">Create an account to start building sites.</p>
+        <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3">
+          <div>
+            <label className="chrome-label">Name (optional)</label>
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} autoFocus className="chrome-input w-full" />
+          </div>
+          <div>
+            <label className="chrome-label">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="chrome-input w-full"
+            />
+          </div>
+          <div>
+            <label className="chrome-label">Password (min 8 characters)</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={8}
+              className="chrome-input w-full"
+            />
+          </div>
+          {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
+          <button type="submit" disabled={loading} className="chrome-btn chrome-btn-primary mt-1 w-full py-2.5">
+            {loading ? "Creating account…" : "Sign up"}
+          </button>
+        </form>
+        <p className="mt-5 text-center text-sm text-[var(--text-muted)]">
+          Already have an account?{" "}
+          <Link href="/login" className="font-medium text-[var(--accent)] hover:text-[var(--accent-hover)]">
+            Log in
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

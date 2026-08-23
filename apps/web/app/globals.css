@@ -1,26 +1,194 @@
 @import "tailwindcss";
 
+/* Product-chrome design tokens (docs/ui-ux-roadmap.md Phase A). Scope:
+   the dashboard + editor chrome only — a Site's own published pages are
+   styled by that Site's Theme (lib/theme.ts), never by these tokens.
+   Deliberately one committed light theme rather than following
+   prefers-color-scheme: an admin/editor surface benefits more from a
+   predictable, designed appearance than from silently flipping to an
+   unstyled dark mode based on OS preference. Restrained color strategy
+   (neutrals + one accent) — this is an Operate surface, not a marketing
+   page; the accent shows up on primary actions and focus states, not as
+   page-level color washes. */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f172a;
+
+  --surface: #ffffff;
+  --surface-muted: #f8fafc;
+  --surface-sunken: #f1f5f9;
+
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --text-faint: #94a3b8;
+
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-contrast: #ffffff;
+  --accent-soft: #eef2ff;
+
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --danger-soft: #fef2f2;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-danger-soft: var(--danger-soft);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background: var(--surface-muted);
+  color: var(--text);
+  font-family: var(--font-sans), Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Shared primitives applied via className, not scattered inline styles —
+   dashboard/editor components below use these instead of hand-rolled
+   `rounded border px-3 py-2` chains so the vocabulary stays consistent. */
+.chrome-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.chrome-input {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.chrome-input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.chrome-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  white-space: nowrap;
+}
+.chrome-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.chrome-btn-primary {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border: 1px solid var(--accent);
+}
+.chrome-btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+.chrome-btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+}
+.chrome-btn-secondary:hover:not(:disabled) {
+  background: var(--surface-muted);
+}
+.chrome-btn-danger {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid transparent;
+}
+.chrome-btn-danger:hover:not(:disabled) {
+  background: var(--danger-soft);
+}
+
+.chrome-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+/* Radix Tabs (dashboard/editor chrome only — never the block-rendering
+   canvas/registry, see docs/editor-ui-stack.md). */
+.chrome-tabs-list {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+}
+.chrome-tab {
+  padding: 0.4375rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-radius: calc(var(--radius-md) - 4px);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.chrome-tab:hover {
+  color: var(--text);
+}
+.chrome-tab[data-state="active"] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Radix Toggle Group (breakpoint switcher etc.) */
+.chrome-toggle-group {
+  display: inline-flex;
+  gap: 0.125rem;
+  padding: 0.1875rem;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+}
+.chrome-toggle-item {
+  padding: 0.3125rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-radius: calc(var(--radius-sm) - 2px);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.chrome-toggle-item[data-state="on"] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
 }

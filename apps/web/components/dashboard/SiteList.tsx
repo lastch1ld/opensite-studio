@@ -51,63 +51,61 @@ export function SiteList({ initialSites }: { initialSites: Site[] }) {
 
   return (
     <div>
-      <form onSubmit={handleCreate} className="mt-6 flex flex-wrap items-end gap-2 rounded border p-4">
+      <form onSubmit={handleCreate} className="chrome-card flex flex-wrap items-end gap-3 p-4">
         <div>
-          <label className="block text-sm text-gray-600">Site name</label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            className="rounded border px-3 py-2"
-          />
+          <label className="chrome-label">Site name</label>
+          <input value={name} onChange={(e) => setName(e.target.value)} required className="chrome-input" />
         </div>
         <div>
-          <label className="block text-sm text-gray-600">Subdomain</label>
+          <label className="chrome-label">Subdomain</label>
           <input
             value={subdomain}
             onChange={(e) => setSubdomain(e.target.value.toLowerCase())}
             placeholder="my-site"
             pattern="[a-z0-9-]+"
             required
-            className="rounded border px-3 py-2"
+            className="chrome-input"
           />
         </div>
         <div>
-          <label className="block text-sm text-gray-600">Site type</label>
-          <select
-            value={mode}
-            onChange={(e) => setMode(e.target.value as SiteMode)}
-            className="rounded border px-3 py-2"
-          >
+          <label className="chrome-label">Site type</label>
+          <select value={mode} onChange={(e) => setMode(e.target.value as SiteMode)} className="chrome-input">
             <option value="BUILDER">Page builder</option>
             <option value="AI_CHAT">AI chat app</option>
           </select>
         </div>
-        <button type="submit" disabled={loading} className="rounded bg-black px-3 py-2 text-white disabled:opacity-50">
-          {loading ? "Creating..." : "Create site"}
+        <button type="submit" disabled={loading} className="chrome-btn chrome-btn-primary">
+          {loading ? "Creating…" : "Create site"}
         </button>
-        {error && <p className="w-full text-sm text-red-600">{error}</p>}
+        {error && <p className="w-full text-sm text-[var(--danger)]">{error}</p>}
       </form>
 
-      <ul className="mt-6 divide-y">
-        {sites.map((site) => (
-          <li key={site.id} className="flex items-center justify-between py-3">
-            <div>
-              <Link href={`/dashboard/sites/${site.id}`} className="font-medium underline">
-                {site.name}
-              </Link>
-              <p className="text-sm text-gray-500">
-                {site.subdomain}
-                {site.mode === "AI_CHAT" && <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 text-xs">AI chat</span>}
-              </p>
-            </div>
-            <button onClick={() => handleDelete(site.id)} className="text-sm text-red-600 underline">
-              Delete
-            </button>
-          </li>
-        ))}
-        {sites.length === 0 && <p className="py-4 text-sm text-gray-500">No sites yet. Create one above.</p>}
-      </ul>
+      {sites.length === 0 ? (
+        <div className="chrome-card mt-6 px-4 py-14 text-center">
+          <p className="text-sm text-[var(--text-muted)]">No sites yet — create one above to get started.</p>
+        </div>
+      ) : (
+        <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {sites.map((site) => (
+            <li key={site.id} className="chrome-card flex items-center justify-between gap-3 p-4">
+              <div className="min-w-0">
+                <Link href={`/dashboard/sites/${site.id}`} className="font-medium text-[var(--text)] hover:text-[var(--accent)]">
+                  {site.name}
+                </Link>
+                <p className="mt-0.5 truncate text-xs text-[var(--text-muted)]">
+                  {site.subdomain}
+                  {site.mode === "AI_CHAT" && (
+                    <span className="ml-1.5 rounded-full bg-[var(--surface-sunken)] px-1.5 py-0.5">AI chat</span>
+                  )}
+                </p>
+              </div>
+              <button onClick={() => handleDelete(site.id)} className="chrome-btn chrome-btn-danger shrink-0">
+                Delete
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

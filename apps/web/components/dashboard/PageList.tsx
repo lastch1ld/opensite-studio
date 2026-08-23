@@ -76,27 +76,27 @@ export function PageList({
 
   return (
     <div>
-      <form onSubmit={handleCreate} className="mt-6 flex flex-wrap items-end gap-2 rounded border p-4">
+      <form onSubmit={handleCreate} className="chrome-card flex flex-wrap items-end gap-3 p-4">
         <div>
-          <label className="block text-sm text-gray-600">Title</label>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} required className="rounded border px-3 py-2" />
+          <label className="chrome-label">Title</label>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} required className="chrome-input" />
         </div>
         <div>
-          <label className="block text-sm text-gray-600">Slug</label>
+          <label className="chrome-label">Slug</label>
           <input
             value={slug}
             onChange={(e) => setSlug(e.target.value.toLowerCase())}
             placeholder="about"
             pattern="[a-z0-9-]*"
-            className="rounded border px-3 py-2"
+            className="chrome-input"
           />
         </div>
         <div>
-          <label className="block text-sm text-gray-600">Start from</label>
+          <label className="chrome-label">Start from</label>
           <select
             value={template}
             onChange={(e) => setTemplate(e.target.value)}
-            className="rounded border px-3 py-2"
+            className="chrome-input"
             title={PAGE_TEMPLATES.find((t) => t.id === template)?.description}
           >
             {PAGE_TEMPLATES.map((t) => (
@@ -106,12 +106,12 @@ export function PageList({
             ))}
           </select>
         </div>
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 pb-2.5 text-sm text-[var(--text)]">
           <input type="checkbox" checked={isHome} onChange={(e) => setIsHome(e.target.checked)} />
           Home page
         </label>
-        <button type="submit" disabled={loading} className="rounded bg-black px-3 py-2 text-white disabled:opacity-50">
-          {loading ? "Creating..." : "Create page"}
+        <button type="submit" disabled={loading} className="chrome-btn chrome-btn-primary">
+          {loading ? "Creating…" : "Create page"}
         </button>
         <SitemapImportPanel
           siteId={siteId}
@@ -121,47 +121,54 @@ export function PageList({
             router.refresh();
           }}
         />
-        {error && <p className="w-full text-sm text-red-600">{error}</p>}
+        {error && <p className="w-full text-sm text-[var(--danger)]">{error}</p>}
       </form>
 
-      <ul className="mt-6 divide-y">
-        {pages.map((page) => (
-          <li key={page.id} className="flex items-center justify-between py-3">
-            <div>
-              <Link href={`/edit/${siteId}/${page.id}`} className="font-medium underline">
-                {page.title}
-              </Link>
-              <p className="text-sm text-gray-500">
-                /{page.slug} {page.isHome && "(home)"} {page.collectionId && "(dynamic)"}
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              {collections.length > 0 && (
-                <select
-                  value={page.collectionId ?? ""}
-                  onChange={(e) => handleCollectionChange(page.id, e.target.value)}
-                  className="rounded border px-2 py-1 text-xs"
-                  title="Bind this page to a collection to make it a dynamic/repeater page"
-                >
-                  <option value="">Static page</option>
-                  {collections.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      Dynamic: {c.name}
-                    </option>
-                  ))}
-                </select>
-              )}
-              <Link href={`/dashboard/sites/${siteId}/pages/${page.id}/submissions`} className="text-sm underline">
-                Submissions
-              </Link>
-              <button onClick={() => handleDelete(page.id)} className="text-sm text-red-600 underline">
-                Delete
-              </button>
-            </div>
-          </li>
-        ))}
-        {pages.length === 0 && <p className="py-4 text-sm text-gray-500">No pages yet. Create one above.</p>}
-      </ul>
+      {pages.length === 0 ? (
+        <div className="chrome-card mt-4 px-4 py-10 text-center">
+          <p className="text-sm text-[var(--text-muted)]">No pages yet — create one above to get started.</p>
+        </div>
+      ) : (
+        <ul className="chrome-card mt-4 divide-y divide-[var(--border)]">
+          {pages.map((page) => (
+            <li key={page.id} className="flex items-center justify-between gap-4 px-4 py-3.5">
+              <div className="min-w-0">
+                <Link href={`/edit/${siteId}/${page.id}`} className="font-medium text-[var(--text)] hover:text-[var(--accent)]">
+                  {page.title}
+                </Link>
+                <p className="mt-0.5 truncate text-xs text-[var(--text-muted)]">
+                  /{page.slug}
+                  {page.isHome && <span className="ml-1.5 rounded-full bg-[var(--accent-soft)] px-1.5 py-0.5 text-[var(--accent)]">home</span>}
+                  {page.collectionId && <span className="ml-1.5 rounded-full bg-[var(--surface-sunken)] px-1.5 py-0.5">dynamic</span>}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-3">
+                {collections.length > 0 && (
+                  <select
+                    value={page.collectionId ?? ""}
+                    onChange={(e) => handleCollectionChange(page.id, e.target.value)}
+                    className="chrome-input !py-1 text-xs"
+                    title="Bind this page to a collection to make it a dynamic/repeater page"
+                  >
+                    <option value="">Static page</option>
+                    {collections.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        Dynamic: {c.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                <Link href={`/dashboard/sites/${siteId}/pages/${page.id}/submissions`} className="text-sm text-[var(--text-muted)] hover:text-[var(--text)]">
+                  Submissions
+                </Link>
+                <button onClick={() => handleDelete(page.id)} className="chrome-btn chrome-btn-danger !px-2 !py-1">
+                  Delete
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

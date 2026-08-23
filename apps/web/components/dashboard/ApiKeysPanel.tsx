@@ -70,86 +70,88 @@ export function ApiKeysPanel({ siteId, initialKeys }: { siteId: string; initialK
   }
 
   return (
-    <div className="mt-10">
-      <h2 className="text-lg font-semibold">API keys</h2>
-      <p className="text-sm text-gray-500">
+    <div>
+      <p className="text-sm text-[var(--text-muted)]">
         For the CLI, MCP server, or other scripted access. Scoped to this site only — see docs/api.md.
       </p>
 
       {revealedKey && (
-        <div className="mt-4 rounded border border-amber-400 bg-amber-50 p-4 text-sm">
-          <p className="font-medium">Copy this key now — it won&apos;t be shown again.</p>
-          <code className="mt-2 block break-all rounded bg-white px-2 py-1">{revealedKey}</code>
+        <div className="mt-4 rounded-[var(--radius-md)] border border-amber-300 bg-amber-50 p-4 text-sm">
+          <p className="font-medium text-amber-900">Copy this key now — it won&apos;t be shown again.</p>
+          <code className="mt-2 block break-all rounded-[var(--radius-sm)] border border-amber-200 bg-white px-2 py-1.5 text-xs">
+            {revealedKey}
+          </code>
           <button
             onClick={() => {
               navigator.clipboard.writeText(revealedKey);
               setRevealedKey(null);
             }}
-            className="mt-2 rounded bg-black px-3 py-1 text-white"
+            className="chrome-btn chrome-btn-primary mt-3"
           >
             Copy and dismiss
           </button>
         </div>
       )}
 
-      <form onSubmit={handleCreate} className="mt-4 flex flex-wrap items-end gap-3 rounded border p-4">
+      <form onSubmit={handleCreate} className="chrome-card mt-4 flex flex-wrap items-end gap-3 p-4">
         <div>
-          <label className="block text-sm text-gray-600">Name</label>
+          <label className="chrome-label">Name</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. CI pipeline"
             required
-            className="rounded border px-3 py-2"
+            className="chrome-input"
           />
         </div>
         <div>
-          <label className="block text-sm text-gray-600">Scopes</label>
-          <div className="flex gap-3 py-2">
+          <label className="chrome-label">Scopes</label>
+          <div className="flex gap-3 py-1.5 text-[var(--text)]">
             {ALL_SCOPES.map((scope) => (
-              <label key={scope} className="flex items-center gap-1 text-sm">
+              <label key={scope} className="flex items-center gap-1.5 text-sm">
                 <input type="checkbox" checked={scopes.includes(scope)} onChange={() => toggleScope(scope)} />
                 {scope}
               </label>
             ))}
           </div>
         </div>
-        <button
-          type="submit"
-          disabled={loading || scopes.length === 0}
-          className="rounded bg-black px-3 py-2 text-white disabled:opacity-50"
-        >
-          {loading ? "Creating..." : "Create key"}
+        <button type="submit" disabled={loading || scopes.length === 0} className="chrome-btn chrome-btn-primary">
+          {loading ? "Creating…" : "Create key"}
         </button>
-        {error && <p className="w-full text-sm text-red-600">{error}</p>}
+        {error && <p className="w-full text-sm text-[var(--danger)]">{error}</p>}
       </form>
 
-      <ul className="mt-4 divide-y">
-        {keys.map((key) => (
-          <li key={key.id} className="flex items-center justify-between py-3">
-            <div>
-              <p className="font-medium">
-                {key.name} <span className="text-sm text-gray-500">({key.scopes.join(", ")})</span>
-              </p>
-              <p className="text-sm text-gray-500">
-                <code>{key.keyPrefix}…</code>
-                {key.revokedAt
-                  ? " — revoked"
-                  : key.lastUsedAt
-                    ? ` — last used ${new Date(key.lastUsedAt).toLocaleString()}`
-                    : " — never used"}
-              </p>
-            </div>
-            {!key.revokedAt && (
-              <button onClick={() => handleRevoke(key.id)} className="text-sm text-red-600 underline">
-                Revoke
-              </button>
-            )}
-          </li>
-        ))}
-        {keys.length === 0 && <p className="py-4 text-sm text-gray-500">No API keys yet.</p>}
-      </ul>
+      {keys.length === 0 ? (
+        <div className="chrome-card mt-4 px-4 py-10 text-center">
+          <p className="text-sm text-[var(--text-muted)]">No API keys yet.</p>
+        </div>
+      ) : (
+        <ul className="chrome-card mt-4 divide-y divide-[var(--border)]">
+          {keys.map((key) => (
+            <li key={key.id} className="flex items-center justify-between gap-4 px-4 py-3.5">
+              <div>
+                <p className="font-medium text-[var(--text)]">
+                  {key.name} <span className="text-sm font-normal text-[var(--text-muted)]">({key.scopes.join(", ")})</span>
+                </p>
+                <p className="mt-0.5 text-xs text-[var(--text-muted)]">
+                  <code className="rounded bg-[var(--surface-sunken)] px-1 py-0.5">{key.keyPrefix}…</code>
+                  {key.revokedAt
+                    ? " — revoked"
+                    : key.lastUsedAt
+                      ? ` — last used ${new Date(key.lastUsedAt).toLocaleString()}`
+                      : " — never used"}
+                </p>
+              </div>
+              {!key.revokedAt && (
+                <button onClick={() => handleRevoke(key.id)} className="chrome-btn chrome-btn-danger shrink-0">
+                  Revoke
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
