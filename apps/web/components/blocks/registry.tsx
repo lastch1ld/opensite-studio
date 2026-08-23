@@ -80,6 +80,51 @@ export const ANIMATION_FIELD: FieldSchema = {
   ],
 };
 
+// docs/reference-sites-plan.md Tier 3: the same fade/slide/scale variants
+// above, but driven continuously by scroll *progress* instead of firing
+// once — several reference sites (confirmed via direct script/DOM
+// inspection, not just visual impression) turned out to use this rather
+// than a one-shot reveal. Resolved generically in BlockRenderer.tsx via
+// motion's useScroll/useTransform (already a dependency, no new library).
+// Meaningless without an `animation` value set, so this is a trigger mode
+// for that field rather than a separate on/off toggle.
+export const ANIMATION_MODE_FIELD: FieldSchema = {
+  key: "animationMode",
+  label: "Animation trigger",
+  friendlyLabel: "How the animation plays",
+  group: "style",
+  input: "select",
+  options: [
+    { label: "Once, when scrolled into view", value: "" },
+    { label: "Continuously, tied to scroll position", value: "scrub" },
+  ],
+};
+
+// docs/reference-sites-plan.md Tier 3: `position: sticky` as a single
+// shared style toggle, appended to every block like ANIMATION_FIELD —
+// unlocks the "pinned while sibling content scrolls past" half of several
+// reference patterns (NKORA/Karolina Hess/Métier) without touching the
+// animation system at all.
+export const STICKY_FIELD: FieldSchema = {
+  key: "sticky",
+  label: "Sticky position",
+  friendlyLabel: "Pin in place while scrolling",
+  group: "style",
+  input: "select",
+  options: [
+    { label: "No (default)", value: "" },
+    { label: "Yes", value: "true" },
+  ],
+};
+
+export const STICKY_OFFSET_FIELD: FieldSchema = {
+  key: "stickyOffset",
+  label: "Sticky offset from top",
+  friendlyLabel: "Distance from top when pinned",
+  group: "style",
+  input: "text",
+};
+
 function offsetStyle(style: Record<string, unknown>): CSSProperties {
   const x = str(style.offsetX);
   const y = str(style.offsetY);
@@ -1246,7 +1291,8 @@ for (const [type, def] of Object.entries(builtinBlocks)) {
   // loop (a dedicated FormFieldsEditor handles it instead — see the
   // comment above the `form` entry above), so appending here would be a
   // no-op there; skipped to avoid a misleading dead field.
-  const inspector = type === "form" ? def.inspector : [...def.inspector, ANIMATION_FIELD];
+  const inspector =
+    type === "form" ? def.inspector : [...def.inspector, ANIMATION_FIELD, ANIMATION_MODE_FIELD, STICKY_FIELD, STICKY_OFFSET_FIELD];
   registerBlock<RenderContext>({ type, ...def, inspector });
 }
 

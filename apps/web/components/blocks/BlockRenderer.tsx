@@ -1,7 +1,7 @@
 "use client";
 
-import { cloneElement, isValidElement, type CSSProperties, type ReactElement, type ReactNode } from "react";
-import { motion, type Target } from "motion/react";
+import { cloneElement, isValidElement, useRef, type CSSProperties, type ReactElement, type ReactNode } from "react";
+import { motion, useScroll, useTransform, type Target } from "motion/react";
 import type { Block, Breakpoint } from "./types";
 import { getBlockDefinition } from "./registry";
 import { buildResponsiveCss, columnsResponsiveCss, resolveStyle, resolveTokens, responsiveColumnCount } from "@/lib/responsiveStyle";
@@ -54,13 +54,37 @@ const ANIMATION_VARIANTS: Record<string, Target> = {
   "scale-in": { opacity: 0, scale: 0.92 },
 };
 
-function withAnimation(animation: unknown, node: ReactNode): ReactNode {
-  const key = typeof animation === "string" ? animation : "";
-  const initial = ANIMATION_VARIANTS[key];
-  if (!initial) return node;
+// docs/reference-sites-plan.md Tier 3's "scroll-scrubbed" mode
+// (ANIMATION_MODE_FIELD in registry.tsx): the same variant shape as the
+// fire-once path below, but interpolated continuously against the
+// element's own scroll progress through a fixed window (its top crossing
+// 90% down the viewport to 35% down) instead of animating once via
+// `whileInView`. A real component (not a plain function) because
+// `useScroll` needs an actual DOM ref to measure against.
+function ScrubAnimatedBlock({ variant, children }: { variant: Target; children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.9", "start 0.35"] });
+  const opacity = useTransform(scrollYProgress, [0, 1], [typeof variant.opacity === "number" ? variant.opacity : 1, 1]);
+  const x = useTransform(scrollYProgress, [0, 1], [typeof variant.x === "number" ? variant.x : 0, 0]);
+  const y = useTransform(scrollYProgress, [0, 1], [typeof variant.y === "number" ? variant.y : 0, 0]);
+  const scale = useTransform(scrollYProgress, [0, 1], [typeof variant.scale === "number" ? variant.scale : 1, 1]);
+  return (
+    <motion.div ref={ref} style={{ opacity, x, y, scale }}>
+      {children}
+    </motion.div>
+  );
+}
+
+function withAnimation(style: Record<string, unknown>, node: ReactNode): ReactNode {
+  const key = typeof style.animation === "string" ? style.animation : "";
+  const variant = ANIMATION_VARIANTS[key];
+  if (!variant) return node;
+  if (style.animationMode === "scrub") {
+    return <ScrubAnimatedBlock variant={variant}>{node}</ScrubAnimatedBlock>;
+  }
   return (
     <motion.div
-      initial={initial}
+      initial={variant}
       whileInView={{ opacity: 1, x: 0, y: 0, scale: 1 }}
       viewport={{ once: true, amount: 0.3 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
@@ -68,6 +92,16 @@ function withAnimation(animation: unknown, node: ReactNode): ReactNode {
       {node}
     </motion.div>
   );
+}
+
+// docs/reference-sites-plan.md Tier 3's `sticky` toggle (STICKY_FIELD in
+// registry.tsx) — a single `position: sticky` wrapper, applied as the
+// outermost layer (outside the selection-outline wrapper too) so the
+// whole block, chrome included while editing, pins as one unit.
+function withSticky(style: Record<string, unknown>, node: ReactNode): ReactNode {
+  if (style.sticky !== "true") return node;
+  const top = typeof style.stickyOffset === "string" && style.stickyOffset.trim() ? style.stickyOffset : "0px";
+  return <div style={{ position: "sticky", top, zIndex: 5 }}>{node}</div>;
 }
 
 // Editor canvas and public renderer both call this component with the same
@@ -133,8 +167,8 @@ export function BlockRenderer({
         <style dangerouslySetInnerHTML={{ __html: columnsResponsiveCss(block.id, desktopColumns) }} />
       </div>
     );
-    const animatedList = withAnimation(resolvedStyle.animation, content);
-    if (!onSelect) return <>{animatedList}</>;
+    const animatedList = withAnimation(resolvedStyle, content);
+    if (!onSelect) return <>{withSticky(resolvedStyle, animatedList)}</>;
     const isSelected = block.id === selectedId;
     const selectionNode = (
       <div
@@ -147,7 +181,9 @@ export function BlockRenderer({
         {animatedList}
       </div>
     );
-    return renderNodeWrapper ? renderNodeWrapper(block, selectionNode, isRoot) : selectionNode;
+    return renderNodeWrapper
+      ? renderNodeWrapper(block, withSticky(resolvedStyle, selectionNode), isRoot)
+      : withSticky(resolvedStyle, selectionNode);
   }
 
   const childNodes = childBlocks.map((child, index) => {
@@ -226,9 +262,9 @@ export function BlockRenderer({
   ) : (
     content
   );
-  const animated = withAnimation(resolvedStyle.animation, withCss);
+  const animated = withAnimation(resolvedStyle, withCss);
 
-  if (!onSelect) return <>{animated}</>;
+  if (!onSelect) return <>{withSticky(resolvedStyle, animated)}</>;
 
   const isSelected = block.id === selectedId;
   const selectionNode = (
@@ -254,5 +290,7 @@ export function BlockRenderer({
     </div>
   );
 
-  return renderNodeWrapper ? renderNodeWrapper(block, selectionNode, isRoot) : selectionNode;
+  return renderNodeWrapper
+    ? renderNodeWrapper(block, withSticky(resolvedStyle, selectionNode), isRoot)
+    : withSticky(resolvedStyle, selectionNode);
 }
