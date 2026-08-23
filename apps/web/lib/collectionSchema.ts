@@ -6,4 +6,11 @@ export type CollectionField = {
   label: string;
   type: "text" | "richText" | "number" | "boolean" | "date" | "image" | "reference";
   referenceCollectionId?: string;
+  // docs/multilingual.md: a translatable field gets a Translation row per
+  // locale (entityType `collectionItem`, entityId the CollectionItem's id,
+  // field this key); non-translatable fields (a price, a date, ...) stay
+  // shared across every locale by definition — resolved via the same
+  // shared lib/bind.ts `resolveBind` -> lib/translations.ts path every
+  // other $bind read goes through.
+  translatable?: boolean;
 };

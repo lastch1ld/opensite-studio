@@ -4,10 +4,17 @@ import { useState } from "react";
 import type { Block, Breakpoint, FieldSchema } from "@/components/blocks/types";
 import { blockRegistry } from "@/components/blocks/registry";
 import { tokenOptionsFor, type ThemeTokens } from "@/lib/theme";
+import { translationKey } from "@/lib/translations";
 import type { CollectionSummary } from "./EditorClient";
 import { MediaPicker } from "./MediaPicker";
 import { FormFieldsEditor } from "./FormFieldsEditor";
 import type { FormField, FormOnSubmit } from "@/components/blocks/types";
+
+// docs/multilingual.md's editor UX: when a non-default Locale is selected,
+// present but not the "isDefault" one — `null` means either no Locale
+// feature is configured for this site, or the default Locale is selected,
+// both of which mean "edit the base Block.props as normal."
+export type ActiveLocale = { id: string; isDefault: boolean } | null;
 
 type InspectorProps = {
   block: Block | null;
@@ -18,6 +25,13 @@ type InspectorProps = {
   collections?: CollectionSummary[];
   pageCollectionId?: string | null;
   readOnly?: boolean;
+  // The rest are all optional and only meaningful together — omitted
+  // entirely by any caller that doesn't thread locale state through yet.
+  activeLocale?: ActiveLocale;
+  translationEntity?: { type: "page" | "template"; id: string };
+  translations?: Record<string, string>;
+  onTranslationChange?: (blockId: string, field: string, value: string) => void;
+  onTranslationClear?: (blockId: string, field: string) => void;
 };
 
 function isTokenRef(v: unknown): v is { $token: string } {
@@ -201,8 +215,19 @@ export function Inspector({
   collections = [],
   pageCollectionId = null,
   readOnly = false,
+  activeLocale = null,
+  translationEntity,
+  translations = {},
+  onTranslationChange,
+  onTranslationClear,
 }: InspectorProps) {
   const [mediaFieldKey, setMediaFieldKey] = useState<string | null>(null);
+  // Struct edits (add/remove/reorder blocks) and non-translatable
+  // props/style always go to the base tree regardless of selected locale
+  // (docs/multilingual.md) — this only flips on for `translatable` prop
+  // fields once a real non-default Locale is active and we know which
+  // entity (Page/Template) owns this block tree.
+  const translating = Boolean(activeLocale && !activeLocale.isDefault && translationEntity);
 
   if (!block) {
     return (
@@ -251,11 +276,59 @@ export function Inspector({
           const value = typeof raw === "string" ? raw : "";
           const tokenOptions = field.tokenCategory && theme ? tokenOptionsFor(theme, field.tokenCategory) : [];
           const bindable = field.bindable && collections.length > 0;
+
+          // docs/multilingual.md: a translatable prop field, under a
+          // non-default Locale, reads/writes a Translation row instead of
+          // the base Block.props — unless it's currently `$bind`-ed, in
+          // which case its per-locale value comes from the bound
+          // CollectionItem's own Translation row (lib/bind.ts) instead, so
+          // it keeps the normal bind UI below rather than a second,
+          // conflicting translation editor for the same field.
+          const useTranslationMode = translating && !isStyle && field.translatable && !boundRef;
+          if (useTranslationMode) {
+            const key = translationKey({
+              entityType: translationEntity!.type,
+              entityId: translationEntity!.id,
+              blockId: block.id,
+              field: `props.${field.key}`,
+            });
+            const overrideValue = translations[key];
+            const isTranslated = overrideValue !== undefined;
+            const displayValue = overrideValue ?? value;
+            return (
+              <div key={`${field.group}.${field.key}`}>
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="block text-xs font-medium text-gray-600">{field.label}</label>
+                  {isTranslated ? (
+                    <button
+                      type="button"
+                      disabled={readOnly}
+                      onClick={() => onTranslationClear?.(block.id, `props.${field.key}`)}
+                      className="text-xs text-gray-400 underline disabled:opacity-50"
+                    >
+                      Reset to default
+                    </button>
+                  ) : (
+                    <span className="text-xs text-amber-600">Untranslated — showing default</span>
+                  )}
+                </div>
+                <FieldInput
+                  field={field}
+                  value={displayValue}
+                  onChange={(v) => onTranslationChange?.(block.id, `props.${field.key}`, v)}
+                  onOpenMediaPicker={() => setMediaFieldKey(field.key)}
+                  collections={collections}
+                  readOnly={readOnly}
+                />
+              </div>
+            );
+          }
+
           return (
             <div key={`${field.group}.${field.key}`}>
               <div className="mb-1 flex items-center justify-between">
                 <label className="block text-xs font-medium text-gray-600">{field.label}</label>
-                {bindable && (
+                {bindable && !translating && (
                   <label className="flex items-center gap-1 text-xs text-gray-500">
                     <input
                       type="checkbox"

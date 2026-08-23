@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getSiteRole } from "@/lib/permissions";
 import { SiteSettingsPanel } from "@/components/dashboard/SiteSettingsPanel";
+import { LocalesPanel } from "@/components/dashboard/LocalesPanel";
 import {
   defaultCookieBannerSettings,
   defaultNewsletterSettings,
@@ -26,12 +27,21 @@ export default async function SiteSettingsPage({ params }: { params: Promise<{ s
   if (!site || !role) notFound();
 
   const settings = await db.siteSettings.findUnique({ where: { siteId } });
+  const locales = await db.locale.findMany({ where: { siteId }, orderBy: { createdAt: "asc" } });
 
   return (
     <div>
       <h1 className="text-2xl font-semibold">{site.name} — Settings</h1>
       <p className="text-sm text-gray-500">Cookie banner and newsletter provider configuration.</p>
       <div className="mt-6">
+        <LocalesPanel
+          siteId={siteId}
+          initialLocales={locales.map((l) => ({ id: l.id, code: l.code, label: l.label, isDefault: l.isDefault }))}
+          defaultLocalePrefixed={site.defaultLocalePrefixed}
+          readOnly={role === "VIEWER"}
+        />
+      </div>
+      <div className="mt-8">
         <SiteSettingsPanel
           siteId={siteId}
           siteMode={site.mode}

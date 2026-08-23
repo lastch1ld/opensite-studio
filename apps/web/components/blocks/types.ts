@@ -80,6 +80,15 @@ export type FieldSchema = {
   // Props fields only: whether the Inspector should offer a "bind to
   // collection field" toggle alongside the literal-value input.
   bindable?: boolean;
+  // Props fields only: whether this is a "text-bearing" field that can
+  // carry a per-locale Translation override (docs/multilingual.md) — text
+  // content, image alt text, button labels, etc. Drives both the
+  // Inspector's locale-aware read/write (components/editor/Inspector.tsx)
+  // and BlockRenderer's resolveTranslatedProps (lib/translations.ts).
+  // Structural/config fields (layout, href, variant, collection query
+  // params, ...) are never translatable — they always edit the base block
+  // regardless of selected locale.
+  translatable?: boolean;
   // Style fields only: which Theme token category this field may bind to
   // (see lib/theme.ts) instead of a literal value.
   tokenCategory?: "colors" | "typography" | "spacing";

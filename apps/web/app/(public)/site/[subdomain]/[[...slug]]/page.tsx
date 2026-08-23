@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import type { Metadata } from "next";
 import { resolvePageBySubdomain, renderContextFor, siteModeBySubdomain } from "@/lib/resolveSite";
 import { PublishedPage } from "@/components/PublishedPage";
 import { AiChatApp } from "@/components/aiChat/AiChatApp";
 import type { PageContent } from "@/components/blocks/types";
 import type { ThemeTokens } from "@/lib/theme";
-import { buildPageMetadata, type PageSeo } from "@/lib/seo";
+import { buildPageMetadata, buildHreflangAlternates, resolveTranslatedSeo, type PageSeo } from "@/lib/seo";
 import type { CookieBannerSettings, ChatbotEmbedSettings } from "@/lib/siteSettings";
 
 // Path-based fallback for previewing a published site without wiring real
@@ -22,7 +23,14 @@ export async function generateMetadata({
 
   const result = await resolvePageBySubdomain(subdomain, slug ?? []);
   if (!result) return {};
-  return buildPageMetadata({ title: result.page.title, seo: result.page.seo as PageSeo | null }, result.site.name);
+  const seo = resolveTranslatedSeo(result.page.seo as PageSeo | null, result.translations, result.page.id);
+  const host = (await headers()).get("host");
+  // Path-based route, not a real host per Site — base the hreflang origin
+  // on this fallback path (/site/{subdomain}/...) rather than the app's own
+  // host, so the emitted alternate URLs are actually this route's URLs.
+  const origin = host ? `${host.includes("localhost") ? "http" : "https"}://${host}/site/${subdomain}` : "";
+  const hreflang = buildHreflangAlternates(origin, result.slugPath, result.locales, result.site.defaultLocalePrefixed);
+  return buildPageMetadata({ title: result.page.title, seo }, result.site.name, hreflang);
 }
 
 export default async function PublicSiteFallbackPage({

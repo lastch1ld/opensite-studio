@@ -9,7 +9,7 @@ import type { RenderContext } from "@/lib/bind";
 import type { PopupSettings } from "@/lib/popupTrigger";
 import { evaluateCondition } from "@/lib/condition";
 
-export type PopupSpec = { id: string; content: PageContent; settings: PopupSettings };
+export type PopupSpec = { id: string; content: PageContent; settings: PopupSettings; renderContext?: RenderContext };
 
 function dismissalKey(popupId: string): string {
   return `opensite:popup:${popupId}:dismissed`;
@@ -157,7 +157,7 @@ export function PopupHost({
   return (
     <>
       {popups.map((popup) => (
-        <SinglePopup key={popup.id} popup={popup} theme={theme} ctx={renderContext} />
+        <SinglePopup key={popup.id} popup={popup} theme={theme} ctx={popup.renderContext ?? renderContext} />
       ))}
     </>
   );

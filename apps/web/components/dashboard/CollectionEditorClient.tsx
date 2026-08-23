@@ -148,6 +148,14 @@ export function CollectionEditorClient({
                   </option>
                 ))}
               </select>
+              <label className="flex items-center gap-1 text-xs text-gray-500" title="Per-locale override (docs/multilingual.md) — off means this field is shared across every locale">
+                <input
+                  type="checkbox"
+                  checked={Boolean(field.translatable)}
+                  onChange={(e) => updateField(i, { translatable: e.target.checked })}
+                />
+                Translatable
+              </label>
               <button onClick={() => removeField(i)} className="text-sm text-red-600 underline">
                 Remove
               </button>

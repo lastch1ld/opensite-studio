@@ -61,7 +61,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
     defaultProps: { content: "New text block" },
     defaultStyle: { fontSize: "16px", fontWeight: "400", color: "#111111" },
     fields: [
-      { key: "content", label: "Content", group: "props", input: "textarea", bindable: true },
+      { key: "content", label: "Content", group: "props", input: "textarea", bindable: true, translatable: true },
       { key: "fontSize", label: "Font size", group: "style", input: "text", tokenCategory: "typography" },
       {
         key: "fontWeight",
@@ -93,7 +93,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
     defaultStyle: {},
     fields: [
       { key: "src", label: "Image", group: "props", input: "image", bindable: true },
-      { key: "alt", label: "Alt text", group: "props", input: "text" },
+      { key: "alt", label: "Alt text", group: "props", input: "text", translatable: true },
       {
         key: "objectFit",
         label: "Object fit",
@@ -120,7 +120,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
     defaultProps: { label: "Click me", href: "#", variant: "primary", closesPopup: "" },
     defaultStyle: {},
     fields: [
-      { key: "label", label: "Label", group: "props", input: "text" },
+      { key: "label", label: "Label", group: "props", input: "text", translatable: true },
       { key: "href", label: "Link URL", group: "props", input: "url" },
       {
         key: "variant",
@@ -161,7 +161,7 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
     defaultProps: { level: "h2", text: "Heading" },
     defaultStyle: { fontSize: "32px", fontWeight: "700", color: "#111111" },
     fields: [
-      { key: "text", label: "Text", group: "props", input: "text" },
+      { key: "text", label: "Text", group: "props", input: "text", translatable: true },
       {
         key: "level",
         label: "Level",
@@ -319,9 +319,9 @@ export const blockRegistry: Record<Block["type"], BlockDef> = {
     defaultProps: { placeholder: "you@example.com", submitLabel: "Subscribe", successMessage: "Thanks — you're subscribed." },
     defaultStyle: { padding: "16px" },
     fields: [
-      { key: "placeholder", label: "Placeholder", group: "props", input: "text" },
-      { key: "submitLabel", label: "Submit label", group: "props", input: "text" },
-      { key: "successMessage", label: "Success message", group: "props", input: "text" },
+      { key: "placeholder", label: "Placeholder", group: "props", input: "text", translatable: true },
+      { key: "submitLabel", label: "Submit label", group: "props", input: "text", translatable: true },
+      { key: "successMessage", label: "Success message", group: "props", input: "text", translatable: true },
       { key: "padding", label: "Padding", group: "style", input: "text", tokenCategory: "spacing" },
     ],
     render(props, style, _children, meta) {

@@ -7,7 +7,7 @@ import { blockRegistry } from "@/components/blocks/registry";
 import { BREAKPOINTS } from "@/lib/responsiveStyle";
 import { PaletteItem } from "./dnd/PaletteItem";
 import { VersionHistoryPanel } from "./VersionHistoryPanel";
-import type { SavedBlockSummary } from "./EditorClient";
+import type { SavedBlockSummary, LocaleSummary } from "./EditorClient";
 
 type ToolbarProps = {
   siteId: string;
@@ -25,6 +25,13 @@ type ToolbarProps = {
   saveStatus: "idle" | "saving" | "saved";
   activeBreakpoint: Breakpoint;
   onBreakpointChange: (bp: Breakpoint) => void;
+  // docs/multilingual.md: a sibling of the breakpoint switcher above, same
+  // "scoped local state that changes what the canvas/Inspector read/write"
+  // shape (docs/editor.md). Empty `locales` (the common case for a site
+  // that hasn't set up multilingual) hides the switcher entirely.
+  locales: LocaleSummary[];
+  activeLocaleId: string | null;
+  onLocaleChange: (localeId: string | null) => void;
   onUndo: () => void;
   onRedo: () => void;
   canUndo: boolean;
@@ -53,6 +60,9 @@ export function Toolbar({
   saveStatus,
   activeBreakpoint,
   onBreakpointChange,
+  locales,
+  activeLocaleId,
+  onLocaleChange,
   onUndo,
   onRedo,
   canUndo,
@@ -89,6 +99,20 @@ export function Toolbar({
               </button>
             ))}
           </div>
+          {locales.length > 0 && (
+            <select
+              value={activeLocaleId ?? locales.find((l) => l.isDefault)?.id ?? ""}
+              onChange={(e) => onLocaleChange(e.target.value || null)}
+              title="Locale being previewed/edited — switching doesn't change structure, only which Translation values the Inspector reads/writes"
+              className="rounded border px-2 py-1 text-xs"
+            >
+              {locales.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.label} ({l.code}){l.isDefault ? " — default" : ""}
+                </option>
+              ))}
+            </select>
+          )}
           <button onClick={onUndo} disabled={!canUndo} className="rounded border px-2 py-1 text-sm hover:bg-gray-50 disabled:opacity-40">
             Undo
           </button>
