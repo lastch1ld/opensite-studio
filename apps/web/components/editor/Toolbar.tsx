@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import * as ToggleGroup from "@radix-ui/react-toggle-group";
-import { Layers, Redo2, SlidersHorizontal, Sparkles, Trash2, Undo2 } from "lucide-react";
+import { Eye, Layers, Redo2, SlidersHorizontal, Sparkles, Trash2, Undo2 } from "lucide-react";
 import type { Breakpoint, PageContent } from "@/components/blocks/types";
 import { BREAKPOINTS } from "@/lib/responsiveStyle";
 import { VersionHistoryPanel } from "./VersionHistoryPanel";
@@ -184,6 +184,16 @@ export function Toolbar({
         {mode === "page" && (
           <>
             <div className="chrome-divider" />
+            <a
+              href={`/preview/${siteId}/${pageId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Open a real preview of the current draft in a new tab"
+              className="chrome-btn chrome-btn-secondary !py-1"
+            >
+              <Eye size={14} />
+              Preview
+            </a>
             <VersionHistoryPanel siteId={siteId} pageId={pageId} canRestore={!readOnly} onRestore={onRestore} />
             <button
               onClick={onPublish}
