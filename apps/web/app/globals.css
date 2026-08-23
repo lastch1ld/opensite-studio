@@ -219,3 +219,46 @@ body {
   background: var(--border);
   margin: 0 0.125rem;
 }
+
+/* Below this point: rules for public block *content* (not editor chrome) —
+   loaded on every page (including public sites) since this file is only
+   ever imported once, from the root layout. */
+
+/* "marquee" block (components/blocks/registry.tsx): every instance shares
+   this same 0%/-50% shape (the child sequence is rendered twice back-to-
+   back, so -50% is exactly one full sequence width) — only duration/
+   direction differ per instance, set inline per block. */
+@keyframes opensite-marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* "accordion" block (components/blocks/AccordionBlock.tsx): rotates the
+   chevron via Radix's own `data-state` attribute on the trigger it's
+   nested inside, rather than a second piece of React state. */
+.opensite-accordion-chevron {
+  display: inline-block;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+.opensite-accordion-trigger[data-state="open"] .opensite-accordion-chevron {
+  transform: rotate(180deg);
+}
+
+/* "contentSwitcher" block (components/blocks/ContentSwitcherBlock.tsx):
+   label list beside the swapped image on desktop, stacked on narrow
+   screens — same fixed-shape-shared-globally reasoning as the marquee
+   keyframes above (every instance collapses at the same breakpoint). */
+.opensite-switcher-grid {
+  display: grid;
+  grid-template-columns: minmax(160px, 320px) 1fr;
+}
+@media (max-width: 767px) {
+  .opensite-switcher-grid {
+    grid-template-columns: 1fr;
+  }
+}

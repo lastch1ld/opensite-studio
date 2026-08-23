@@ -8,7 +8,19 @@ import { translationKey } from "@/lib/translations";
 import type { CollectionSummary } from "./EditorClient";
 import { MediaPicker } from "./MediaPicker";
 import { FormFieldsEditor } from "./FormFieldsEditor";
-import type { FormField, FormOnSubmit } from "@/components/blocks/types";
+import { AccordionItemsEditor } from "./AccordionItemsEditor";
+import { PricingTiersEditor } from "./PricingTiersEditor";
+import { ContentSwitcherItemsEditor } from "./ContentSwitcherItemsEditor";
+import { ComparisonTableEditor } from "./ComparisonTableEditor";
+import type {
+  AccordionItem,
+  ComparisonColumn,
+  ComparisonRow,
+  ContentSwitcherItem,
+  FormField,
+  FormOnSubmit,
+  PricingTier,
+} from "@/components/blocks/types";
 
 // docs/multilingual.md's editor UX: when a non-default Locale is selected,
 // present but not the "isDefault" one — `null` means either no Locale
@@ -241,6 +253,46 @@ export function Inspector({
               if (next.fields !== undefined) onChange("props", "fields", next.fields);
               if (next.submitLabel !== undefined) onChange("props", "submitLabel", next.submitLabel);
               if (next.onSubmit !== undefined) onChange("props", "onSubmit", next.onSubmit);
+            }}
+            readOnly={readOnly}
+          />
+        </div>
+      )}
+      {block.type === "accordion" && (
+        <div className="mt-4">
+          <AccordionItemsEditor
+            items={Array.isArray(block.props.items) ? (block.props.items as AccordionItem[]) : []}
+            onChange={(items) => onChange("props", "items", items)}
+            readOnly={readOnly}
+          />
+        </div>
+      )}
+      {block.type === "pricingTable" && (
+        <div className="mt-4">
+          <PricingTiersEditor
+            tiers={Array.isArray(block.props.tiers) ? (block.props.tiers as PricingTier[]) : []}
+            onChange={(tiers) => onChange("props", "tiers", tiers)}
+            readOnly={readOnly}
+          />
+        </div>
+      )}
+      {block.type === "contentSwitcher" && (
+        <div className="mt-4">
+          <ContentSwitcherItemsEditor
+            items={Array.isArray(block.props.items) ? (block.props.items as ContentSwitcherItem[]) : []}
+            onChange={(items) => onChange("props", "items", items)}
+            readOnly={readOnly}
+          />
+        </div>
+      )}
+      {block.type === "comparisonTable" && (
+        <div className="mt-4">
+          <ComparisonTableEditor
+            columns={Array.isArray(block.props.columns) ? (block.props.columns as ComparisonColumn[]) : []}
+            rows={Array.isArray(block.props.rows) ? (block.props.rows as ComparisonRow[]) : []}
+            onChange={(next) => {
+              if (next.columns !== undefined) onChange("props", "columns", next.columns);
+              if (next.rows !== undefined) onChange("props", "rows", next.rows);
             }}
             readOnly={readOnly}
           />

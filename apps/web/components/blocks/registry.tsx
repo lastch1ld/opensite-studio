@@ -1,10 +1,23 @@
 import type { CSSProperties } from "react";
 import { registerBlock, getBlockDefinition, getAllBlockDefinitions } from "@opensite/block-sdk";
 import type { BlockDefinition } from "@opensite/block-sdk";
-import type { Block, FieldSchema, FormField } from "./types";
+import type {
+  AccordionItem,
+  Block,
+  ComparisonColumn,
+  ComparisonRow,
+  ContentSwitcherItem,
+  FieldSchema,
+  FormField,
+  PricingTier,
+} from "./types";
 import { columnsResponsiveCss, hasContainerChildren, responsiveColumnCount } from "@/lib/responsiveStyle";
 import { FormBlock } from "./FormBlock";
 import { NewsletterBlock } from "./NewsletterBlock";
+import { AccordionBlock } from "./AccordionBlock";
+import { StatCounterBlock } from "./StatCounterBlock";
+import { ContentSwitcherBlock } from "./ContentSwitcherBlock";
+import { BeforeAfterBlock } from "./BeforeAfterBlock";
 import type { RenderContext } from "@/lib/bind";
 
 // This file is the one place apps/web's built-in blocks get registered —
@@ -17,6 +30,17 @@ export type AppBlockDef = BlockDefinition<RenderContext>;
 
 function str(v: unknown, fallback = ""): string {
   return typeof v === "string" ? v : fallback;
+}
+
+// "comparisonTable" cell rendering: "yes"/"no" (and common synonyms) render
+// as check/cross marks, anything else renders as its own text — lets a
+// cell hold a quantity or short phrase ("Limited", "$10/mo") instead of
+// only a boolean.
+function renderComparisonCell(value: string) {
+  const v = value.trim().toLowerCase();
+  if (v === "yes" || v === "true" || v === "✓") return <span style={{ color: "#16a34a", fontWeight: 700 }}>✓</span>;
+  if (v === "no" || v === "false" || v === "✗" || v === "x") return <span style={{ color: "#d1d5db" }}>—</span>;
+  return value;
 }
 
 // Shared "offset position" fields (docs/ui-ux-roadmap.md: "offset
@@ -663,6 +687,554 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
             blockId={meta.blockId}
             ctx={meta.ctx}
           />
+        </div>
+      );
+    },
+  },
+  // docs/reference-sites-plan.md Tier 1. `items` (question/answer rows) is
+  // managed by a dedicated Inspector panel (AccordionItemsEditor.tsx), not
+  // the generic FieldSchema loop below — same reasoning as `form`'s
+  // `fields`, except accordion's other style fields still go through the
+  // normal loop (only the array prop itself is special-cased).
+  accordion: {
+    label: "Accordion",
+    defaultProps: { items: [] as AccordionItem[], allowMultiple: "" },
+    defaultStyle: { titleColor: "#111111", contentColor: "#4b5563", borderColor: "#e5e7eb", fontSize: "16px", fontWeight: "600" },
+    inspector: [
+      {
+        key: "allowMultiple",
+        label: "Allow multiple open",
+        friendlyLabel: "Let several answers stay open at once",
+        group: "props",
+        input: "select",
+        options: [
+          { label: "No — opening one closes the rest", value: "" },
+          { label: "Yes", value: "true" },
+        ],
+      },
+      { key: "titleColor", label: "Question color", group: "style", input: "color", tokenCategory: "colors" },
+      { key: "contentColor", label: "Answer color", group: "style", input: "color", tokenCategory: "colors" },
+      { key: "borderColor", label: "Divider color", group: "style", input: "color", tokenCategory: "colors" },
+      { key: "fontSize", label: "Question font size", friendlyLabel: "Question text size", group: "style", input: "text", tokenCategory: "typography" },
+    ],
+    render(props, style) {
+      const items = Array.isArray(props.items) ? (props.items as AccordionItem[]) : [];
+      return <AccordionBlock items={items} allowMultiple={str(props.allowMultiple) === "true"} style={style} />;
+    },
+  },
+  // docs/reference-sites-plan.md Tier 1. No video primitive existed before
+  // this (only the iframe-based `embed` block) — self-hosted or externally
+  // hosted URL, autoplay/loop/muted/poster/controls. Browsers refuse to
+  // autoplay an unmuted video, so `muted` is forced on whenever `autoplay`
+  // is on rather than leaving a silently-broken combination available.
+  video: {
+    label: "Video",
+    defaultProps: { src: "", poster: "", autoplay: "", loop: "true", muted: "true", controls: "true" },
+    defaultStyle: { borderRadius: "0", aspectRatio: "16 / 9" },
+    inspector: [
+      { key: "src", label: "Video URL", friendlyLabel: "Video file (URL)", group: "props", input: "url" },
+      { key: "poster", label: "Poster image", friendlyLabel: "Preview image (optional)", group: "props", input: "image" },
+      {
+        key: "autoplay",
+        label: "Autoplay",
+        group: "props",
+        input: "select",
+        options: [
+          { label: "No", value: "" },
+          { label: "Yes (muted)", value: "true" },
+        ],
+      },
+      {
+        key: "loop",
+        label: "Loop",
+        group: "props",
+        input: "select",
+        options: [
+          { label: "Yes", value: "true" },
+          { label: "No", value: "" },
+        ],
+      },
+      {
+        key: "muted",
+        label: "Muted",
+        group: "props",
+        input: "select",
+        options: [
+          { label: "Yes", value: "true" },
+          { label: "No", value: "" },
+        ],
+      },
+      {
+        key: "controls",
+        label: "Show player controls",
+        group: "props",
+        input: "select",
+        options: [
+          { label: "Yes", value: "true" },
+          { label: "No", value: "" },
+        ],
+      },
+      { key: "borderRadius", label: "Corner radius", friendlyLabel: "Rounded corners", group: "style", input: "text" },
+      {
+        key: "aspectRatio",
+        label: "Aspect ratio",
+        friendlyLabel: "Shape",
+        group: "style",
+        input: "select",
+        options: [
+          { label: "Widescreen (16:9)", value: "16 / 9" },
+          { label: "Square (1:1)", value: "1 / 1" },
+          { label: "Portrait (9:16)", value: "9 / 16" },
+          { label: "Original", value: "" },
+        ],
+      },
+    ],
+    render(props, style) {
+      const src = str(props.src);
+      if (!src) {
+        return (
+          <div style={{ padding: "32px", textAlign: "center", background: "#f3f4f6", color: "#9ca3af", borderRadius: str(style.borderRadius, "0") }}>
+            Add a video URL in the Properties panel.
+          </div>
+        );
+      }
+      const autoplay = str(props.autoplay) === "true";
+      const cssStyle: CSSProperties = {
+        width: "100%",
+        display: "block",
+        borderRadius: str(style.borderRadius, "0"),
+        ...(str(style.aspectRatio) ? { aspectRatio: str(style.aspectRatio), objectFit: "cover" } : {}),
+      };
+      return (
+        <video
+          src={src}
+          poster={str(props.poster) || undefined}
+          autoPlay={autoplay}
+          loop={str(props.loop) === "true"}
+          muted={autoplay || str(props.muted) === "true"}
+          controls={str(props.controls) === "true"}
+          playsInline
+          style={cssStyle}
+        />
+      );
+    },
+  },
+  // docs/reference-sites-plan.md Tier 1: a CSS-animation-based infinite
+  // marquee, reusable for testimonial/logo/stat strips alike (5/13 sites).
+  // A real container (children, not flat props) so any content — text,
+  // image, a saved testimonial-card block — can be looped, not just one
+  // hardcoded item shape. The child sequence is rendered twice back-to-back
+  // and animated exactly -50% so the loop reads as continuous; @keyframes
+  // opensite-marquee-scroll is defined once globally (app/globals.css)
+  // since every marquee instance shares the same 0%/-50% shape and only
+  // duration/direction differ per instance.
+  marquee: {
+    label: "Marquee",
+    defaultProps: { speed: "30", direction: "left", pauseOnHover: "true" },
+    defaultStyle: { gap: "32px" },
+    inspector: [
+      { key: "speed", label: "Speed (seconds per loop)", friendlyLabel: "Speed", group: "props", input: "number" },
+      {
+        key: "direction",
+        label: "Direction",
+        group: "props",
+        input: "select",
+        options: [
+          { label: "Left", value: "left" },
+          { label: "Right", value: "right" },
+        ],
+      },
+      {
+        key: "pauseOnHover",
+        label: "Pause on hover",
+        group: "props",
+        input: "select",
+        options: [
+          { label: "Yes", value: "true" },
+          { label: "No", value: "" },
+        ],
+      },
+      { key: "gap", label: "Gap", friendlyLabel: "Space between items", group: "style", input: "text", tokenCategory: "spacing" },
+    ],
+    render(props, style, children, meta) {
+      const speed = Number(str(props.speed, "30")) || 30;
+      const direction = str(props.direction, "left");
+      const gap = str(style.gap, "32px");
+      const pauseOnHover = str(props.pauseOnHover, "true") === "true";
+      const trackStyle: CSSProperties = {
+        display: "flex",
+        width: "max-content",
+        gap,
+        animationName: "opensite-marquee-scroll",
+        animationDuration: `${speed}s`,
+        animationTimingFunction: "linear",
+        animationIterationCount: "infinite",
+        animationDirection: direction === "right" ? "reverse" : "normal",
+      };
+      return (
+        <div style={{ overflow: "hidden" }} data-marquee-id={meta.blockId}>
+          <div style={trackStyle} className="opensite-marquee-track">
+            <div style={{ display: "flex", gap, flexShrink: 0 }}>{children}</div>
+            <div style={{ display: "flex", gap, flexShrink: 0 }} aria-hidden>
+              {children}
+            </div>
+          </div>
+          {pauseOnHover && (
+            <style
+              dangerouslySetInnerHTML={{
+                __html: `[data-marquee-id="${meta.blockId}"]:hover .opensite-marquee-track{animation-play-state:paused}`,
+              }}
+            />
+          )}
+        </div>
+      );
+    },
+  },
+  // docs/reference-sites-plan.md Tier 1. `tiers` is managed by a dedicated
+  // Inspector panel (PricingTiersEditor.tsx), same reasoning as
+  // `accordion`'s `items` above. Reuses the same responsive column-collapse
+  // helpers as "columns"/"list" so tiers stack sensibly on tablet/mobile.
+  pricingTable: {
+    label: "Pricing Table",
+    defaultProps: { tiers: [] as PricingTier[] },
+    defaultStyle: { gap: "20px", accentColor: "#111111" },
+    inspector: [{ key: "accentColor", label: "Accent color", friendlyLabel: "Highlight color", group: "style", input: "color", tokenCategory: "colors" }],
+    render(props, style, _children, meta) {
+      const tiers = Array.isArray(props.tiers) ? (props.tiers as PricingTier[]) : [];
+      const accent = str(style.accentColor, "#111111");
+      const desktopColumns = Math.min(tiers.length || 1, 3);
+      const cssStyle: CSSProperties = {
+        display: "grid",
+        gridTemplateColumns: `repeat(${responsiveColumnCount(desktopColumns, meta.breakpoint)}, 1fr)`,
+        gap: str(style.gap, "20px"),
+        alignItems: "stretch",
+      };
+      if (tiers.length === 0) {
+        return <p style={{ color: "#9ca3af", fontSize: "14px" }}>No pricing tiers yet — add some in the Properties panel.</p>;
+      }
+      return (
+        <div style={cssStyle} data-columns-id={meta.blockId}>
+          {tiers.map((tier) => {
+            const features = tier.features.split("\n").map((f) => f.trim()).filter(Boolean);
+            return (
+              <div
+                key={tier.id}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "16px",
+                  padding: "32px 24px",
+                  borderRadius: "12px",
+                  border: tier.highlighted ? `2px solid ${accent}` : "1px solid #e5e7eb",
+                  background: tier.highlighted ? "#fafafa" : "#ffffff",
+                }}
+              >
+                <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 600, color: "#111111" }}>{tier.name}</h3>
+                <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
+                  <span style={{ fontSize: "36px", fontWeight: 700, color: "#111111" }}>{tier.price}</span>
+                  <span style={{ fontSize: "14px", color: "#6b7280" }}>{tier.period}</span>
+                </div>
+                <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "8px", flex: 1 }}>
+                  {features.map((f, i) => (
+                    <li key={i} style={{ fontSize: "14px", color: "#374151" }}>
+                      ✓ {f}
+                    </li>
+                  ))}
+                </ul>
+                {tier.ctaLabel && (
+                  <a
+                    href={tier.ctaHref || "#"}
+                    style={{
+                      textAlign: "center",
+                      padding: "10px 16px",
+                      borderRadius: "6px",
+                      textDecoration: "none",
+                      fontWeight: 600,
+                      fontSize: "14px",
+                      border: `1px solid ${accent}`,
+                      background: tier.highlighted ? accent : "transparent",
+                      color: tier.highlighted ? "#ffffff" : accent,
+                    }}
+                  >
+                    {tier.ctaLabel}
+                  </a>
+                )}
+              </div>
+            );
+          })}
+          <style dangerouslySetInnerHTML={{ __html: columnsResponsiveCss(meta.blockId, desktopColumns) }} />
+        </div>
+      );
+    },
+  },
+  // docs/reference-sites-plan.md Tier 1, seen on rareformhealth.co. One
+  // stat per block instance (composed into a row via the existing
+  // "columns" block, matching how "hero" composes from existing block
+  // types rather than inventing a multi-item variant) — StatCounterBlock.tsx
+  // handles the scroll-triggered count-up.
+  statCounter: {
+    label: "Stat Counter",
+    defaultProps: { value: "100", prefix: "", suffix: "+", label: "Happy customers" },
+    defaultStyle: { valueColor: "#111111", valueFontSize: "48px", labelColor: "#6b7280", align: "center" },
+    inspector: [
+      { key: "value", label: "Value", friendlyLabel: "Number to count up to", group: "props", input: "number" },
+      { key: "prefix", label: "Prefix", group: "props", input: "text", translatable: true },
+      { key: "suffix", label: "Suffix", group: "props", input: "text", translatable: true },
+      { key: "label", label: "Label", group: "props", input: "text", translatable: true },
+      { key: "valueColor", label: "Number color", group: "style", input: "color", tokenCategory: "colors" },
+      { key: "valueFontSize", label: "Number font size", group: "style", input: "text", tokenCategory: "typography" },
+      { key: "labelColor", label: "Label color", group: "style", input: "color", tokenCategory: "colors" },
+      {
+        key: "align",
+        label: "Alignment",
+        group: "style",
+        input: "select",
+        options: [
+          { label: "Left", value: "left" },
+          { label: "Center", value: "center" },
+          { label: "Right", value: "right" },
+        ],
+      },
+    ],
+    render(props, style) {
+      return (
+        <StatCounterBlock
+          value={str(props.value, "0")}
+          prefix={str(props.prefix)}
+          suffix={str(props.suffix)}
+          label={str(props.label)}
+          style={style}
+        />
+      );
+    },
+  },
+  // docs/reference-sites-plan.md Tier 1: an image + gradient scrim +
+  // positioned caption as one block, instead of manually stacking an Image
+  // and an offset-positioned Text block to get the same compound look
+  // (seen on Rareform's photo-card grid and GrowthSync's phone mockups).
+  imageOverlay: {
+    label: "Image + Caption",
+    defaultProps: { src: "https://placehold.co/800x500", alt: "", caption: "Caption text" },
+    defaultStyle: {
+      captionPosition: "bottom",
+      overlayOpacity: "0.5",
+      aspectRatio: "4 / 3",
+      borderRadius: "0",
+      captionColor: "#ffffff",
+      captionFontSize: "20px",
+    },
+    inspector: [
+      { key: "src", label: "Image", group: "props", input: "image", bindable: true },
+      { key: "alt", label: "Alt text", friendlyLabel: "Description (for accessibility)", group: "props", input: "text", translatable: true },
+      { key: "caption", label: "Caption", group: "props", input: "textarea", translatable: true },
+      {
+        key: "captionPosition",
+        label: "Caption position",
+        group: "style",
+        input: "select",
+        options: [
+          { label: "Bottom", value: "bottom" },
+          { label: "Top", value: "top" },
+        ],
+      },
+      { key: "overlayOpacity", label: "Overlay strength", friendlyLabel: "Scrim darkness (0–1)", group: "style", input: "text" },
+      {
+        key: "aspectRatio",
+        label: "Aspect ratio",
+        friendlyLabel: "Shape",
+        group: "style",
+        input: "select",
+        options: [
+          { label: "Landscape (4:3)", value: "4 / 3" },
+          { label: "Square (1:1)", value: "1 / 1" },
+          { label: "Portrait (4:5)", value: "4 / 5" },
+          { label: "Wide (16:9)", value: "16 / 9" },
+        ],
+      },
+      { key: "borderRadius", label: "Corner radius", friendlyLabel: "Rounded corners", group: "style", input: "text" },
+      { key: "captionColor", label: "Caption color", group: "style", input: "color", tokenCategory: "colors" },
+      { key: "captionFontSize", label: "Caption font size", group: "style", input: "text", tokenCategory: "typography" },
+    ],
+    render(props, style) {
+      const position = str(style.captionPosition, "bottom");
+      const opacity = str(style.overlayOpacity, "0.5");
+      return (
+        <div
+          style={{
+            position: "relative",
+            overflow: "hidden",
+            borderRadius: str(style.borderRadius, "0"),
+            aspectRatio: str(style.aspectRatio, "4 / 3"),
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={str(props.src)}
+            alt={str(props.alt)}
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: position === "top" ? "flex-start" : "flex-end",
+              padding: "24px",
+              background: `linear-gradient(to ${position === "top" ? "bottom" : "top"}, rgba(0,0,0,${opacity}), transparent 60%)`,
+            }}
+          >
+            <p style={{ margin: 0, color: str(style.captionColor, "#ffffff"), fontSize: str(style.captionFontSize, "20px"), fontWeight: 600 }}>
+              {str(props.caption)}
+            </p>
+          </div>
+        </div>
+      );
+    },
+  },
+  // docs/reference-sites-plan.md Tier 2. `items` is managed by a dedicated
+  // Inspector panel (ContentSwitcherItemsEditor.tsx), same reasoning as
+  // `accordion`'s `items` — the actual click/hover-swap interaction lives
+  // in ContentSwitcherBlock.tsx as self-contained client state.
+  contentSwitcher: {
+    label: "Content Switcher",
+    defaultProps: { items: [] as ContentSwitcherItem[] },
+    defaultStyle: { activeColor: "#111111", inactiveColor: "#9ca3af", gap: "32px", imageAspectRatio: "4 / 5" },
+    inspector: [
+      { key: "activeColor", label: "Active label color", group: "style", input: "color", tokenCategory: "colors" },
+      { key: "inactiveColor", label: "Inactive label color", group: "style", input: "color", tokenCategory: "colors" },
+      { key: "gap", label: "Gap", friendlyLabel: "Space between list and image", group: "style", input: "text", tokenCategory: "spacing" },
+      {
+        key: "imageAspectRatio",
+        label: "Image aspect ratio",
+        friendlyLabel: "Image shape",
+        group: "style",
+        input: "select",
+        options: [
+          { label: "Portrait (4:5)", value: "4 / 5" },
+          { label: "Square (1:1)", value: "1 / 1" },
+          { label: "Landscape (4:3)", value: "4 / 3" },
+        ],
+      },
+    ],
+    render(props, style) {
+      const items = Array.isArray(props.items) ? (props.items as ContentSwitcherItem[]) : [];
+      return <ContentSwitcherBlock items={items} style={style} />;
+    },
+  },
+  // docs/reference-sites-plan.md Tier 2, seen on wishlabs.ai's product
+  // spotlight. Self-contained interactive component — see
+  // BeforeAfterBlock.tsx for the drag/clip-path mechanics.
+  beforeAfter: {
+    label: "Before/After Slider",
+    defaultProps: {
+      beforeSrc: "https://placehold.co/800x500/94a3b8/ffffff?text=Before",
+      afterSrc: "https://placehold.co/800x500/1e293b/ffffff?text=After",
+      beforeLabel: "Before",
+      afterLabel: "After",
+    },
+    defaultStyle: { aspectRatio: "16 / 9", borderRadius: "0", handleColor: "#ffffff" },
+    inspector: [
+      { key: "beforeSrc", label: "Before image", group: "props", input: "image", bindable: true },
+      { key: "afterSrc", label: "After image", group: "props", input: "image", bindable: true },
+      { key: "beforeLabel", label: "Before label", group: "props", input: "text", translatable: true },
+      { key: "afterLabel", label: "After label", group: "props", input: "text", translatable: true },
+      {
+        key: "aspectRatio",
+        label: "Aspect ratio",
+        friendlyLabel: "Shape",
+        group: "style",
+        input: "select",
+        options: [
+          { label: "Widescreen (16:9)", value: "16 / 9" },
+          { label: "Landscape (4:3)", value: "4 / 3" },
+          { label: "Square (1:1)", value: "1 / 1" },
+        ],
+      },
+      { key: "borderRadius", label: "Corner radius", friendlyLabel: "Rounded corners", group: "style", input: "text" },
+      { key: "handleColor", label: "Handle color", group: "style", input: "color", tokenCategory: "colors" },
+    ],
+    render(props, style) {
+      return (
+        <BeforeAfterBlock
+          beforeSrc={str(props.beforeSrc)}
+          afterSrc={str(props.afterSrc)}
+          beforeLabel={str(props.beforeLabel, "Before")}
+          afterLabel={str(props.afterLabel, "After")}
+          style={style}
+        />
+      );
+    },
+  },
+  // docs/reference-sites-plan.md Tier 2 (Rareform's Rareform-vs-Traditional
+  // Care-vs-Diagnostics table, middle column visually elevated). `columns`
+  // and `rows` are managed together by a dedicated Inspector panel
+  // (ComparisonTableEditor.tsx) since a row's `cells` must stay
+  // positionally aligned with `columns`.
+  comparisonTable: {
+    label: "Comparison Table",
+    defaultProps: { columns: [] as ComparisonColumn[], rows: [] as ComparisonRow[] },
+    defaultStyle: { accentColor: "#111111", headerColor: "#111111", labelColor: "#374151" },
+    inspector: [
+      { key: "accentColor", label: "Accent color", friendlyLabel: "Highlight color", group: "style", input: "color", tokenCategory: "colors" },
+      { key: "headerColor", label: "Header text color", group: "style", input: "color", tokenCategory: "colors" },
+      { key: "labelColor", label: "Row label color", group: "style", input: "color", tokenCategory: "colors" },
+    ],
+    render(props, style) {
+      const columns = Array.isArray(props.columns) ? (props.columns as ComparisonColumn[]) : [];
+      const rows = Array.isArray(props.rows) ? (props.rows as ComparisonRow[]) : [];
+      if (columns.length === 0) {
+        return <p style={{ color: "#9ca3af", fontSize: "14px" }}>No columns yet — add some in the Properties panel.</p>;
+      }
+      const accent = str(style.accentColor, "#111111");
+      return (
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: `${(columns.length + 1) * 140}px` }}>
+            <thead>
+              <tr>
+                <th style={{ padding: "12px 16px" }} />
+                {columns.map((col) => (
+                  <th
+                    key={col.id}
+                    style={{
+                      padding: "16px",
+                      textAlign: "center",
+                      fontSize: "15px",
+                      fontWeight: 700,
+                      background: col.highlighted ? accent : "transparent",
+                      color: col.highlighted ? "#ffffff" : str(style.headerColor, "#111111"),
+                      borderRadius: col.highlighted ? "8px 8px 0 0" : undefined,
+                    }}
+                  >
+                    {col.title}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.id}>
+                  <td style={{ padding: "12px 16px", fontSize: "14px", color: str(style.labelColor, "#374151"), borderBottom: "1px solid #e5e7eb" }}>
+                    {row.label}
+                  </td>
+                  {columns.map((col, i) => (
+                    <td
+                      key={col.id}
+                      style={{
+                        padding: "12px 16px",
+                        textAlign: "center",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #e5e7eb",
+                        background: col.highlighted ? "#fafafa" : undefined,
+                      }}
+                    >
+                      {renderComparisonCell(row.cells[i] ?? "")}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       );
     },

@@ -27,7 +27,16 @@ export type BuiltinBlockType =
   | "embed"
   | "list"
   | "form"
-  | "newsletter";
+  | "newsletter"
+  | "accordion"
+  | "video"
+  | "marquee"
+  | "pricingTable"
+  | "statCounter"
+  | "imageOverlay"
+  | "contentSwitcher"
+  | "beforeAfter"
+  | "comparisonTable";
 
 export type BlockType = string;
 
@@ -80,4 +89,64 @@ export type NewsletterBlockProps = {
   placeholder: string;
   submitLabel: string;
   successMessage: string;
+};
+
+// docs/reference-sites-plan.md Tier 1's "accordion" block. `items` renders
+// as actual add/remove/reorder rows (managed via a dedicated Inspector
+// panel, not the generic FieldSchema loop, same reasoning as `FormField`
+// above) — see components/editor/AccordionItemsEditor.tsx.
+export type AccordionItem = {
+  id: string;
+  question: string;
+  answer: string;
+};
+
+// docs/reference-sites-plan.md Tier 1's "pricing table" block. `features`
+// is newline-separated plain text rather than its own sub-list — matches
+// how a non-technical editor already enters multi-line content elsewhere
+// (e.g. the `text` block's textarea), no extra list-of-strings UI needed.
+// `tiers` renders via a dedicated Inspector panel — see
+// components/editor/PricingTiersEditor.tsx.
+export type PricingTier = {
+  id: string;
+  name: string;
+  price: string;
+  period: string;
+  features: string;
+  ctaLabel: string;
+  ctaHref: string;
+  highlighted: boolean;
+};
+
+// docs/reference-sites-plan.md Tier 2's "content switcher" block (e.g.
+// Accoutrement's curator name list swapping a portrait, GrowthSync's
+// use-case cards swapping a demo). Self-contained client-side state within
+// one block's own render — no new cross-block architecture, per the plan's
+// "Phase 2 approach" note. `items` renders via a dedicated Inspector panel
+// — see components/editor/ContentSwitcherItemsEditor.tsx.
+export type ContentSwitcherItem = {
+  id: string;
+  label: string;
+  image: string;
+  description: string;
+};
+
+// docs/reference-sites-plan.md Tier 2's "comparison table" block
+// (checkmark grid, one column visually emphasized). `columns` and `rows`
+// are managed together via a dedicated Inspector panel
+// (components/editor/ComparisonTableEditor.tsx) since a row's `cells`
+// must stay positionally aligned with `columns` — adding/removing/
+// reordering a column resyncs every row's cell array.
+export type ComparisonColumn = {
+  id: string;
+  title: string;
+  highlighted: boolean;
+};
+
+export type ComparisonRow = {
+  id: string;
+  label: string;
+  // cells[i] belongs to columns[i]. "yes"/"no" render as check/cross
+  // marks; anything else renders as plain text (e.g. "Limited", "$10/mo").
+  cells: string[];
 };

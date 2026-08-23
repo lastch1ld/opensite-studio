@@ -84,7 +84,7 @@ export function buildResponsiveCss(
 }
 
 export function hasContainerChildren(type: Block["type"]): boolean {
-  return type === "section" || type === "hero" || type === "columns" || type === "list";
+  return type === "section" || type === "hero" || type === "columns" || type === "list" || type === "marquee";
 }
 
 // Sensible default column-collapse for any grid-of-N-columns block
