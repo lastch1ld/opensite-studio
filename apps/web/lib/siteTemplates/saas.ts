@@ -123,13 +123,16 @@ function saasStatRow(stats: { value: string; suffix: string; label: string }[]):
 }
 
 export function saasHomeTemplate(): PageContent {
-  // Gradient replaces the flat SAAS.ink field — a radial indigo bloom low
-  // in the frame reads as depth/glow (the category's own "product glow"
-  // visual language) rather than a flat corporate dark band. No eyebrow
+  // A tiled dot-grid (graph-paper/schematic register) over a low indigo
+  // glow — the decorative mechanism genre-specific to SaaS (a technical
+  // texture, not a soft mood blob): every other genre in this file uses a
+  // structurally different device, not just a different hue on the same
+  // trick (docs/site-templates-plan.md's "reskinned SaaS" lesson applies
+  // one level up — to decoration, not only section order). No eyebrow
   // label above the headline (impeccable craft-floor: the heading carries
   // its own weight).
   const hero = bleed(
-    `radial-gradient(ellipse 120% 90% at 50% 120%, ${SAAS.accent}55, transparent 60%), linear-gradient(180deg, ${SAAS.ink} 0%, #050507 100%)`,
+    `radial-gradient(circle, #ffffff14 1px, transparent 1.5px) 0 0/24px 24px, radial-gradient(ellipse 120% 90% at 50% 120%, ${SAAS.accent}55, transparent 60%), linear-gradient(180deg, ${SAAS.ink} 0%, #050507 100%)`,
     "130px 40px 110px",
     [
       heading("Replace with your product's core value proposition.", { size: "56px", color: "#F4F4F5", align: "center", level: "h1", font: SAAS.font, animation: "slide-up" }),

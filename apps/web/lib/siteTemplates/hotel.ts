@@ -140,9 +140,15 @@ function hotelFeatureCard(title: string, copy: string): Block {
 
 export function hotelHomeTemplate(): PageContent {
   // Split hero: headline + image side by side, per the plan doc's
-  // nordic-stone reference.
+  // nordic-stone reference. A faint line-art arch (a single stroked path,
+  // near-invisible until you look — an architectural motif, not a mood
+  // blob) sits bottom-right via a data-URI SVG background layer —
+  // deliberately a third distinct decorative mechanism from SaaS's
+  // dot-grid and Agency's hard-edged wedge/Restaurant's organic wave.
+  const archMotif =
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 260'%3E%3Cpath d='M20 260 L20 100 A80 80 0 0 1 180 100 L180 260' fill='none' stroke='%2320241F' stroke-opacity='0.07' stroke-width='2'/%3E%3C/svg%3E\") right 40px bottom / 220px 280px no-repeat";
   const hero = bleed(
-    `linear-gradient(155deg, ${HOTEL.stone} 0%, ${HOTEL.iceSoft} 100%)`,
+    `${archMotif}, linear-gradient(155deg, ${HOTEL.stone} 0%, ${HOTEL.iceSoft} 100%)`,
     "100px 40px",
     [
       mk(

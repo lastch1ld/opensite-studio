@@ -118,6 +118,13 @@ function portfolioFaq(): Block {
   );
 }
 
+// No background decoration on this genre's hero — a deliberate sixth
+// choice, not an oversight. The other five genres each carry one
+// structurally distinct device (SaaS: dot-grid, Agency: hard-edged wedge,
+// Restaurant: organic wave, Hotel: line-art arch, Bar: neon squiggle);
+// Portfolio's own distinguishing move is the 104px headline itself and
+// the plain warm-paper field it sits on — undecorated restraint is the
+// device here, matching Karolina Hess/Métier's minimal register.
 export function portfolioHomeTemplate(): PageContent {
   const hero = bleed(
     PORTFOLIO.paper,

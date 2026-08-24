@@ -206,10 +206,20 @@ export function restaurantHomeTemplate(): PageContent {
     ]),
   ]);
   const heroImage = mk("imageOverlay", { src: "https://placehold.co/700x800", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 5", borderRadius: "20px", animation: "slide-left" });
-  // A low ember-gold bloom against the forest field — warmth without
-  // abandoning the deep-green register the rest of the page is built on.
-  const heroBg = `radial-gradient(ellipse 80% 60% at 85% 15%, ${RESTAURANT.gold}30, transparent 55%), linear-gradient(160deg, ${RESTAURANT.forest} 0%, #12241C 100%)`;
+  const heroBg = `linear-gradient(160deg, ${RESTAURANT.forest} 0%, #12241C 100%)`;
   const hero = bleed(heroBg, "100px 40px 90px", [mk("columns", { columns: "2" }, { gap: "48px", align: "center" }, [heroTextStack, heroImage])], "1100px", "0");
+
+  // Organic wave divider (embed block, per blocks-and-theming.md's framing
+  // of `embed` as the lightweight one-off-custom-thing block) — a torn/
+  // tablecloth-edge transition from the hero's forest field into the
+  // white signature-dishes section below. Deliberately a different
+  // decorative *mechanism* from SaaS's dot-grid or Agency's hard-edged
+  // wedge — organic curves suit this genre, geometric ones don't.
+  const waveDivider = mk(
+    "embed",
+    { html: `<style>body{margin:0}</style><svg viewBox="0 0 1440 80" preserveAspectRatio="none" style="width:100%;height:70px;display:block;"><path d="M0,0 L0,38 C240,74 480,8 720,34 C960,60 1200,14 1440,40 L1440,0 Z" fill="${RESTAURANT.forest}"/></svg>` },
+    { height: "70px" },
+  );
 
   const dishCard = (): Block =>
     mk(
@@ -266,7 +276,7 @@ export function restaurantHomeTemplate(): PageContent {
     // as generic B2B homepage furniture here — a walk-in/booking visitor's
     // actual questions are "is the food good" (signature dishes, a real guest
     // review) and "when/where" (hours & location), not company stats.
-    root: mk("section", { layout: "stack" }, { padding: "0", background: RESTAURANT.cream, gap: "0" }, [restaurantNav("Home"), hero, signature, review, hoursLocation, finalCta, restaurantFooter()]),
+    root: mk("section", { layout: "stack" }, { padding: "0", background: RESTAURANT.cream, gap: "0" }, [restaurantNav("Home"), hero, waveDivider, signature, review, hoursLocation, finalCta, restaurantFooter()]),
   };
 }
 

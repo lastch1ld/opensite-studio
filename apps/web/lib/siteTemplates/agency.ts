@@ -141,11 +141,14 @@ function agencyWorkSwitcher(items: WorkItemSeed[]): Block {
 }
 
 export function agencyHomeTemplate(): PageContent {
-  // A signal-orange bloom low-left breaks the flat-ink hero into something
-  // with real depth (studio-lit, not corporate-dark) — no eyebrow label,
-  // the headline itself carries the statement (impeccable craft-floor).
+  // A hard-edged diagonal wedge of solid signal-orange cuts across the
+  // bottom-left corner — a graphic-poster device (flat color-block, sharp
+  // stop, no falloff), not a soft glow. Deliberately a different
+  // *mechanism* from SaaS's dot-grid+glow, not just a different hue on
+  // the same trick. No eyebrow label — the headline carries the statement
+  // (impeccable craft-floor).
   const hero = bleed(
-    `radial-gradient(ellipse 90% 70% at 15% 100%, ${AGENCY.accent}40, transparent 55%), linear-gradient(160deg, ${AGENCY.ink} 0%, #050504 100%)`,
+    `linear-gradient(115deg, transparent 0%, transparent 62%, ${AGENCY.accent} 62.5%, ${AGENCY.accent} 64%, transparent 64.5%, transparent 100%), linear-gradient(160deg, ${AGENCY.ink} 0%, #050504 100%)`,
     "120px 40px 100px",
     [
       heading("Replace with a bold statement of what this studio makes.", { size: "58px", color: "#F5F3EE", align: "center", level: "h1", font: AGENCY.font, animation: "slide-up" }),

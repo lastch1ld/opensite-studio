@@ -162,11 +162,15 @@ function barDrinkGrid(drinks: DrinkSeed[]): Block {
 }
 
 export function barHomeTemplate(): PageContent {
-  // A low amber glow bleeding into the existing accentDeep burgundy — the
-  // moodiest gradient of the six, matching this genre's dark-heavy,
-  // nightlife register. No eyebrow label (impeccable craft-floor ban) —
-  // "a cocktail bar" now reads through the room/drinks/night copy itself.
-  const heroBg = `radial-gradient(ellipse 100% 70% at 50% 110%, ${BAR.accent}35, transparent 60%), linear-gradient(165deg, ${BAR.ink} 0%, #2A130F 100%)`;
+  // A neon squiggle — a blurred glow stroke plus a crisp core line, the
+  // classic two-pass neon-tube render, self-contained in one SVG filter
+  // (no runtime CSS filter needed). Deliberately a fourth distinct
+  // decorative mechanism (SaaS: dot-grid, Agency: hard-edged wedge,
+  // Restaurant: organic wave, Hotel: line-art arch) — a literal light
+  // source suits this genre's nightlife register uniquely.
+  const neonSquiggle =
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 120'%3E%3Cdefs%3E%3Cfilter id='g'%3E%3CfeGaussianBlur stdDeviation='4'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M10 70 Q60 20 110 70 T210 70 T310 70 T400 70' fill='none' stroke='%23CD9A4A' stroke-width='4' filter='url(%23g)' opacity='0.45'/%3E%3Cpath d='M10 70 Q60 20 110 70 T210 70 T310 70 T400 70' fill='none' stroke='%23F0C97A' stroke-width='1.5' opacity='0.8'/%3E%3C/svg%3E\") center top 30px / 480px 140px no-repeat";
+  const heroBg = `${neonSquiggle}, linear-gradient(165deg, ${BAR.ink} 0%, #2A130F 100%)`;
   const hero = bleed(
     heroBg,
     "130px 40px 100px",
