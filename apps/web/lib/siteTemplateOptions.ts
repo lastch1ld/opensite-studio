@@ -47,6 +47,17 @@ export const SITE_TEMPLATES: SiteTemplateOption[] = [
     ],
   },
   {
+    id: "restaurant",
+    name: "Restaurant",
+    description: "Home, Menu, About, Contact — forest green + terracotta, Fraunces headings.",
+    pages: [
+      { slug: "home", title: "Home", isHome: true },
+      { slug: "menu", title: "Menu", isHome: false },
+      { slug: "about", title: "About", isHome: false },
+      { slug: "contact", title: "Contact", isHome: false },
+    ],
+  },
+  {
     id: "hotel",
     name: "Hotel",
     description: "Home, Rooms, Amenities, Contact & Book — restrained stone/ice palette, Fraunces headings.",
