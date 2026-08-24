@@ -188,7 +188,7 @@ export function portfolioHomeTemplate(): PageContent {
   ])], "1000px", "0");
 
   const finalCta = bleed(
-    `linear-gradient(135deg, ${PORTFOLIO.accent} 0%, #12261E 100%)`,
+    PORTFOLIO.accent,
     "80px 40px",
     [
       heading("Replace with a closing call to action", { size: "36px", color: "#ffffff", align: "center", weight: "400", font: PORTFOLIO.font }),

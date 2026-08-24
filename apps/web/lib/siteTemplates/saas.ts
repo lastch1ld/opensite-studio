@@ -123,17 +123,21 @@ function saasStatRow(stats: { value: string; suffix: string; label: string }[]):
 }
 
 export function saasHomeTemplate(): PageContent {
-  // A tiled dot-grid (graph-paper/schematic register) over a low indigo
-  // glow — the decorative mechanism genre-specific to SaaS (a technical
-  // texture, not a soft mood blob): every other genre in this file uses a
-  // structurally different device, not just a different hue on the same
-  // trick (docs/site-templates-plan.md's "reskinned SaaS" lesson applies
-  // one level up — to decoration, not only section order). No eyebrow
-  // label above the headline (impeccable craft-floor: the heading carries
-  // its own weight).
-  const hero = bleed(
-    `radial-gradient(circle, #ffffff14 1px, transparent 1.5px) 0 0/24px 24px, radial-gradient(ellipse 120% 90% at 50% 120%, ${SAAS.accent}55, transparent 60%), linear-gradient(180deg, ${SAAS.ink} 0%, #050507 100%)`,
-    "130px 40px 110px",
+  // Real `hero` block (not a hand-rolled bleed()) — the only block whose
+  // `background` style key actually supports an image: BlockRenderer's
+  // `section` maps `background` to CSS `background-color`, which cannot
+  // hold a gradient or url() at all. An earlier pass tried CSS gradients
+  // and data-URI SVGs through `bleed()`'s background param and none of it
+  // ever rendered (background-color silently drops an invalid value) —
+  // caught on manual re-inspection, not by tsc/eslint/build, which don't
+  // check CSS semantic validity. `hero`'s own `backgroundImage` prop
+  // composites a real photo with a built-in dark scrim for legible text.
+  // No eyebrow label above the headline (impeccable craft-floor: the
+  // heading carries its own weight).
+  const hero = mk(
+    "hero",
+    { backgroundImage: "https://placehold.co/1800x1200/1a1a2e/6D5EF5?text=" },
+    { background: SAAS.ink, padding: "130px 40px 110px", contentWidth: "740px", align: "center", gap: "22px" },
     [
       heading("Replace with your product's core value proposition.", { size: "56px", color: "#F4F4F5", align: "center", level: "h1", font: SAAS.font, animation: "slide-up" }),
       body("Replace with a supporting sentence that explains who this is for and what changes once they use it.", { size: "18px", color: SAAS.inkMuted, align: "center" }),
@@ -142,11 +146,29 @@ export function saasHomeTemplate(): PageContent {
         cta("View pricing", { background: "transparent", color: "#F4F4F5", variant: "secondary" }),
       ]),
     ],
-    "740px",
-    "22px",
   );
 
-  const logos = bleed(SAAS.paper, "40px 40px", [body("Trusted by teams at", { size: "12px", weight: "700", color: SAAS.textFaint, align: "center" }), saasLogoMarquee()], "1100px", "20px");
+  // The actual missing ingredient a text-only SaaS hero always lacks: a
+  // product shot, directly under the CTA row, on the dark hero band.
+  // `section`'s render only honors a fixed style-key allowlist (padding,
+  // background as backgroundColor, gap, borderRadius, maxWidth, align,
+  // justify — plus a hardcoded 40px minHeight always applied) — no
+  // arbitrary width/height/margin passthrough, so a "browser chrome bar"
+  // built from tiny section-block dots was dropped (verified against the
+  // real render code, not assumed): every dot would render at the forced
+  // 40px minHeight instead of a small circle. `imageOverlay`'s own
+  // `borderRadius` style key is genuinely supported (confirmed in its
+  // definition below the shared block registry), which is enough to make
+  // the screenshot itself read as a floating product card.
+  const productShot = bleed(
+    SAAS.ink,
+    "0 40px 110px",
+    [mk("imageOverlay", { src: "https://placehold.co/1400x860/16161D/8C7FF8?text=Product+screenshot", alt: "Product dashboard screenshot", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "1400 / 860", borderRadius: "14px", animation: "scale-in" })],
+    "980px",
+    "0",
+  );
+
+  const logos = bleed(SAAS.paper, "72px 40px 40px", [body("Trusted by teams at", { size: "12px", weight: "700", color: SAAS.textFaint, align: "center" }), saasLogoMarquee()], "1100px", "20px");
 
   const featureCard = (title: string, copy: string): Block =>
     mk(
@@ -195,7 +217,7 @@ export function saasHomeTemplate(): PageContent {
   const faq = bleed(SAAS.paper, "96px 40px", [heading("Frequently asked questions", { size: "32px", color: SAAS.text, align: "center", font: SAAS.font }), saasFaq()], "760px", "24px");
 
   const finalCta = bleed(
-    `linear-gradient(135deg, ${SAAS.accent} 0%, #4C3FCF 100%)`,
+    SAAS.accent,
     "72px 40px",
     [
       heading("Replace with a closing call to action", { size: "32px", color: "#ffffff", align: "center", font: SAAS.font }),
@@ -212,6 +234,7 @@ export function saasHomeTemplate(): PageContent {
     root: mk("section", { layout: "stack" }, { padding: "0", background: "#ffffff", gap: "0" }, [
       saasNav("Home"),
       hero,
+      productShot,
       logos,
       features,
       stats,

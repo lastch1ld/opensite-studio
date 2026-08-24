@@ -206,8 +206,13 @@ export function restaurantHomeTemplate(): PageContent {
     ]),
   ]);
   const heroImage = mk("imageOverlay", { src: "https://placehold.co/700x800", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 5", borderRadius: "20px", animation: "slide-left" });
-  const heroBg = `linear-gradient(160deg, ${RESTAURANT.forest} 0%, #12241C 100%)`;
-  const hero = bleed(heroBg, "100px 40px 90px", [mk("columns", { columns: "2" }, { gap: "48px", align: "center" }, [heroTextStack, heroImage])], "1100px", "0");
+  // Plain solid forest — `bleed()`/`section`'s `background` style key maps
+  // to CSS `background-color`, which cannot hold a gradient (a prior
+  // pass's gradient here never actually rendered, caught on
+  // re-inspection). No CSS-gradient depth needed regardless: this hero
+  // already carries a real photo via `heroImage` (imageOverlay) in the
+  // split layout below, which is where the visual interest should live.
+  const hero = bleed(RESTAURANT.forest, "100px 40px 90px", [mk("columns", { columns: "2" }, { gap: "48px", align: "center" }, [heroTextStack, heroImage])], "1100px", "0");
 
   // Organic wave divider (embed block, per blocks-and-theming.md's framing
   // of `embed` as the lightweight one-off-custom-thing block) — a torn/
@@ -257,7 +262,7 @@ export function restaurantHomeTemplate(): PageContent {
   const hoursLocation = bleed(RESTAURANT.forest, "72px 40px", [restaurantHoursLocation()], "800px", "0");
 
   const finalCta = bleed(
-    `linear-gradient(135deg, ${RESTAURANT.terracotta} 0%, #8A3418 100%)`,
+    RESTAURANT.terracotta,
     "72px 40px",
     [
       heading("Replace with a closing call to action", { size: "32px", color: "#ffffff", align: "center", font: RESTAURANT.fontDisplay }),

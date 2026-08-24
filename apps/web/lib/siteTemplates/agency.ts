@@ -141,15 +141,19 @@ function agencyWorkSwitcher(items: WorkItemSeed[]): Block {
 }
 
 export function agencyHomeTemplate(): PageContent {
-  // A hard-edged diagonal wedge of solid signal-orange cuts across the
-  // bottom-left corner — a graphic-poster device (flat color-block, sharp
-  // stop, no falloff), not a soft glow. Deliberately a different
-  // *mechanism* from SaaS's dot-grid+glow, not just a different hue on
-  // the same trick. No eyebrow label — the headline carries the statement
-  // (impeccable craft-floor).
-  const hero = bleed(
-    `linear-gradient(115deg, transparent 0%, transparent 62%, ${AGENCY.accent} 62.5%, ${AGENCY.accent} 64%, transparent 64.5%, transparent 100%), linear-gradient(160deg, ${AGENCY.ink} 0%, #050504 100%)`,
-    "120px 40px 100px",
+  // Real `hero` block with a real backgroundImage (a work-sample photo) —
+  // not a hand-rolled bleed() with a CSS gradient. `section`'s
+  // `background` style key maps to CSS `background-color`, which cannot
+  // hold a gradient or url() — a prior pass's diagonal-wedge gradient
+  // through `bleed()` never actually rendered, caught on re-inspection.
+  // `hero`'s own `backgroundImage` prop composites the photo with a
+  // built-in dark scrim for legible text — exactly what a portfolio-led
+  // studio's hero should show first. No eyebrow label (impeccable
+  // craft-floor: the heading carries the statement).
+  const hero = mk(
+    "hero",
+    { backgroundImage: "https://placehold.co/1800x1200/0A0A0A/FF4B12?text=" },
+    { background: AGENCY.ink, padding: "120px 40px 100px", contentWidth: "760px", align: "center", gap: "22px" },
     [
       heading("Replace with a bold statement of what this studio makes.", { size: "58px", color: "#F5F3EE", align: "center", level: "h1", font: AGENCY.font, animation: "slide-up" }),
       body("Replace with a supporting sentence naming who you work with and what kind of work you make for them.", { size: "18px", color: AGENCY.inkMuted, align: "center" }),
@@ -158,8 +162,6 @@ export function agencyHomeTemplate(): PageContent {
         cta("Start a project", { background: "transparent", color: "#F5F3EE", variant: "secondary" }),
       ]),
     ],
-    "760px",
-    "22px",
   );
 
   const logos = bleed(AGENCY.paper, "40px 40px", [body("Trusted by teams at", { size: "12px", weight: "700", color: AGENCY.textFaint, align: "center" }), agencyLogoMarquee()], "1100px", "20px");
@@ -219,7 +221,7 @@ export function agencyHomeTemplate(): PageContent {
   );
 
   const finalCta = bleed(
-    `linear-gradient(135deg, ${AGENCY.accent} 0%, #B8330C 100%)`,
+    AGENCY.accent,
     "72px 40px",
     [
       heading("Replace with a closing call to action", { size: "32px", color: "#ffffff", align: "center", font: AGENCY.font }),

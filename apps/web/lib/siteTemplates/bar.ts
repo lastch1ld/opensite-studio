@@ -162,18 +162,20 @@ function barDrinkGrid(drinks: DrinkSeed[]): Block {
 }
 
 export function barHomeTemplate(): PageContent {
-  // A neon squiggle — a blurred glow stroke plus a crisp core line, the
-  // classic two-pass neon-tube render, self-contained in one SVG filter
-  // (no runtime CSS filter needed). Deliberately a fourth distinct
-  // decorative mechanism (SaaS: dot-grid, Agency: hard-edged wedge,
-  // Restaurant: organic wave, Hotel: line-art arch) — a literal light
-  // source suits this genre's nightlife register uniquely.
-  const neonSquiggle =
-    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 120'%3E%3Cdefs%3E%3Cfilter id='g'%3E%3CfeGaussianBlur stdDeviation='4'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M10 70 Q60 20 110 70 T210 70 T310 70 T400 70' fill='none' stroke='%23CD9A4A' stroke-width='4' filter='url(%23g)' opacity='0.45'/%3E%3Cpath d='M10 70 Q60 20 110 70 T210 70 T310 70 T400 70' fill='none' stroke='%23F0C97A' stroke-width='1.5' opacity='0.8'/%3E%3C/svg%3E\") center top 30px / 480px 140px no-repeat";
-  const heroBg = `${neonSquiggle}, linear-gradient(165deg, ${BAR.ink} 0%, #2A130F 100%)`;
-  const hero = bleed(
-    heroBg,
-    "130px 40px 100px",
+  // Real `hero` block with a real backgroundImage (a room/atmosphere
+  // photo) — not a hand-rolled bleed() with a CSS neon-squiggle data-URI.
+  // `section`'s `background` style key maps to CSS `background-color`,
+  // which cannot hold a url() at all — a prior pass's neon-squiggle
+  // background-image trick through `bleed()` never actually rendered,
+  // caught on re-inspection. `hero`'s own `backgroundImage` prop
+  // composites the photo with a built-in dark scrim for legible text —
+  // a real room photo suits this genre's nightlife register better than
+  // any decorative SVG standing in for one. No eyebrow label (impeccable
+  // craft-floor) — "a cocktail bar" now reads through the copy itself.
+  const hero = mk(
+    "hero",
+    { backgroundImage: "https://placehold.co/1800x1200/110C09/CD9A4A?text=" },
+    { background: BAR.ink, padding: "130px 40px 100px", contentWidth: "760px", align: "center", gap: "22px" },
     [
       heading("Replace with your bar's core promise — the room, the drinks, the night.", { size: "56px", color: BAR.cream, align: "center", level: "h1", font: BAR.font, animation: "slide-up" }),
       body("Replace with a supporting sentence about the atmosphere and who this room is for.", { size: "18px", color: BAR.creamFaint, align: "center" }),
@@ -182,8 +184,6 @@ export function barHomeTemplate(): PageContent {
         cta("View the menu", { background: "transparent", color: BAR.cream, variant: "secondary" }),
       ]),
     ],
-    "760px",
-    "22px",
   );
 
   const pillars = bleed(
@@ -251,7 +251,7 @@ export function barHomeTemplate(): PageContent {
   const press = bleed(BAR.inkPanel, "40px 40px", [body("AS SEEN IN", { size: "12px", weight: "700", color: BAR.creamFaint, align: "center", font: BAR.labelFont }), barPressMarquee()], "1100px", "20px");
 
   const finalCta = bleed(
-    `linear-gradient(135deg, ${BAR.accent} 0%, #E8B968 100%)`,
+    BAR.accent,
     "72px 40px",
     [
       heading("Replace with a closing call to action", { size: "32px", color: BAR.ink, align: "center", font: BAR.font }),
