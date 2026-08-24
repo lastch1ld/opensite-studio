@@ -170,6 +170,25 @@ documented limitation that a plugin's block only renders on the public
 editor canvas yet, a Next.js bundling constraint rather than a gap in the
 loader itself.
 
+## Starter template port (starter-templates.md)
+
+Not one of the phases above — its own doc, picked up in two passes. `hero`
+and the SEO/GEO/newsletter items shipped independently, ahead of this doc
+being revisited; this closed the rest:
+
+- [x] `gallery`/`slider` block types ported from Aperture (`../blog-template`)
+- [x] Analytics adapters (Plausible/GA4/Umami) as an integrations.md subsection
+- [x] home/blogIndex/blogPost Page templates added to the "New Page" template picker
+
+See starter-templates.md's "Status" section for the deliberate simplifications
+(no lightbox, no scroll-snap/IntersectionObserver dot-sync, single action
+button not an array).
+
+Note: this pass added `SiteSettings.analytics` (`Json?`) — schema.prisma is
+updated and `prisma generate` succeeds; needs its own incremental `npx prisma
+migrate dev` migration per this doc's 2026-08-23 note above (the initial
+migration predates this column).
+
 ## Explicitly out of scope
 
 Ecommerce (product/cart/checkout, Wix Stores/WooCommerce-equivalent) and
