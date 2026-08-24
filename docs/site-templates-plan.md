@@ -36,7 +36,7 @@ the existing convention in `lib/pageTemplates.ts`.
 | Genre | Pages | Status |
 |---|---|---|
 | SaaS / tech product | Home, Features, Pricing, About, Contact | ✅ Done — `lib/siteTemplates.ts` |
-| Agency / creative services | Home, Work, Services, About, Contact | ⬜ Not started |
+| Agency / creative services | Home, Work, Services, About, Contact | 🔶 Built, not live-verified (no dev Postgres in this pass) — `lib/siteTemplates/agency.ts` |
 | Personal portfolio | Home, Work, About, Contact | ⬜ Not started |
 | Restaurant | Home, Menu, About, Contact/Reservations | ⬜ Not started |
 | Hotel | Home, Rooms, Amenities/Gallery, Contact/Book | ⬜ Not started |
@@ -121,7 +121,7 @@ booking/rooms system).
 ## Todo
 
 - [x] Phase A — SaaS template (5 pages, bulletproof + animated + shipped)
-- [ ] Phase B — Agency template
+- [x] Phase B — Agency template (5 pages code-complete, `tsc`/`build`/`eslint` clean; live editor/preview verification still outstanding — no dev Postgres in this pass)
 - [ ] Phase C — Personal portfolio template
 - [ ] Phase D — Restaurant template
 - [ ] Phase E — Hotel template

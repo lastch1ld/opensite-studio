@@ -1,5 +1,6 @@
 import type { PageContent } from "@/components/blocks/types";
 import { saasHomeTemplate, saasFeaturesTemplate, saasPricingTemplate, saasAboutTemplate, saasContactTemplate } from "./saas";
+import { agencyHomeTemplate, agencyWorkTemplate, agencyServicesTemplate, agencyAboutTemplate, agencyContactTemplate } from "./agency";
 
 // Dispatch — (templateId, slug) -> that page's real content. Slugs here
 // must match lib/siteTemplateOptions.ts's SITE_TEMPLATES exactly (that
@@ -21,6 +22,22 @@ export function siteTemplatePageContent(templateId: string, slug: string): PageC
         return saasAboutTemplate();
       case "contact":
         return saasContactTemplate();
+      default:
+        return null;
+    }
+  }
+  if (templateId === "agency") {
+    switch (slug) {
+      case "home":
+        return agencyHomeTemplate();
+      case "work":
+        return agencyWorkTemplate();
+      case "services":
+        return agencyServicesTemplate();
+      case "about":
+        return agencyAboutTemplate();
+      case "contact":
+        return agencyContactTemplate();
       default:
         return null;
     }

@@ -23,6 +23,18 @@ export const SITE_TEMPLATES: SiteTemplateOption[] = [
       { slug: "contact", title: "Contact", isHome: false },
     ],
   },
+  {
+    id: "agency",
+    name: "Agency / creative services",
+    description: "Home, Work, Services, About, Contact — high-contrast ink + signal-orange, Fraunces headings.",
+    pages: [
+      { slug: "home", title: "Home", isHome: true },
+      { slug: "work", title: "Work", isHome: false },
+      { slug: "services", title: "Services", isHome: false },
+      { slug: "about", title: "About", isHome: false },
+      { slug: "contact", title: "Contact", isHome: false },
+    ],
+  },
 ];
 
 export function siteTemplateOptionById(id: string): SiteTemplateOption | undefined {
