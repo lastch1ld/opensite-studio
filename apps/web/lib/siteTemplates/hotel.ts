@@ -88,18 +88,43 @@ function hotelPageHero(eyebrow: string, title: string, sub: string): Block {
   );
 }
 
-// Always dropped onto a dark HOTEL.ink band in this template (see the
-// checklist in docs/site-templates-plan.md — statCounter's default
-// valueColor is near-black and unreadable on a dark bleed() unless
-// overridden explicitly).
-function hotelStatRow(stats: { value: string; suffix: string; label: string }[]): Block {
+type RoomRateSeed = { name: string; rate: string; description: string };
+
+// Room type + nightly rate is the actual decision a hotel homepage visitor
+// is making — the original home page had no room/rate content at all,
+// jumping straight from a photo grid to a bare stat-counter row.
+function hotelRoomRateCard(r: RoomRateSeed): Block {
   return mk(
-    "columns",
-    { columns: String(stats.length) },
-    { gap: "24px", animation: "fade-in" },
-    stats.map((s) =>
-      mk("statCounter", { value: s.value, prefix: "", suffix: s.suffix, label: s.label }, { valueColor: "#F4F4F1", valueFontSize: "40px", labelColor: HOTEL.inkMuted, align: "center" }),
-    ),
+    "section",
+    { layout: "stack" },
+    { background: "#ffffff", padding: "0", borderRadius: "4px", gap: "0", align: "flex-start", borderColor: HOTEL.border, animation: "slide-up" },
+    [
+      mk("imageOverlay", { src: "https://placehold.co/600x450", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "4px 4px 0 0" }),
+      mk("section", { layout: "stack" }, { background: "transparent", padding: "20px", gap: "6px", align: "flex-start" }, [
+        mk("section", { layout: "row" }, { background: "transparent", padding: "0", justify: "space-between", align: "center" }, [
+          heading(r.name, { size: "18px", color: HOTEL.text, font: HOTEL.font }),
+          body(r.rate, { size: "15px", weight: "700", color: HOTEL.clay }),
+        ]),
+        body(r.description, { size: "14px", color: HOTEL.textFaint }),
+      ]),
+    ],
+  );
+}
+
+// A named guest review + rating is the trust signal a hotel booking
+// decision actually turns on — a bare stat-counter number (this genre's
+// original home page had "9.2" with no context beyond a "guest rating"
+// caption) reads as a dashboard widget, not hospitality proof.
+function hotelReview(quote: string, name: string, rating: string): Block {
+  return mk(
+    "section",
+    { layout: "stack" },
+    { background: "transparent", padding: "0", gap: "14px", align: "center" },
+    [
+      body(rating, { size: "15px", weight: "700", color: HOTEL.clay, align: "center" }),
+      heading(`“${quote}”`, { size: "26px", color: "#F4F4F1", align: "center", font: HOTEL.font, weight: "500" }),
+      body(name, { size: "14px", color: HOTEL.inkMuted, align: "center" }),
+    ],
   );
 }
 
@@ -156,6 +181,23 @@ export function hotelHomeTemplate(): PageContent {
     "16px",
   );
 
+  const roomTeaser = bleed(
+    HOTEL.paper,
+    "88px 40px",
+    [
+      heading("Rooms & rates", { size: "32px", color: HOTEL.text, align: "center", font: HOTEL.font }),
+      body("Replace with a sentence framing the categories below — see the full Rooms page for details.", { size: "16px", color: HOTEL.textFaint, align: "center" }),
+      mk("columns", { columns: "3" }, { gap: "24px" }, [
+        hotelRoomRateCard({ name: "Standard Room", rate: "Replace with a rate, e.g. from $180/night", description: "Replace with a description — size, view, bed configuration." }),
+        hotelRoomRateCard({ name: "Deluxe Room", rate: "Replace with a rate", description: "Replace with a description." }),
+        hotelRoomRateCard({ name: "Suite", rate: "Replace with a rate", description: "Replace with a description." }),
+      ]),
+      cta("View all rooms", { background: HOTEL.ink, color: "#ffffff" }),
+    ],
+    "1100px",
+    "24px",
+  );
+
   // "Explore tiles" grid — plan doc's nordic-stone reference. `list`
   // needs a bound Collection (no static-content fit for a page
   // template's baked-in draftContent); `gallery` renders image + caption
@@ -184,11 +226,7 @@ export function hotelHomeTemplate(): PageContent {
     "28px",
   );
 
-  const stats = bleed(HOTEL.ink, "72px 40px", [hotelStatRow([
-    { value: "1912", suffix: "", label: "Replace with a real founding year" },
-    { value: "42", suffix: "", label: "Replace with a real room count" },
-    { value: "9", suffix: ".2", label: "Replace with a real guest rating" },
-  ])], "1000px", "0");
+  const review = bleed(HOTEL.ink, "80px 40px", [hotelReview("Replace with a real guest review — one honest sentence about the stay.", "Replace with a name, or “Verified guest”", "★★★★★ Replace with a real average rating")], "700px", "0");
 
   const finalCta = bleed(
     HOTEL.clay,
@@ -205,12 +243,18 @@ export function hotelHomeTemplate(): PageContent {
 
   return {
     version: 1,
+    // Room/rate cards and a named guest review replaced a founding-year/
+    // room-count/rating stat-counter row (docs/site-templates-plan.md
+    // feedback: that read as a SaaS credibility widget reskinned onto a
+    // hotel, not the room-price and trust content a booking visitor
+    // actually needs — see hotelRoomRateCard/hotelReview above).
     root: mk("section", { layout: "stack" }, { padding: "0", background: HOTEL.paper, gap: "0" }, [
       hotelNav("Home"),
       hero,
       welcome,
+      roomTeaser,
       explore,
-      stats,
+      review,
       finalCta,
       hotelFooter(),
     ]),

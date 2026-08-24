@@ -202,12 +202,6 @@ export function agencyHomeTemplate(): PageContent {
     "16px",
   );
 
-  const stats = bleed(AGENCY.ink, "72px 40px", [agencyStatRow([
-    { value: "80", suffix: "+", label: "Replace with a real stat label" },
-    { value: "12", suffix: "", label: "Replace with a real stat label" },
-    { value: "9", suffix: "", label: "Replace with a real stat label" },
-  ])], "1000px", "0");
-
   const quote = bleed(
     AGENCY.paper,
     "88px 40px",
@@ -234,14 +228,19 @@ export function agencyHomeTemplate(): PageContent {
 
   return {
     version: 1,
+    // Work moved directly after the hero and the client quote moved up
+    // beside it — a creative studio sells on portfolio strength first
+    // (docs/reference-sites-research.md's Heretic/Métier entries both lead
+    // hard with work). Team/founding stats now live only on the About page
+    // — they read as generic B2B credibility furniture on a portfolio-led
+    // homepage, not what a prospective client is scanning for first.
     root: mk("section", { layout: "stack" }, { padding: "0", background: "#ffffff", gap: "0" }, [
       agencyNav("Home"),
       hero,
-      logos,
       featuredWork,
-      services,
-      stats,
       quote,
+      logos,
+      services,
       finalCta,
       agencyFooter(),
     ]),

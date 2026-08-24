@@ -126,6 +126,45 @@ function pillarCard(title: string, copy: string): Block {
   );
 }
 
+// A single guest quote reads as real hospitality social proof; a bare
+// stat-counter (this genre's original home page had one — 2015/40+/90%,
+// the last figure a unit-less number with no referent) is a B2B trust
+// device that doesn't belong on a restaurant homepage.
+function restaurantReview(quote: string, name: string): Block {
+  return mk(
+    "section",
+    { layout: "stack" },
+    { background: "transparent", padding: "0", gap: "14px", align: "center" },
+    [
+      heading(`“${quote}”`, { size: "26px", color: RESTAURANT.text, align: "center", font: RESTAURANT.fontDisplay, weight: "500" }),
+      body(name, { size: "14px", color: RESTAURANT.textFaint, align: "center", font: RESTAURANT.fontBody }),
+    ],
+  );
+}
+
+// Hours and location are the single most-needed piece of information on a
+// restaurant's homepage (the actual decision a walk-in/booking visitor is
+// making) — the original home page had neither, only buried in the
+// Contact-page sidebar.
+function restaurantHoursLocation(): Block {
+  return mk(
+    "columns",
+    { columns: "2" },
+    { gap: "48px", align: "flex-start" },
+    [
+      mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "10px", align: "flex-start" }, [
+        heading("Hours", { size: "20px", color: RESTAURANT.cream, font: RESTAURANT.fontDisplay }),
+        body("Replace with days and hours, e.g. Tue–Sun, 5:30pm–10pm.", { size: "15px", color: RESTAURANT.forestMuted, font: RESTAURANT.fontBody }),
+      ]),
+      mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "10px", align: "flex-start" }, [
+        heading("Find us", { size: "20px", color: RESTAURANT.cream, font: RESTAURANT.fontDisplay }),
+        body("Replace with a street address.", { size: "15px", color: RESTAURANT.forestMuted, font: RESTAURANT.fontBody }),
+        body("Replace with a phone number.", { size: "15px", color: RESTAURANT.forestMuted, font: RESTAURANT.fontBody }),
+      ]),
+    ],
+  );
+}
+
 function menuItemCard(name: string, price: string, desc: string, tag?: string): Block {
   const header = mk("columns", { columns: "2" }, { gap: "8px", align: "center" }, [
     body(name, { size: "17px", weight: "700", color: RESTAURANT.text, font: RESTAURANT.fontDisplay }),
@@ -193,26 +232,15 @@ export function restaurantHomeTemplate(): PageContent {
     "24px",
   );
 
-  const philosophy = bleed(
+  const review = bleed(
     RESTAURANT.paper,
-    "96px 40px",
-    [
-      heading("What we believe", { size: "32px", color: RESTAURANT.text, align: "center", font: RESTAURANT.fontDisplay }),
-      mk("columns", { columns: "3" }, { gap: "24px" }, [
-        pillarCard("Replace with pillar one", "Replace with a short paragraph — sourcing, seasonality, technique, whatever's true."),
-        pillarCard("Replace with pillar two", "Replace with a short paragraph."),
-        pillarCard("Replace with pillar three", "Replace with a short paragraph."),
-      ]),
-    ],
-    "1100px",
-    "24px",
+    "88px 40px",
+    [restaurantReview("Replace with a real guest review — one honest sentence about the food or the room.", "Replace with a name, or “Google review”")],
+    "700px",
+    "0",
   );
 
-  const stats = bleed(RESTAURANT.forest, "72px 40px", [restaurantStatRow([
-    { value: "2015", suffix: "", label: "Replace with a real stat label" },
-    { value: "40", suffix: "+", label: "Replace with a real stat label" },
-    { value: "90", suffix: "%", label: "Replace with a real stat label" },
-  ])], "1000px", "0");
+  const hoursLocation = bleed(RESTAURANT.forest, "72px 40px", [restaurantHoursLocation()], "800px", "0");
 
   const finalCta = bleed(
     RESTAURANT.terracotta,
@@ -229,7 +257,12 @@ export function restaurantHomeTemplate(): PageContent {
 
   return {
     version: 1,
-    root: mk("section", { layout: "stack" }, { padding: "0", background: RESTAURANT.cream, gap: "0" }, [restaurantNav("Home"), hero, signature, philosophy, stats, finalCta, restaurantFooter()]),
+    // Philosophy pillars stay unique to the About page (docs/site-templates-plan.md
+    // feedback: a stat-counter row and a mission-statement pillar grid both read
+    // as generic B2B homepage furniture here — a walk-in/booking visitor's
+    // actual questions are "is the food good" (signature dishes, a real guest
+    // review) and "when/where" (hours & location), not company stats.
+    root: mk("section", { layout: "stack" }, { padding: "0", background: RESTAURANT.cream, gap: "0" }, [restaurantNav("Home"), hero, signature, review, hoursLocation, finalCta, restaurantFooter()]),
   };
 }
 

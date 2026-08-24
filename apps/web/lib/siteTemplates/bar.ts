@@ -88,21 +88,6 @@ function barPageHero(eyebrow: string, title: string, sub: string): Block {
   );
 }
 
-// Dropped onto a dark BAR.ink/inkPanel band in every caller below — the
-// default statCounter valueColor is near-black and invisible there, so
-// this always sets explicit light-on-dark colors (docs/site-templates-plan.md's
-// checklist item 1).
-function barStatRow(stats: { value: string; suffix: string; label: string }[]): Block {
-  return mk(
-    "columns",
-    { columns: String(stats.length) },
-    { gap: "24px", animation: "fade-in" },
-    stats.map((s) =>
-      mk("statCounter", { value: s.value, prefix: "", suffix: s.suffix, label: s.label }, { valueColor: BAR.accent, valueFontSize: "40px", labelColor: BAR.creamFaint, align: "center" }),
-    ),
-  );
-}
-
 function barPressMarquee(): Block {
   const names = ["Publication A", "Publication B", "Publication C", "Publication D", "Publication E"];
   return mk(
@@ -110,6 +95,47 @@ function barPressMarquee(): Block {
     { speed: "26", direction: "left", pauseOnHover: "true" },
     { gap: "56px" },
     names.map((n) => body(n, { size: "16px", weight: "600", color: BAR.creamFaint, font: BAR.labelFont })),
+  );
+}
+
+// "What's on tonight" is the actual reason a bar homepage visitor is
+// there — a founding-year/drink-count/nights-open stat-counter row (the
+// original home page's choice) is a SaaS credibility widget, not what a
+// nightlife visitor is scanning for.
+function barEventSpotlight(date: string, title: string, blurb: string): Block {
+  return mk(
+    "columns",
+    { columns: "2" },
+    { gap: "40px", align: "center" },
+    [
+      mk("imageOverlay", { src: "https://placehold.co/700x500", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0.1", aspectRatio: "4 / 3", borderRadius: "4px", animation: "slide-right" }),
+      mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "12px", align: "flex-start", animation: "slide-left" }, [
+        body(date, { size: "13px", weight: "700", color: BAR.accent, font: BAR.labelFont }),
+        heading(title, { size: "28px", color: BAR.cream, font: BAR.font }),
+        body(blurb, { size: "15px", color: BAR.creamFaint }),
+        cta("See all events", { background: BAR.accent, color: BAR.ink }),
+      ]),
+    ],
+  );
+}
+
+// Hours and location are the missing practical information a bar
+// homepage needs — the original had neither.
+function barHoursLocation(): Block {
+  return mk(
+    "columns",
+    { columns: "2" },
+    { gap: "48px", align: "flex-start" },
+    [
+      mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "10px", align: "flex-start" }, [
+        heading("Hours", { size: "18px", color: BAR.cream, font: BAR.font }),
+        body("Replace with days and hours, e.g. Wed–Sat, 6pm–2am.", { size: "15px", color: BAR.creamFaint }),
+      ]),
+      mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "10px", align: "flex-start" }, [
+        heading("Find us", { size: "18px", color: BAR.cream, font: BAR.font }),
+        body("Replace with a street address.", { size: "15px", color: BAR.creamFaint }),
+      ]),
+    ],
   );
 }
 
@@ -191,11 +217,15 @@ export function barHomeTemplate(): PageContent {
     "24px",
   );
 
-  const stats = bleed(BAR.inkPanel, "72px 40px", [barStatRow([
-    { value: "2016", suffix: "", label: "Open since" },
-    { value: "40", suffix: "+", label: "Replace with a real stat label" },
-    { value: "6", suffix: "", label: "Nights a week" },
-  ])], "1000px", "0");
+  const eventSpotlight = bleed(
+    BAR.inkPanel,
+    "88px 40px",
+    [barEventSpotlight("Replace with a date", "Replace with tonight/this week's event name", "Replace with a one-line description of what's happening.")],
+    "1000px",
+    "0",
+  );
+
+  const hoursLocation = bleed(BAR.ink, "64px 40px", [barHoursLocation()], "800px", "0");
 
   const menuTeaser = bleed(
     BAR.ink,
@@ -226,14 +256,19 @@ export function barHomeTemplate(): PageContent {
 
   return {
     version: 1,
+    // An event spotlight and hours/location replaced a founding-year/
+    // drink-count/nights-open stat-counter row (docs/site-templates-plan.md
+    // feedback: that read as generic SaaS credibility furniture, not what
+    // a nightlife visitor is actually scanning a bar's homepage for).
     root: mk("section", { layout: "stack" }, { padding: "0", background: BAR.ink, gap: "0" }, [
       barNav("HOME"),
       hero,
       pillars,
       ambience,
-      stats,
+      eventSpotlight,
       menuTeaser,
       press,
+      hoursLocation,
       finalCta,
       barFooter(),
     ]),
