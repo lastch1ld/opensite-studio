@@ -40,7 +40,7 @@ the existing convention in `lib/pageTemplates.ts`.
 | Personal portfolio | Home, Work, About, Contact | 🔶 Built, not live-verified (no dev Postgres in this pass) — `lib/siteTemplates/portfolio.ts` |
 | Restaurant | Home, Menu, About, Contact/Reservations | 🔶 Built, not live-verified (no dev Postgres in this pass) — `lib/siteTemplates/restaurant.ts` |
 | Hotel | Home, Rooms, Amenities/Gallery, Contact/Book | 🔶 Built, not live-verified (no dev Postgres in this pass) — `lib/siteTemplates/hotel.ts` |
-| Bar | Home, Menu (drinks), Events, Contact | ⬜ Not started |
+| Bar | Home, Menu (drinks), Events, Contact | 🔶 Built, not live-verified (no dev Postgres in this pass) — `lib/siteTemplates/bar.ts` |
 
 Restaurant/Hotel/Bar were originally one "local business/hospitality"
 bucket — split into three separate templates per direct request, since a
@@ -131,7 +131,7 @@ booking/rooms system).
 - [ ] Phase C — Personal portfolio template (code built and tsc/eslint/build-clean — `lib/siteTemplates/portfolio.ts` — left unchecked because no dev Postgres was available in this pass, so it hasn't cleared the "bulletproof" live-browser bar Phase A's checked box implies)
 - [ ] Phase D — Restaurant template (code-complete — `lib/siteTemplates/restaurant.ts`, dispatcher + catalog wired — left unchecked: not live-verified in editor/preview, no dev Postgres in this pass)
 - [ ] Phase E — Hotel template (code-complete — `lib/siteTemplates/hotel.ts`, dispatcher + catalog wired — left unchecked: not live-verified in editor/preview, no dev Postgres in this pass)
-- [ ] Phase F — Bar template
+- [ ] Phase F — Bar template (code-complete — `lib/siteTemplates/bar.ts`, dispatcher + catalog wired — but left unchecked: not live-verified in editor/preview, no dev Postgres available in this pass)
 - [ ] Phase G — Editor-canvas background-bleed bugfix
 - [ ] Phase H — Final animation/image/quality pass across all 6 genres
 - [ ] Commit + push after each phase (matches this session's established cadence — never batch multiple genres into one commit)

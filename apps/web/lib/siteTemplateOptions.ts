@@ -68,6 +68,17 @@ export const SITE_TEMPLATES: SiteTemplateOption[] = [
       { slug: "contact", title: "Contact & Book", isHome: false },
     ],
   },
+  {
+    id: "bar",
+    name: "Bar",
+    description: "Home, Menu, Events, Contact — near-black warm palette, amber accent, Instrument Serif headlines.",
+    pages: [
+      { slug: "home", title: "Home", isHome: true },
+      { slug: "menu", title: "Menu", isHome: false },
+      { slug: "events", title: "Events", isHome: false },
+      { slug: "contact", title: "Contact", isHome: false },
+    ],
+  },
 ];
 
 export function siteTemplateOptionById(id: string): SiteTemplateOption | undefined {

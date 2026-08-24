@@ -4,6 +4,7 @@ import { agencyHomeTemplate, agencyWorkTemplate, agencyServicesTemplate, agencyA
 import { portfolioHomeTemplate, portfolioWorkTemplate, portfolioAboutTemplate, portfolioContactTemplate } from "./portfolio";
 import { hotelHomeTemplate, hotelRoomsTemplate, hotelAmenitiesTemplate, hotelContactTemplate } from "./hotel";
 import { restaurantHomeTemplate, restaurantMenuTemplate, restaurantAboutTemplate, restaurantContactTemplate } from "./restaurant";
+import { barHomeTemplate, barMenuTemplate, barEventsTemplate, barContactTemplate } from "./bar";
 
 // Dispatch — (templateId, slug) -> that page's real content. Slugs here
 // must match lib/siteTemplateOptions.ts's SITE_TEMPLATES exactly (that
@@ -83,6 +84,20 @@ export function siteTemplatePageContent(templateId: string, slug: string): PageC
         return restaurantAboutTemplate();
       case "contact":
         return restaurantContactTemplate();
+      default:
+        return null;
+    }
+  }
+  if (templateId === "bar") {
+    switch (slug) {
+      case "home":
+        return barHomeTemplate();
+      case "menu":
+        return barMenuTemplate();
+      case "events":
+        return barEventsTemplate();
+      case "contact":
+        return barContactTemplate();
       default:
         return null;
     }
