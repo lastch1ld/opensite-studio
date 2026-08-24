@@ -1,6 +1,6 @@
 import type { Block, PageContent } from "@/components/blocks/types";
 import { randomUUID } from "crypto";
-import { mk, heading, body, cta, bleed } from "./_shared";
+import { mk, heading, body, cta, bleed, badge } from "./_shared";
 
 // Bar / nightlife genre — docs/site-templates-plan.md Phase F.
 // Palette: near-black warm brown (not SaaS's blue-black ink) + a single
@@ -177,7 +177,11 @@ export function barHomeTemplate(): PageContent {
     { backgroundImage: "https://placehold.co/1800x1200/110C09/CD9A4A?text=" },
     { background: BAR.ink, padding: "130px 40px 100px", contentWidth: "760px", align: "center", gap: "22px", backgroundTexture: "grain" },
     [
-      heading("Replace with your bar's core promise — the room, the drinks, the night.", { size: "56px", color: BAR.cream, align: "center", level: "h1", font: BAR.font, animation: "slide-up" }),
+      mk("section", { layout: "row" }, { background: "transparent", padding: "0", gap: "10px", justify: "center" }, [
+        badge("★ 4.8 · 300+ reviews", { tone: "warning" }),
+        badge("Open since 2016", { tone: "neutral" }),
+      ]),
+      heading("Replace with your bar's core promise — the room, the drinks, the night.", { size: "62px", color: BAR.cream, align: "center", level: "h1", font: BAR.font, animation: "slide-up" }),
       body("Replace with a supporting sentence about the atmosphere and who this room is for.", { size: "18px", color: BAR.creamFaint, align: "center" }),
       mk("section", { layout: "row" }, { background: "transparent", padding: "0", gap: "12px", justify: "center", animation: "fade-in" }, [
         cta("Reserve a table", { background: BAR.accent, color: BAR.ink }),

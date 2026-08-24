@@ -1,6 +1,6 @@
 import type { Block, PageContent } from "@/components/blocks/types";
 import { randomUUID } from "crypto";
-import { mk, heading, body, cta, bleed } from "./_shared";
+import { mk, heading, body, cta, bleed, badge } from "./_shared";
 
 // Hotel genre — docs/site-templates-plan.md Phase E. Structural reference
 // is the plan doc's own description of tourism-wix-generator's
@@ -156,7 +156,11 @@ export function hotelHomeTemplate(): PageContent {
         { gap: "56px", align: "center" },
         [
           mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "18px", animation: "slide-right" }, [
-            heading("Replace with your hotel's core promise — quiet, place, comfort.", { size: "48px", color: HOTEL.text, level: "h1", font: HOTEL.font }),
+            mk("section", { layout: "row" }, { background: "transparent", padding: "0", gap: "10px" }, [
+              badge("★ 4.9 guest rating", { tone: "warning" }),
+              badge("Est. 1912", { tone: "neutral" }),
+            ]),
+            heading("Replace with your hotel's core promise — quiet, place, comfort.", { size: "56px", color: HOTEL.text, level: "h1", font: HOTEL.font }),
             body("Replace with a sentence about the setting and the feeling of staying here.", { size: "17px", color: HOTEL.textFaint }),
             mk("section", { layout: "row" }, { background: "transparent", padding: "0", gap: "12px" }, [
               cta("Check availability", { background: HOTEL.ink, color: "#ffffff" }),

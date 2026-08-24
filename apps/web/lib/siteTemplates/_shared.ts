@@ -40,6 +40,32 @@ export function body(text: string, opts: { size?: string; color: string; align?:
   );
 }
 
+/**
+ * A real pill/trust badge — `text` block's own `displayAs: "badge"` mode
+ * (verified in registry.tsx: renders as an inline-block pill using one of
+ * four fixed `BADGE_TONES`, not an arbitrary color — "neutral" is the
+ * generic choice that works on any background). Matches the rating/
+ * credential/availability pill pattern real reference sites (Plumbzo,
+ * Flow's Plumbing, Kora) use for trust signals — a badge earns its place
+ * here because it states a fact (a rating, a license, an availability
+ * window), unlike a purely decorative eyebrow label.
+ */
+export function badge(text: string, opts: { tone?: "neutral" | "success" | "warning" | "danger"; offsetX?: string; offsetY?: string; zIndex?: string } = {}): Block {
+  return mk(
+    "text",
+    { content: text },
+    {
+      displayAs: "badge",
+      badgeTone: opts.tone ?? "neutral",
+      fontSize: "13px",
+      fontWeight: "600",
+      ...(opts.offsetX ? { offsetX: opts.offsetX } : {}),
+      ...(opts.offsetY ? { offsetY: opts.offsetY } : {}),
+      ...(opts.zIndex ? { zIndex: opts.zIndex } : {}),
+    },
+  );
+}
+
 export function cta(label: string, opts: { background: string; color: string; variant?: string }): Block {
   return mk(
     "button",

@@ -1,6 +1,6 @@
 import type { Block, PageContent } from "@/components/blocks/types";
 import { randomUUID } from "crypto";
-import { mk, heading, body, cta, bleed } from "./_shared";
+import { mk, heading, body, cta, bleed, badge } from "./_shared";
 
 // SaaS / tech product genre — docs/site-templates-plan.md Phase A.
 // Palette: near-black ink + one vivid indigo accent on a warm-white body —
@@ -143,7 +143,8 @@ export function saasHomeTemplate(): PageContent {
     { backgroundImage: "https://placehold.co/1800x1200/1a1a2e/6D5EF5?text=" },
     { background: SAAS.ink, padding: "130px 40px 110px", contentWidth: "740px", align: "center", gap: "22px", backgroundTexture: "grain" },
     [
-      heading("Replace with your product's core value proposition.", { size: "56px", color: "#F4F4F5", align: "center", level: "h1", font: SAAS.font, animation: "slide-up" }),
+      badge("NEW · Replace with a feature announcement", { tone: "success" }),
+      heading("Replace with your product's core value proposition.", { size: "60px", color: "#F4F4F5", align: "center", level: "h1", font: SAAS.font, animation: "slide-up" }),
       body("Replace with a supporting sentence that explains who this is for and what changes once they use it.", { size: "18px", color: SAAS.inkMuted, align: "center" }),
       mk("section", { layout: "row" }, { background: "transparent", padding: "0", gap: "12px", justify: "center", animation: "fade-in" }, [
         cta("Start free trial", { background: SAAS.accent, color: "#ffffff" }),

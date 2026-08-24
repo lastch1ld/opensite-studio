@@ -1,6 +1,6 @@
 import type { Block, PageContent } from "@/components/blocks/types";
 import { randomUUID } from "crypto";
-import { mk, heading, body, cta, bleed } from "./_shared";
+import { mk, heading, body, cta, bleed, badge } from "./_shared";
 
 // Agency / creative services genre — docs/site-templates-plan.md Phase B.
 // Palette: near-black ink + one loud signal-orange accent on a warm
@@ -155,7 +155,8 @@ export function agencyHomeTemplate(): PageContent {
     { backgroundImage: "https://placehold.co/1800x1200/0A0A0A/FF4B12?text=" },
     { background: AGENCY.ink, padding: "120px 40px 100px", contentWidth: "760px", align: "center", gap: "22px", backgroundTexture: "grain" },
     [
-      heading("Replace with a bold statement of what this studio makes.", { size: "58px", color: "#F5F3EE", align: "center", level: "h1", font: AGENCY.font, animation: "slide-up" }),
+      badge("Available for new projects", { tone: "success" }),
+      heading("Replace with a bold statement of what this studio makes.", { size: "64px", color: "#F5F3EE", align: "center", level: "h1", font: AGENCY.font, animation: "slide-up" }),
       body("Replace with a supporting sentence naming who you work with and what kind of work you make for them.", { size: "18px", color: AGENCY.inkMuted, align: "center" }),
       mk("section", { layout: "row" }, { background: "transparent", padding: "0", gap: "12px", justify: "center", animation: "fade-in" }, [
         cta("See our work", { background: AGENCY.accent, color: "#ffffff" }),

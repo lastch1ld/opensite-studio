@@ -1,6 +1,6 @@
 import type { Block, PageContent } from "@/components/blocks/types";
 import { randomUUID } from "crypto";
-import { mk, heading, body, cta, bleed } from "./_shared";
+import { mk, heading, body, cta, bleed, badge } from "./_shared";
 
 // Restaurant genre — docs/site-templates-plan.md Phase D.
 // Palette: deep forest green (dark band + hero, the "vintage seal" register
@@ -197,8 +197,18 @@ function menuCategory(title: string, items: Block[], background: string = RESTAU
 }
 
 export function restaurantHomeTemplate(): PageContent {
-  const heroTextStack = mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "16px", align: "flex-start", animation: "slide-right" }, [
-    heading("Replace with your restaurant's core promise — what people walk in for.", { size: "46px", color: RESTAURANT.cream, level: "h1", font: RESTAURANT.fontDisplay }),
+  // A real trust-badge row (rating + a credibility fact), not a
+  // decorative eyebrow — matches the pattern real local-business
+  // reference sites (Flow's Plumbing, Plumbzo) lead with: a visitor
+  // deciding whether to book wants proof before the headline finishes
+  // loading. Bigger headline (58px, up from 46px) closes more of the gap
+  // to real reference type scale.
+  const heroTextStack = mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "18px", align: "flex-start", animation: "slide-right" }, [
+    mk("section", { layout: "row" }, { background: "transparent", padding: "0", gap: "10px" }, [
+      badge("★ 4.8 · 300+ reviews", { tone: "warning" }),
+      badge("Family-owned since 2015", { tone: "neutral" }),
+    ]),
+    heading("Replace with your restaurant's core promise — what people walk in for.", { size: "58px", color: RESTAURANT.cream, level: "h1", font: RESTAURANT.fontDisplay }),
     body("Replace with a sentence about the food, the room, or the neighborhood — what makes this the kind of place someone comes back to.", { size: "17px", color: RESTAURANT.forestMuted, font: RESTAURANT.fontBody }),
     mk("section", { layout: "row" }, { background: "transparent", padding: "0", gap: "12px" }, [
       cta("View menu", { background: RESTAURANT.terracotta, color: "#ffffff" }),

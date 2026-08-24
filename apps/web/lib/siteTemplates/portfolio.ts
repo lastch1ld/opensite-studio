@@ -1,6 +1,6 @@
 import type { Block, PageContent } from "@/components/blocks/types";
 import { randomUUID } from "crypto";
-import { mk, heading, body, cta, bleed } from "./_shared";
+import { mk, heading, body, cta, bleed, badge } from "./_shared";
 
 // Personal portfolio genre — docs/site-templates-plan.md Phase C.
 // Palette: warm off-white paper + near-black charcoal ink + one restrained
@@ -136,6 +136,10 @@ export function portfolioHomeTemplate(): PageContent {
         cta("View work", { background: PORTFOLIO.accent, color: "#ffffff" }),
         cta("Get in touch", { background: "transparent", color: PORTFOLIO.text, variant: "secondary" }),
       ]),
+      // A small status indicator, not a loud badge — fits the restrained
+      // register (matches the "available for work" dot-plus-label pattern
+      // real minimal portfolios lead with, e.g. a status line under the name).
+      badge("● Available for new projects", { tone: "success" }),
     ],
     "980px",
     "26px",
