@@ -174,6 +174,36 @@ Phase B confirms the pattern generalizes (building it after Phase A
 alone risks baking in something SaaS-specific that doesn't fit
 Hotel/Restaurant's different page shapes).
 
+## Bug found and fixed after Phases B–F: reskinned SaaS structure, not genre-logical content
+
+Every genre's home page (Agency/Portfolio/Restaurant/Hotel/Bar) had copied
+`saas.ts`'s section *sequence* — hero → logos/pillars → content grid →
+statCounter row → CTA — not just its `mk`/`heading`/`body`/`cta`/`bleed`
+helper conventions. Palette/type/copy were genuinely distinct per genre
+(the "bulletproof"/"pretty" bars above were met), but the page *structure*
+wasn't: a restaurant showing a statCounter row with values like "90%" (of
+what?), a bar showing "40+" with no referent, neither business's home page
+mentioning hours or location at all. Direct feedback: "they look all too
+similar with the same Components... not logical." Fixed (commit
+`95792d8`) by replacing the generic stat row per genre with what that
+business's homepage visitor actually needs:
+
+- Restaurant: stat row → a real guest review + hours & location
+- Hotel: stat row → room/rate teaser cards + a named guest review+rating
+- Bar: stat row → an upcoming-event spotlight + hours & location
+- Agency: team/founding stats moved to About-only; work moved directly
+  after the hero with the client quote beside it (portfolio-first, matches
+  the Heretic/Métier references this genre was already built from)
+
+SaaS and Portfolio weren't touched — their existing structure already
+fits their genre (SaaS legitimately uses logos/stats/pricing; a freelance
+portfolio legitimately uses a small stat row of years/projects). **Apply
+this lesson to any future genre**: don't just reference a different mood
+site and reuse `saas.ts` as a structural template — work out what that
+business's own homepage visitor is actually deciding (book a table? check
+a rate? see if the studio's work is good?) and build the section list from
+that, before reaching for `saas.ts`'s section shapes.
+
 ## Notes from later review (not yet scoped into phases above)
 
 - **Multiselect delete should extend beyond Collections.** Shipped for
