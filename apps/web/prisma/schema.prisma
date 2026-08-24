@@ -198,6 +198,11 @@ model SiteSettings {
   // references a Media row (the uploaded file itself); this array is just
   // the site-scoped "which uploads are registered as a font" index.
   customFonts  Json?
+  // docs/starter-templates.md's Aperture port: Plausible/GA4/Umami adapter
+  // config — see AnalyticsSettings in lib/siteSettings.ts. Same
+  // shared-plumbing pattern as the other integration Json fields above
+  // rather than a new table.
+  analytics    Json?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

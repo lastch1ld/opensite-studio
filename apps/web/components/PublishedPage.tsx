@@ -8,12 +8,15 @@ import { PopupHost, type PopupSpec } from "@/components/PopupHost";
 import { defaultPopupSettings, type PopupSettings } from "@/lib/popupTrigger";
 import { CookieBanner } from "@/components/CookieBanner";
 import { ChatbotEmbed } from "@/components/ChatbotEmbed";
+import { AnalyticsScripts } from "@/components/AnalyticsScripts";
 import { CustomFontStyles } from "@/components/CustomFontStyles";
 import {
   defaultCookieBannerSettings,
   defaultChatbotEmbedSettings,
+  defaultAnalyticsSettings,
   type CookieBannerSettings,
   type ChatbotEmbedSettings,
+  type AnalyticsSettings,
   type CustomFont,
 } from "@/lib/siteSettings";
 
@@ -29,6 +32,7 @@ export function PublishedPage({
   renderContext,
   cookieBannerSettings = null,
   chatbotEmbedSettings = null,
+  analyticsSettings = null,
   customFonts = [],
 }: {
   content: PageContent | null;
@@ -37,6 +41,7 @@ export function PublishedPage({
   renderContext?: RenderContext;
   cookieBannerSettings?: CookieBannerSettings | null;
   chatbotEmbedSettings?: ChatbotEmbedSettings | null;
+  analyticsSettings?: AnalyticsSettings | null;
   customFonts?: CustomFont[];
 }) {
   const ctx: RenderContext = renderContext ?? { device: "desktop" };
@@ -92,6 +97,7 @@ export function PublishedPage({
       <PopupHost popups={popups} theme={theme} renderContext={ctx} />
       <CookieBanner settings={resolvedCookieBanner} />
       <ChatbotEmbed settings={chatbotEmbedSettings ?? defaultChatbotEmbedSettings()} cookieBannerSettings={resolvedCookieBanner} />
+      <AnalyticsScripts settings={analyticsSettings ?? defaultAnalyticsSettings()} cookieBannerSettings={resolvedCookieBanner} />
     </>
   );
 }

@@ -81,6 +81,27 @@ site's content.
   feature (needs its own content-indexing pipeline) — worth a dedicated
   future doc if pursued, not bundled into this generic embed mechanism.
 
+## Analytics `[x]`
+
+docs/starter-templates.md's Aperture port of its Plausible/GA4/Umami
+adapters. Site-level settings (`SiteSettings.analytics`,
+`AnalyticsSettings` in `lib/siteSettings.ts`), same shared-plumbing store
+as every other integration on this page, not hardcoded or a new table:
+
+- One `enabled` flag plus a `provider` select (`none`/`plausible`/`ga4`/
+  `umami`) — only the fields the selected provider needs are shown/read
+  (Plausible: site domain; GA4: measurement ID; Umami: website ID + script
+  URL).
+- Injected on public pages only via `components/AnalyticsScripts.tsx`,
+  mounted from `PublishedPage.tsx` alongside `ChatbotEmbed`/
+  `CookieBanner` — gated by the "analytics" cookie-consent category
+  (mirrors `ChatbotEmbed`'s "marketing"-gated pattern exactly), loading
+  unconditionally only when the cookie banner itself is off.
+- Configured from the dashboard's site Settings page
+  (`components/dashboard/SiteSettingsPanel.tsx`'s "Analytics" section),
+  same PUT `/api/sites/[siteId]/settings` endpoint as cookie
+  banner/newsletter/chatbot settings.
+
 ## Shared plumbing this implies
 
 All of the above funnel through two extension points that should exist

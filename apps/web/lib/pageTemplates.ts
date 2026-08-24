@@ -1,4 +1,4 @@
-import type { Block, PageContent } from "@/components/blocks/types";
+import type { Block, BlockImage, PageContent } from "@/components/blocks/types";
 import { emptyPageContent } from "@/lib/pageContent";
 import { randomUUID } from "crypto";
 export { PAGE_TEMPLATES, type PageTemplateOption } from "@/lib/pageTemplateOptions";
@@ -171,7 +171,127 @@ export function landingPageTemplateContent(): PageContent {
   };
 }
 
+// docs/starter-templates.md's Aperture port: the source's Hero/Gallery
+// blog-index/post layout, ported to block-tree JSON and built from
+// existing block types (`hero`'s own composable children, the new
+// `gallery` block, `heading`/`text`/`list`) rather than a bespoke
+// MDX-driven page shape. Follows the same `mk`/`heading`/`body`/`bleed`
+// composition helpers as landingPageTemplateContent above.
+function galleryImage(src: string, alt: string): BlockImage {
+  return { id: randomUUID(), src, alt };
+}
+
+export function homeTemplateContent(): PageContent {
+  const hero = mk(
+    "hero",
+    { backgroundImage: "" },
+    { background: INK, padding: "112px 24px", contentWidth: "700px", align: "center", gap: "20px" },
+    [
+      mk("text", { content: "WELCOME" }, { fontSize: "13px", fontWeight: "700", color: AMBER, textAlign: "center" }),
+      mk("heading", { text: "A home page ready to make your own", level: "h1" }, { fontSize: "48px", fontWeight: "700", color: "#F8FAFC", textAlign: "center" }),
+      mk("text", { content: "Swap this copy, the gallery images below, and the section colors — everything here is a normal, editable block." }, {
+        fontSize: "17px",
+        color: INK_MUTED,
+        textAlign: "center",
+      }),
+      mk("button", { label: "Get started", href: "#", variant: "primary" }, { padding: "14px 28px", borderRadius: "8px", fontSize: "16px", fontWeight: "600", background: AMBER, color: INK }),
+    ],
+  );
+
+  const gallery = bleed(
+    "#ffffff",
+    "80px 24px",
+    [
+      heading("A glimpse of what you can build", { size: "32px", align: "center" }),
+      mk(
+        "gallery",
+        {
+          images: [
+            galleryImage("https://placehold.co/800x600", "Placeholder image one"),
+            galleryImage("https://placehold.co/800x600", "Placeholder image two"),
+            galleryImage("https://placehold.co/800x600", "Placeholder image three"),
+          ],
+          columns: "3",
+        },
+        { gap: "16px" },
+      ),
+    ],
+    "1000px",
+    "32px",
+  );
+
+  return {
+    version: 1,
+    root: mk("section", { layout: "stack" }, { padding: "0", background: "#ffffff", gap: "0" }, [hero, gallery]),
+  };
+}
+
+export function blogIndexTemplateContent(): PageContent {
+  const header = bleed(
+    PAPER,
+    "64px 24px 40px",
+    [heading("The blog", { size: "40px", align: "center" }), body("Latest posts — bind this page to a Collection to make the list below dynamic.", { align: "center" })],
+    "700px",
+    "12px",
+  );
+
+  const listSection = bleed(
+    "#ffffff",
+    "40px 24px 96px",
+    [mk("list", { collectionId: "", filterField: "", filterValue: "", filterTagField: "", sortField: "", sortDir: "desc", limit: "10", columns: "3" }, { gap: "24px" })],
+    "1100px",
+    "0",
+  );
+
+  return {
+    version: 1,
+    root: mk("section", { layout: "stack" }, { padding: "0", background: "#ffffff", gap: "0" }, [header, listSection]),
+  };
+}
+
+export function blogPostTemplateContent(): PageContent {
+  const hero = mk(
+    "hero",
+    { backgroundImage: "" },
+    { background: INK, padding: "80px 24px", contentWidth: "700px", align: "center", gap: "16px" },
+    [
+      mk("text", { content: "CATEGORY" }, { fontSize: "13px", fontWeight: "700", color: AMBER, textAlign: "center" }),
+      mk("heading", { text: "Your post title here", level: "h1" }, { fontSize: "40px", fontWeight: "700", color: "#F8FAFC", textAlign: "center" }),
+      mk("text", { content: "A one-line summary or subtitle for this post." }, { fontSize: "17px", color: INK_MUTED, textAlign: "center" }),
+    ],
+  );
+
+  const articleBody = bleed(
+    "#ffffff",
+    "64px 24px",
+    [
+      body(
+        "Replace this with your post's body copy. Add more text blocks, images, or a gallery below as needed — this is a regular block tree, not locked MDX.",
+        { size: "18px" },
+      ),
+      mk(
+        "gallery",
+        {
+          images: [galleryImage("https://placehold.co/800x600", "Post image one"), galleryImage("https://placehold.co/800x600", "Post image two")],
+          columns: "2",
+        },
+        { gap: "16px" },
+      ),
+    ],
+    "760px",
+    "24px",
+  );
+
+  return {
+    version: 1,
+    root: mk("section", { layout: "stack" }, { padding: "0", background: "#ffffff", gap: "0" }, [hero, articleBody]),
+  };
+}
+
 export function pageContentForTemplate(templateId: string): PageContent {
   if (templateId === "landing") return landingPageTemplateContent();
+  if (templateId === "home") return homeTemplateContent();
+  if (templateId === "blogIndex") return blogIndexTemplateContent();
+  if (templateId === "blogPost") return blogPostTemplateContent();
   return emptyPageContent();
 }

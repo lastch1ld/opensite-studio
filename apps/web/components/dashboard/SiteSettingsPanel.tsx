@@ -7,6 +7,8 @@ import {
   type AiCrawlerSettings,
   type AiChatSettingsPublic,
   type AiProvider,
+  type AnalyticsProvider,
+  type AnalyticsSettings,
   type ChatbotEmbedSettings,
   type ChatbotProvider,
   type CookieBannerSettings,
@@ -20,6 +22,12 @@ const CHATBOT_PROVIDERS: { value: ChatbotProvider; label: string }[] = [
   { value: "intercom", label: "Intercom" },
   { value: "crisp", label: "Crisp" },
   { value: "tawkto", label: "Tawk.to" },
+];
+const ANALYTICS_PROVIDERS: { value: AnalyticsProvider; label: string }[] = [
+  { value: "none", label: "None" },
+  { value: "plausible", label: "Plausible" },
+  { value: "ga4", label: "Google Analytics 4" },
+  { value: "umami", label: "Umami" },
 ];
 const AI_PROVIDERS: { value: AiProvider; label: string }[] = [
   { value: "anthropic", label: "Anthropic" },
@@ -43,6 +51,7 @@ export function SiteSettingsPanel({
   initialNewsletter,
   initialAiCrawlers,
   initialChatbotEmbed,
+  initialAnalytics,
   initialAiChat,
   initialCustomDomain,
   initialDomainVerified,
@@ -56,6 +65,7 @@ export function SiteSettingsPanel({
   initialNewsletter: NewsletterSettings;
   initialAiCrawlers: AiCrawlerSettings;
   initialChatbotEmbed: ChatbotEmbedSettings;
+  initialAnalytics: AnalyticsSettings;
   initialAiChat: AiChatSettingsPublic;
   initialCustomDomain: string | null;
   initialDomainVerified: boolean;
@@ -67,6 +77,7 @@ export function SiteSettingsPanel({
   const [newsletter, setNewsletter] = useState(initialNewsletter);
   const [aiCrawlers, setAiCrawlers] = useState(initialAiCrawlers);
   const [chatbotEmbed, setChatbotEmbed] = useState(initialChatbotEmbed);
+  const [analytics, setAnalytics] = useState(initialAnalytics);
   const [aiChat, setAiChat] = useState(initialAiChat);
   const [aiApiKeyInput, setAiApiKeyInput] = useState("");
   const [saving, setSaving] = useState(false);
@@ -84,12 +95,14 @@ export function SiteSettingsPanel({
     newsletter?: NewsletterSettings;
     aiCrawlers?: AiCrawlerSettings;
     chatbotEmbed?: ChatbotEmbedSettings;
+    analytics?: AnalyticsSettings;
   }) {
     if (readOnly) return;
     if (next.cookieBanner) setCookieBanner(next.cookieBanner);
     if (next.newsletter) setNewsletter(next.newsletter);
     if (next.aiCrawlers) setAiCrawlers(next.aiCrawlers);
     if (next.chatbotEmbed) setChatbotEmbed(next.chatbotEmbed);
+    if (next.analytics) setAnalytics(next.analytics);
     setSaving(true);
     await fetch(`/api/sites/${siteId}/settings`, {
       method: "PUT",
@@ -380,6 +393,92 @@ export function SiteSettingsPanel({
               className="w-full max-w-md rounded border px-2 py-1 font-mono text-xs"
             />
           </label>
+        </div>
+      </section>
+
+      <section>
+        <h2 className="text-sm font-semibold text-gray-700">Analytics</h2>
+        <p className="mt-1 text-xs text-gray-500">
+          Injects the selected provider&rsquo;s tracking script on public pages, gated by analytics cookie consent (if
+          the cookie banner is on) — same pattern as the chatbot embed above.
+        </p>
+        <div className="mt-3 flex flex-col gap-3 rounded border p-4">
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              disabled={readOnly}
+              checked={analytics.enabled}
+              onChange={(e) => save({ analytics: { ...analytics, enabled: e.target.checked } })}
+            />
+            Enable analytics on this site
+          </label>
+          <label className="flex flex-col gap-1 text-xs text-gray-500">
+            Provider
+            <select
+              disabled={readOnly}
+              value={analytics.provider}
+              onChange={(e) => save({ analytics: { ...analytics, provider: e.target.value as AnalyticsProvider } })}
+              className="w-full max-w-xs rounded border px-2 py-1 text-sm"
+            >
+              {ANALYTICS_PROVIDERS.map((p) => (
+                <option key={p.value} value={p.value}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          {analytics.provider === "plausible" && (
+            <label className="flex flex-col gap-1 text-xs text-gray-500">
+              Site domain
+              <input
+                type="text"
+                disabled={readOnly}
+                value={analytics.plausibleDomain ?? ""}
+                onChange={(e) => save({ analytics: { ...analytics, plausibleDomain: e.target.value } })}
+                placeholder="example.com"
+                className="w-full max-w-md rounded border px-2 py-1 text-sm"
+              />
+            </label>
+          )}
+          {analytics.provider === "ga4" && (
+            <label className="flex flex-col gap-1 text-xs text-gray-500">
+              Measurement ID
+              <input
+                type="text"
+                disabled={readOnly}
+                value={analytics.ga4MeasurementId ?? ""}
+                onChange={(e) => save({ analytics: { ...analytics, ga4MeasurementId: e.target.value } })}
+                placeholder="G-XXXXXXXXXX"
+                className="w-full max-w-md rounded border px-2 py-1 text-sm"
+              />
+            </label>
+          )}
+          {analytics.provider === "umami" && (
+            <>
+              <label className="flex flex-col gap-1 text-xs text-gray-500">
+                Website ID
+                <input
+                  type="text"
+                  disabled={readOnly}
+                  value={analytics.umamiWebsiteId ?? ""}
+                  onChange={(e) => save({ analytics: { ...analytics, umamiWebsiteId: e.target.value } })}
+                  placeholder="00000000-0000-0000-0000-000000000000"
+                  className="w-full max-w-md rounded border px-2 py-1 text-sm"
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-xs text-gray-500">
+                Script URL
+                <input
+                  type="url"
+                  disabled={readOnly}
+                  value={analytics.umamiScriptUrl ?? ""}
+                  onChange={(e) => save({ analytics: { ...analytics, umamiScriptUrl: e.target.value } })}
+                  placeholder="https://umami.example.com/script.js"
+                  className="w-full max-w-md rounded border px-2 py-1 text-sm"
+                />
+              </label>
+            </>
+          )}
         </div>
       </section>
       {siteMode === "AI_CHAT" && (

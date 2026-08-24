@@ -4,6 +4,7 @@ import type { BlockDefinition } from "@opensite/block-sdk";
 import type {
   AccordionItem,
   Block,
+  BlockImage,
   ComparisonColumn,
   ComparisonRow,
   ContentSwitcherItem,
@@ -18,6 +19,7 @@ import { AccordionBlock } from "./AccordionBlock";
 import { StatCounterBlock } from "./StatCounterBlock";
 import { ContentSwitcherBlock } from "./ContentSwitcherBlock";
 import { BeforeAfterBlock } from "./BeforeAfterBlock";
+import { SliderBlock } from "./SliderBlock";
 import type { RenderContext } from "@/lib/bind";
 
 // This file is the one place apps/web's built-in blocks get registered —
@@ -1405,6 +1407,98 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
           </table>
         </div>
       );
+    },
+  },
+  // docs/starter-templates.md's Aperture port of Gallery.tsx. `images` is
+  // managed by a dedicated Inspector panel (BlockImagesEditor.tsx), same
+  // reasoning as AccordionItem/ContentSwitcherItem — `inspector` only
+  // covers the flat `columns` prop + style. Simplifications from the
+  // source (both noted in the doc): no lightbox (the source's Lightbox is
+  // a separate component with keyboard nav — dropped entirely, images
+  // aren't clickable), and captions render as an always-visible
+  // `<figcaption>` bar rather than a hover overlay (inline styles can't do
+  // `:hover`). Column collapsing at tablet/mobile widths reuses the same
+  // columnsResponsiveCss the "columns"/"list" blocks already use, rather
+  // than the source's bespoke `columnClasses` breakpoint map.
+  gallery: {
+    label: "Gallery",
+    defaultProps: { images: [] as BlockImage[], columns: "3" },
+    defaultStyle: { gap: "12px" },
+    inspector: [
+      {
+        key: "columns",
+        label: "Columns",
+        friendlyLabel: "Number of columns",
+        group: "props",
+        input: "select",
+        options: [
+          { label: "2", value: "2" },
+          { label: "3", value: "3" },
+          { label: "4", value: "4" },
+        ],
+      },
+      { key: "gap", label: "Gap", friendlyLabel: "Space between images", group: "style", input: "text", tokenCategory: "spacing" },
+    ],
+    render(props, style, _children, meta) {
+      const images = Array.isArray(props.images) ? (props.images as BlockImage[]) : [];
+      const desktopColumns = Number(str(props.columns, "3")) || 3;
+      if (images.length === 0) {
+        return <p style={{ color: "#9ca3af", fontSize: "14px", margin: 0 }}>No images yet — add some in the Properties panel.</p>;
+      }
+      const cssStyle: CSSProperties = {
+        display: "grid",
+        gridTemplateColumns: `repeat(${responsiveColumnCount(desktopColumns, meta.breakpoint)}, 1fr)`,
+        gap: str(style.gap, "12px"),
+      };
+      return (
+        <div style={cssStyle} data-columns-id={meta.blockId}>
+          {images.map((image) => (
+            <figure key={image.id} style={{ margin: 0 }}>
+              <div style={{ position: "relative", aspectRatio: "4 / 3", overflow: "hidden", borderRadius: "8px" }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={image.src}
+                  alt={image.alt}
+                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" } as CSSProperties}
+                />
+              </div>
+              {image.caption && (
+                <figcaption style={{ marginTop: "6px", fontSize: "13px", color: "#6b7280" }}>{image.caption}</figcaption>
+              )}
+            </figure>
+          ))}
+          <style dangerouslySetInnerHTML={{ __html: columnsResponsiveCss(meta.blockId, desktopColumns) }} />
+        </div>
+      );
+    },
+  },
+  // docs/starter-templates.md's Aperture port of Slider.tsx — see
+  // SliderBlock.tsx for the controlled-index track (simplified from the
+  // source's native scroll-snap + IntersectionObserver dot-sync, per the
+  // doc's "What we simplified" section). `images` shares the same
+  // BlockImagesEditor Inspector panel as `gallery`.
+  slider: {
+    label: "Slider",
+    defaultProps: { images: [] as BlockImage[] },
+    defaultStyle: { aspectRatio: "16 / 10", borderRadius: "12px" },
+    inspector: [
+      {
+        key: "aspectRatio",
+        label: "Aspect ratio",
+        friendlyLabel: "Shape",
+        group: "style",
+        input: "select",
+        options: [
+          { label: "Widescreen (16:10)", value: "16 / 10" },
+          { label: "Landscape (16:9)", value: "16 / 9" },
+          { label: "Square (1:1)", value: "1 / 1" },
+        ],
+      },
+      { key: "borderRadius", label: "Corner radius", friendlyLabel: "Rounded corners", group: "style", input: "text" },
+    ],
+    render(props, style) {
+      const images = Array.isArray(props.images) ? (props.images as BlockImage[]) : [];
+      return <SliderBlock images={images} style={style} />;
     },
   },
 };

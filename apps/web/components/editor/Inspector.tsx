@@ -12,8 +12,10 @@ import { AccordionItemsEditor } from "./AccordionItemsEditor";
 import { PricingTiersEditor } from "./PricingTiersEditor";
 import { ContentSwitcherItemsEditor } from "./ContentSwitcherItemsEditor";
 import { ComparisonTableEditor } from "./ComparisonTableEditor";
+import { BlockImagesEditor } from "./BlockImagesEditor";
 import type {
   AccordionItem,
+  BlockImage,
   ComparisonColumn,
   ComparisonRow,
   ContentSwitcherItem,
@@ -315,6 +317,16 @@ export function Inspector({
               if (next.columns !== undefined) onChange("props", "columns", next.columns);
               if (next.rows !== undefined) onChange("props", "rows", next.rows);
             }}
+            readOnly={readOnly}
+          />
+        </div>
+      )}
+      {(block.type === "gallery" || block.type === "slider") && (
+        <div className="mt-4">
+          <BlockImagesEditor
+            images={Array.isArray(block.props.images) ? (block.props.images as BlockImage[]) : []}
+            siteId={siteId}
+            onChange={(images) => onChange("props", "images", images)}
             readOnly={readOnly}
           />
         </div>

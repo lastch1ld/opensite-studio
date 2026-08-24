@@ -7,6 +7,7 @@ import {
   defaultNewsletterSettings,
   defaultAiCrawlerSettings,
   defaultChatbotEmbedSettings,
+  defaultAnalyticsSettings,
   defaultAiChatSettings,
   redactAiChatSettings,
   type AiChatSettings,
@@ -28,6 +29,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ siteId:
     newsletter: settings?.newsletter ?? defaultNewsletterSettings(),
     aiCrawlers: settings?.aiCrawlers ?? defaultAiCrawlerSettings(),
     chatbotEmbed: settings?.chatbotEmbed ?? defaultChatbotEmbedSettings(),
+    analytics: settings?.analytics ?? defaultAnalyticsSettings(),
     aiChat: redactAiChatSettings((settings?.aiChat as unknown as AiChatSettings | null) ?? defaultAiChatSettings()),
   });
 }
@@ -40,16 +42,17 @@ export async function PUT(req: Request, { params }: { params: Promise<{ siteId: 
   const site = await requireSiteRole(siteId, session.user.id, ["OWNER", "EDITOR"]);
   if (!site) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const { cookieBanner, newsletter, aiCrawlers, chatbotEmbed, aiChat } = await req.json();
+  const { cookieBanner, newsletter, aiCrawlers, chatbotEmbed, analytics, aiChat } = await req.json();
   if (
     cookieBanner === undefined &&
     newsletter === undefined &&
     aiCrawlers === undefined &&
     chatbotEmbed === undefined &&
+    analytics === undefined &&
     aiChat === undefined
   ) {
     return NextResponse.json(
-      { error: "cookieBanner, newsletter, aiCrawlers, chatbotEmbed or aiChat is required" },
+      { error: "cookieBanner, newsletter, aiCrawlers, chatbotEmbed, analytics or aiChat is required" },
       { status: 400 },
     );
   }
@@ -76,6 +79,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ siteId: 
       newsletter: (newsletter ?? defaultNewsletterSettings()) as Prisma.InputJsonValue,
       aiCrawlers: (aiCrawlers ?? defaultAiCrawlerSettings()) as Prisma.InputJsonValue,
       chatbotEmbed: (chatbotEmbed ?? defaultChatbotEmbedSettings()) as Prisma.InputJsonValue,
+      analytics: (analytics ?? defaultAnalyticsSettings()) as Prisma.InputJsonValue,
       aiChat: (aiChatToStore ?? (defaultAiChatSettings() as unknown as Prisma.InputJsonValue)),
     },
     update: {
@@ -83,6 +87,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ siteId: 
       ...(newsletter !== undefined ? { newsletter: newsletter as Prisma.InputJsonValue } : {}),
       ...(aiCrawlers !== undefined ? { aiCrawlers: aiCrawlers as Prisma.InputJsonValue } : {}),
       ...(chatbotEmbed !== undefined ? { chatbotEmbed: chatbotEmbed as Prisma.InputJsonValue } : {}),
+      ...(analytics !== undefined ? { analytics: analytics as Prisma.InputJsonValue } : {}),
       ...(aiChatToStore !== undefined ? { aiChat: aiChatToStore } : {}),
     },
   });

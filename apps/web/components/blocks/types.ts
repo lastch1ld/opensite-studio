@@ -36,7 +36,9 @@ export type BuiltinBlockType =
   | "imageOverlay"
   | "contentSwitcher"
   | "beforeAfter"
-  | "comparisonTable";
+  | "comparisonTable"
+  | "gallery"
+  | "slider";
 
 export type BlockType = string;
 
@@ -149,4 +151,16 @@ export type ComparisonRow = {
   // cells[i] belongs to columns[i]. "yes"/"no" render as check/cross
   // marks; anything else renders as plain text (e.g. "Limited", "$10/mo").
   cells: string[];
+};
+
+// docs/starter-templates.md's Aperture port: shared image-list item used
+// by both the `gallery` and `slider` blocks. `images` renders via one
+// shared Inspector panel (components/editor/BlockImagesEditor.tsx), same
+// reasoning as AccordionItem/ContentSwitcherItem above — a list of
+// structured records, not flat props.
+export type BlockImage = {
+  id: string;
+  src: string;
+  alt: string;
+  caption?: string;
 };

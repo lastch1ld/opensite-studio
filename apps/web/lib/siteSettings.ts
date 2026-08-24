@@ -98,6 +98,28 @@ export function redactAiChatSettings(settings: AiChatSettings): AiChatSettingsPu
   return { ...rest, hasApiKey: Boolean(apiKeyEncrypted) };
 }
 
+// docs/starter-templates.md's Aperture port of Analytics adapters
+// (Plausible/GA4/Umami) — config'd site-level the same way as every other
+// integration in this file, not hardcoded. `enabled` gates injection
+// independent of which provider is selected, mirroring ChatbotEmbedSettings'
+// shape/style exactly. Only the fields the selected provider needs are ever
+// read by PublishedPage.tsx; the others are left populated or blank
+// harmlessly.
+export type AnalyticsProvider = "none" | "plausible" | "ga4" | "umami";
+
+export type AnalyticsSettings = {
+  enabled: boolean;
+  provider: AnalyticsProvider;
+  plausibleDomain?: string;
+  ga4MeasurementId?: string;
+  umamiWebsiteId?: string;
+  umamiScriptUrl?: string;
+};
+
+export function defaultAnalyticsSettings(): AnalyticsSettings {
+  return { enabled: false, provider: "none" };
+}
+
 // docs/reference-sites-plan.md Tier 4's custom font upload (5/13 reference
 // sites use a bespoke/licensed display face). `format` drives the
 // `@font-face` `src: url(...) format(...)` hint (lib/customFonts.ts) —

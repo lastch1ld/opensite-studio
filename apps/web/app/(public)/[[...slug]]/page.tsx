@@ -8,7 +8,13 @@ import type { PageContent } from "@/components/blocks/types";
 import type { ThemeTokens } from "@/lib/theme";
 import { auth } from "@/lib/auth";
 import { buildPageMetadata, buildHreflangAlternates, resolveTranslatedSeo, type PageSeo } from "@/lib/seo";
-import { defaultCustomFonts, type CookieBannerSettings, type ChatbotEmbedSettings, type CustomFont } from "@/lib/siteSettings";
+import {
+  defaultCustomFonts,
+  type CookieBannerSettings,
+  type ChatbotEmbedSettings,
+  type AnalyticsSettings,
+  type CustomFont,
+} from "@/lib/siteSettings";
 
 async function resolve(slug: string[]) {
   const host = (await headers()).get("host");
@@ -71,6 +77,7 @@ export default async function PublicSitePage({ params }: { params: Promise<{ slu
       renderContext={renderContextFor(result)}
       cookieBannerSettings={(result.site.settings?.cookieBanner as unknown as CookieBannerSettings | undefined) ?? null}
       chatbotEmbedSettings={(result.site.settings?.chatbotEmbed as unknown as ChatbotEmbedSettings | undefined) ?? null}
+      analyticsSettings={(result.site.settings?.analytics as unknown as AnalyticsSettings | undefined) ?? null}
       customFonts={(result.site.settings?.customFonts as unknown as CustomFont[] | undefined) ?? defaultCustomFonts()}
     />
   );

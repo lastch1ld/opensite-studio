@@ -9,12 +9,14 @@ import {
   defaultNewsletterSettings,
   defaultAiCrawlerSettings,
   defaultChatbotEmbedSettings,
+  defaultAnalyticsSettings,
   defaultAiChatSettings,
   redactAiChatSettings,
   type CookieBannerSettings,
   type NewsletterSettings,
   type AiCrawlerSettings,
   type ChatbotEmbedSettings,
+  type AnalyticsSettings,
   type AiChatSettings,
 } from "@/lib/siteSettings";
 import { verificationRecordName } from "@/lib/domain";
@@ -49,6 +51,7 @@ export default async function SiteSettingsPage({ params }: { params: Promise<{ s
           initialNewsletter={(settings?.newsletter as unknown as NewsletterSettings) ?? defaultNewsletterSettings()}
           initialAiCrawlers={(settings?.aiCrawlers as unknown as AiCrawlerSettings) ?? defaultAiCrawlerSettings()}
           initialChatbotEmbed={(settings?.chatbotEmbed as unknown as ChatbotEmbedSettings) ?? defaultChatbotEmbedSettings()}
+          initialAnalytics={(settings?.analytics as unknown as AnalyticsSettings) ?? defaultAnalyticsSettings()}
           initialAiChat={redactAiChatSettings((settings?.aiChat as unknown as AiChatSettings) ?? defaultAiChatSettings())}
           initialCustomDomain={site.customDomain}
           initialDomainVerified={site.customDomainVerified}
