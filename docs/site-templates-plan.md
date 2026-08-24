@@ -39,7 +39,7 @@ the existing convention in `lib/pageTemplates.ts`.
 | Agency / creative services | Home, Work, Services, About, Contact | 🔶 Built, not live-verified (no dev Postgres in this pass) — `lib/siteTemplates/agency.ts` |
 | Personal portfolio | Home, Work, About, Contact | 🔶 Built, not live-verified (no dev Postgres in this pass) — `lib/siteTemplates/portfolio.ts` |
 | Restaurant | Home, Menu, About, Contact/Reservations | ⬜ Not started |
-| Hotel | Home, Rooms, Amenities/Gallery, Contact/Book | ⬜ Not started |
+| Hotel | Home, Rooms, Amenities/Gallery, Contact/Book | 🔶 Built, not live-verified (no dev Postgres in this pass) — `lib/siteTemplates/hotel.ts` |
 | Bar | Home, Menu (drinks), Events, Contact | ⬜ Not started |
 
 Restaurant/Hotel/Bar were originally one "local business/hospitality"
@@ -100,7 +100,13 @@ booking/rooms system).
   Contact/Book. Reference: `tourism-wix-generator`'s nordic-stone
   template directly (split hero, page-hero subpages, explore-tiles grid,
   stats row, restrained stone/ice palette translated into OpenSite
-  Studio's block system).
+  Studio's block system). 🔶 Code complete (`lib/siteTemplates/hotel.ts`,
+  wired into the dispatcher + catalog; `tsc`/`eslint`/`build` all pass
+  clean) but **not live-verified** — no dev Postgres was available in
+  this pass, so the "bulletproof" bar (live browser check across editor
+  canvas + `/preview`) is still outstanding. Built from
+  `tourism-wix-generator`'s nordic-stone reference as described in this
+  doc, not the original repo, which wasn't available in this worktree.
 - **Phase F — Bar template.** Home, Menu (drinks), Events, Contact.
   Reference: relief.pisapain/NKORA entries for mood, adapted to a
   bar/nightlife register (darker palette, marquee for a "as seen in"/

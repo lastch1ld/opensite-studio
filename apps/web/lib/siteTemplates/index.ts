@@ -2,6 +2,7 @@ import type { PageContent } from "@/components/blocks/types";
 import { saasHomeTemplate, saasFeaturesTemplate, saasPricingTemplate, saasAboutTemplate, saasContactTemplate } from "./saas";
 import { agencyHomeTemplate, agencyWorkTemplate, agencyServicesTemplate, agencyAboutTemplate, agencyContactTemplate } from "./agency";
 import { portfolioHomeTemplate, portfolioWorkTemplate, portfolioAboutTemplate, portfolioContactTemplate } from "./portfolio";
+import { hotelHomeTemplate, hotelRoomsTemplate, hotelAmenitiesTemplate, hotelContactTemplate } from "./hotel";
 
 // Dispatch — (templateId, slug) -> that page's real content. Slugs here
 // must match lib/siteTemplateOptions.ts's SITE_TEMPLATES exactly (that
@@ -53,6 +54,20 @@ export function siteTemplatePageContent(templateId: string, slug: string): PageC
         return portfolioAboutTemplate();
       case "contact":
         return portfolioContactTemplate();
+      default:
+        return null;
+    }
+  }
+  if (templateId === "hotel") {
+    switch (slug) {
+      case "home":
+        return hotelHomeTemplate();
+      case "rooms":
+        return hotelRoomsTemplate();
+      case "amenities":
+        return hotelAmenitiesTemplate();
+      case "contact":
+        return hotelContactTemplate();
       default:
         return null;
     }

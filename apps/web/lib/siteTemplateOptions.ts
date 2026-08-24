@@ -46,6 +46,17 @@ export const SITE_TEMPLATES: SiteTemplateOption[] = [
       { slug: "contact", title: "Contact", isHome: false },
     ],
   },
+  {
+    id: "hotel",
+    name: "Hotel",
+    description: "Home, Rooms, Amenities, Contact & Book — restrained stone/ice palette, Fraunces headings.",
+    pages: [
+      { slug: "home", title: "Home", isHome: true },
+      { slug: "rooms", title: "Rooms", isHome: false },
+      { slug: "amenities", title: "Amenities", isHome: false },
+      { slug: "contact", title: "Contact & Book", isHome: false },
+    ],
+  },
 ];
 
 export function siteTemplateOptionById(id: string): SiteTemplateOption | undefined {
