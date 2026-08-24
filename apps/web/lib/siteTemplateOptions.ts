@@ -35,6 +35,17 @@ export const SITE_TEMPLATES: SiteTemplateOption[] = [
       { slug: "contact", title: "Contact", isHome: false },
     ],
   },
+  {
+    id: "portfolio",
+    name: "Personal portfolio",
+    description: "Home, Work, About, Contact — minimal warm-paper palette, deep forest-green accent, Instrument Serif headings.",
+    pages: [
+      { slug: "home", title: "Home", isHome: true },
+      { slug: "work", title: "Work", isHome: false },
+      { slug: "about", title: "About", isHome: false },
+      { slug: "contact", title: "Contact", isHome: false },
+    ],
+  },
 ];
 
 export function siteTemplateOptionById(id: string): SiteTemplateOption | undefined {

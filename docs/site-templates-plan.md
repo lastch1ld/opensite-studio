@@ -37,7 +37,7 @@ the existing convention in `lib/pageTemplates.ts`.
 |---|---|---|
 | SaaS / tech product | Home, Features, Pricing, About, Contact | ✅ Done — `lib/siteTemplates.ts` |
 | Agency / creative services | Home, Work, Services, About, Contact | 🔶 Built, not live-verified (no dev Postgres in this pass) — `lib/siteTemplates/agency.ts` |
-| Personal portfolio | Home, Work, About, Contact | ⬜ Not started |
+| Personal portfolio | Home, Work, About, Contact | 🔶 Built, not live-verified (no dev Postgres in this pass) — `lib/siteTemplates/portfolio.ts` |
 | Restaurant | Home, Menu, About, Contact/Reservations | ⬜ Not started |
 | Hotel | Home, Rooms, Amenities/Gallery, Contact/Book | ⬜ Not started |
 | Bar | Home, Menu (drinks), Events, Contact | ⬜ Not started |
@@ -121,8 +121,8 @@ booking/rooms system).
 ## Todo
 
 - [x] Phase A — SaaS template (5 pages, bulletproof + animated + shipped)
-- [x] Phase B — Agency template (5 pages code-complete, `tsc`/`build`/`eslint` clean; live editor/preview verification still outstanding — no dev Postgres in this pass)
-- [ ] Phase C — Personal portfolio template
+- [ ] Phase B — Agency template (5 pages code-complete, `tsc`/`build`/`eslint` clean; left unchecked — live editor/preview verification still outstanding, no dev Postgres in this pass, same bar as Phase C below)
+- [ ] Phase C — Personal portfolio template (code built and tsc/eslint/build-clean — `lib/siteTemplates/portfolio.ts` — left unchecked because no dev Postgres was available in this pass, so it hasn't cleared the "bulletproof" live-browser bar Phase A's checked box implies)
 - [ ] Phase D — Restaurant template
 - [ ] Phase E — Hotel template
 - [ ] Phase F — Bar template
