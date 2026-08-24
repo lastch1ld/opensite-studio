@@ -88,12 +88,14 @@ function restaurantFooter(): Block {
   );
 }
 
-function restaurantPageHero(eyebrow: string, title: string, sub: string): Block {
+// `eyebrow` param kept for call-site compatibility but no longer rendered
+// as a kicker label — impeccable craft-floor bans it; the heading carries
+// its own weight.
+function restaurantPageHero(_eyebrow: string, title: string, sub: string): Block {
   return bleed(
     RESTAURANT.forest,
     "80px 40px 72px",
     [
-      body(eyebrow, { size: "13px", weight: "700", color: RESTAURANT.gold, align: "center", font: RESTAURANT.fontBody }),
       heading(title, { size: "42px", color: RESTAURANT.cream, align: "center", level: "h1", font: RESTAURANT.fontDisplay }),
       body(sub, { size: "17px", color: RESTAURANT.forestMuted, align: "center", font: RESTAURANT.fontBody }),
     ],
@@ -196,7 +198,6 @@ function menuCategory(title: string, items: Block[], background: string = RESTAU
 
 export function restaurantHomeTemplate(): PageContent {
   const heroTextStack = mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "16px", align: "flex-start", animation: "slide-right" }, [
-    body("Replace with a neighborhood or category label", { size: "13px", weight: "700", color: RESTAURANT.gold, font: RESTAURANT.fontBody }),
     heading("Replace with your restaurant's core promise — what people walk in for.", { size: "46px", color: RESTAURANT.cream, level: "h1", font: RESTAURANT.fontDisplay }),
     body("Replace with a sentence about the food, the room, or the neighborhood — what makes this the kind of place someone comes back to.", { size: "17px", color: RESTAURANT.forestMuted, font: RESTAURANT.fontBody }),
     mk("section", { layout: "row" }, { background: "transparent", padding: "0", gap: "12px" }, [
@@ -205,7 +206,10 @@ export function restaurantHomeTemplate(): PageContent {
     ]),
   ]);
   const heroImage = mk("imageOverlay", { src: "https://placehold.co/700x800", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 5", borderRadius: "20px", animation: "slide-left" });
-  const hero = bleed(RESTAURANT.forest, "100px 40px 90px", [mk("columns", { columns: "2" }, { gap: "48px", align: "center" }, [heroTextStack, heroImage])], "1100px", "0");
+  // A low ember-gold bloom against the forest field — warmth without
+  // abandoning the deep-green register the rest of the page is built on.
+  const heroBg = `radial-gradient(ellipse 80% 60% at 85% 15%, ${RESTAURANT.gold}30, transparent 55%), linear-gradient(160deg, ${RESTAURANT.forest} 0%, #12241C 100%)`;
+  const hero = bleed(heroBg, "100px 40px 90px", [mk("columns", { columns: "2" }, { gap: "48px", align: "center" }, [heroTextStack, heroImage])], "1100px", "0");
 
   const dishCard = (): Block =>
     mk(
@@ -243,7 +247,7 @@ export function restaurantHomeTemplate(): PageContent {
   const hoursLocation = bleed(RESTAURANT.forest, "72px 40px", [restaurantHoursLocation()], "800px", "0");
 
   const finalCta = bleed(
-    RESTAURANT.terracotta,
+    `linear-gradient(135deg, ${RESTAURANT.terracotta} 0%, #8A3418 100%)`,
     "72px 40px",
     [
       heading("Replace with a closing call to action", { size: "32px", color: "#ffffff", align: "center", font: RESTAURANT.fontDisplay }),

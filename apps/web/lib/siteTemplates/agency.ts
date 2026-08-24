@@ -141,12 +141,14 @@ function agencyWorkSwitcher(items: WorkItemSeed[]): Block {
 }
 
 export function agencyHomeTemplate(): PageContent {
+  // A signal-orange bloom low-left breaks the flat-ink hero into something
+  // with real depth (studio-lit, not corporate-dark) — no eyebrow label,
+  // the headline itself carries the statement (impeccable craft-floor).
   const hero = bleed(
-    AGENCY.ink,
+    `radial-gradient(ellipse 90% 70% at 15% 100%, ${AGENCY.accent}40, transparent 55%), linear-gradient(160deg, ${AGENCY.ink} 0%, #050504 100%)`,
     "120px 40px 100px",
     [
-      body("Replace with a category label", { size: "13px", weight: "700", color: AGENCY.accent, align: "center" }),
-      heading("Replace with a bold statement of what this studio makes.", { size: "58px", color: "#F5F3EE", align: "center", level: "h1", font: AGENCY.font }),
+      heading("Replace with a bold statement of what this studio makes.", { size: "58px", color: "#F5F3EE", align: "center", level: "h1", font: AGENCY.font, animation: "slide-up" }),
       body("Replace with a supporting sentence naming who you work with and what kind of work you make for them.", { size: "18px", color: AGENCY.inkMuted, align: "center" }),
       mk("section", { layout: "row" }, { background: "transparent", padding: "0", gap: "12px", justify: "center", animation: "fade-in" }, [
         cta("See our work", { background: AGENCY.accent, color: "#ffffff" }),
@@ -214,7 +216,7 @@ export function agencyHomeTemplate(): PageContent {
   );
 
   const finalCta = bleed(
-    AGENCY.accent,
+    `linear-gradient(135deg, ${AGENCY.accent} 0%, #B8330C 100%)`,
     "72px 40px",
     [
       heading("Replace with a closing call to action", { size: "32px", color: "#ffffff", align: "center", font: AGENCY.font }),

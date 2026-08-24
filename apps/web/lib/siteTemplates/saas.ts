@@ -123,12 +123,16 @@ function saasStatRow(stats: { value: string; suffix: string; label: string }[]):
 }
 
 export function saasHomeTemplate(): PageContent {
+  // Gradient replaces the flat SAAS.ink field — a radial indigo bloom low
+  // in the frame reads as depth/glow (the category's own "product glow"
+  // visual language) rather than a flat corporate dark band. No eyebrow
+  // label above the headline (impeccable craft-floor: the heading carries
+  // its own weight).
   const hero = bleed(
-    SAAS.ink,
-    "120px 40px 100px",
+    `radial-gradient(ellipse 120% 90% at 50% 120%, ${SAAS.accent}55, transparent 60%), linear-gradient(180deg, ${SAAS.ink} 0%, #050507 100%)`,
+    "130px 40px 110px",
     [
-      body("Replace with a category label", { size: "13px", weight: "700", color: SAAS.accent, align: "center" }),
-      heading("Replace with your product's core value proposition.", { size: "54px", color: "#F4F4F5", align: "center", level: "h1", font: SAAS.font }),
+      heading("Replace with your product's core value proposition.", { size: "56px", color: "#F4F4F5", align: "center", level: "h1", font: SAAS.font, animation: "slide-up" }),
       body("Replace with a supporting sentence that explains who this is for and what changes once they use it.", { size: "18px", color: SAAS.inkMuted, align: "center" }),
       mk("section", { layout: "row" }, { background: "transparent", padding: "0", gap: "12px", justify: "center", animation: "fade-in" }, [
         cta("Start free trial", { background: SAAS.accent, color: "#ffffff" }),
@@ -188,7 +192,7 @@ export function saasHomeTemplate(): PageContent {
   const faq = bleed(SAAS.paper, "96px 40px", [heading("Frequently asked questions", { size: "32px", color: SAAS.text, align: "center", font: SAAS.font }), saasFaq()], "760px", "24px");
 
   const finalCta = bleed(
-    SAAS.accent,
+    `linear-gradient(135deg, ${SAAS.accent} 0%, #4C3FCF 100%)`,
     "72px 40px",
     [
       heading("Replace with a closing call to action", { size: "32px", color: "#ffffff", align: "center", font: SAAS.font }),

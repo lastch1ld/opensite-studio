@@ -11,7 +11,7 @@ export function mk(type: string, props: Record<string, unknown>, style: Record<s
   return { id: randomUUID(), type, props, style: { base: style }, children };
 }
 
-export function heading(text: string, opts: { size: string; color: string; align?: string; level?: string; weight?: string; font?: string }): Block {
+export function heading(text: string, opts: { size: string; color: string; align?: string; level?: string; weight?: string; font?: string; animation?: string }): Block {
   return mk(
     "heading",
     { text, level: opts.level ?? "h2" },
@@ -21,6 +21,7 @@ export function heading(text: string, opts: { size: string; color: string; align
       color: opts.color,
       textAlign: opts.align ?? "left",
       ...(opts.font ? { fontFamily: opts.font } : {}),
+      ...(opts.animation ? { animation: opts.animation } : {}),
     },
   );
 }

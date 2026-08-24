@@ -74,12 +74,13 @@ function barFooter(): Block {
   );
 }
 
-function barPageHero(eyebrow: string, title: string, sub: string): Block {
+// `eyebrow` param kept for call-site compatibility but no longer rendered
+// as a kicker label — impeccable craft-floor bans it outright.
+function barPageHero(_eyebrow: string, title: string, sub: string): Block {
   return bleed(
     BAR.ink,
     "80px 40px 72px",
     [
-      body(eyebrow, { size: "13px", weight: "700", color: BAR.accent, align: "center", font: BAR.labelFont }),
       heading(title, { size: "46px", color: BAR.cream, align: "center", level: "h1", font: BAR.font }),
       body(sub, { size: "17px", color: BAR.creamFaint, align: "center" }),
     ],
@@ -161,12 +162,16 @@ function barDrinkGrid(drinks: DrinkSeed[]): Block {
 }
 
 export function barHomeTemplate(): PageContent {
+  // A low amber glow bleeding into the existing accentDeep burgundy — the
+  // moodiest gradient of the six, matching this genre's dark-heavy,
+  // nightlife register. No eyebrow label (impeccable craft-floor ban) —
+  // "a cocktail bar" now reads through the room/drinks/night copy itself.
+  const heroBg = `radial-gradient(ellipse 100% 70% at 50% 110%, ${BAR.accent}35, transparent 60%), linear-gradient(165deg, ${BAR.ink} 0%, #2A130F 100%)`;
   const hero = bleed(
-    BAR.ink,
+    heroBg,
     "130px 40px 100px",
     [
-      body("A COCKTAIL BAR", { size: "13px", weight: "700", color: BAR.accent, align: "center", font: BAR.labelFont }),
-      heading("Replace with your bar's core promise — the room, the drinks, the night.", { size: "56px", color: BAR.cream, align: "center", level: "h1", font: BAR.font }),
+      heading("Replace with your bar's core promise — the room, the drinks, the night.", { size: "56px", color: BAR.cream, align: "center", level: "h1", font: BAR.font, animation: "slide-up" }),
       body("Replace with a supporting sentence about the atmosphere and who this room is for.", { size: "18px", color: BAR.creamFaint, align: "center" }),
       mk("section", { layout: "row" }, { background: "transparent", padding: "0", gap: "12px", justify: "center", animation: "fade-in" }, [
         cta("Reserve a table", { background: BAR.accent, color: BAR.ink }),
@@ -242,7 +247,7 @@ export function barHomeTemplate(): PageContent {
   const press = bleed(BAR.inkPanel, "40px 40px", [body("AS SEEN IN", { size: "12px", weight: "700", color: BAR.creamFaint, align: "center", font: BAR.labelFont }), barPressMarquee()], "1100px", "20px");
 
   const finalCta = bleed(
-    BAR.accent,
+    `linear-gradient(135deg, ${BAR.accent} 0%, #E8B968 100%)`,
     "72px 40px",
     [
       heading("Replace with a closing call to action", { size: "32px", color: BAR.ink, align: "center", font: BAR.font }),

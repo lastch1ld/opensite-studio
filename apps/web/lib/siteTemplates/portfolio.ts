@@ -72,12 +72,15 @@ function portfolioFooter(): Block {
   );
 }
 
-function portfolioPageHero(eyebrow: string, title: string, sub: string): Block {
+// `eyebrow` param kept (call sites still pass a section name) but no
+// longer rendered as a small-caps label above the heading — impeccable
+// craft-floor bans the kicker pattern outright; the heading carries its
+// own weight instead.
+function portfolioPageHero(_eyebrow: string, title: string, sub: string): Block {
   return bleed(
     PORTFOLIO.paper,
     "96px 40px 72px",
     [
-      body(eyebrow, { size: "13px", weight: "700", color: PORTFOLIO.accent, align: "left" }),
       heading(title, { size: "56px", color: PORTFOLIO.text, align: "left", level: "h1", weight: "500", font: PORTFOLIO.font }),
       body(sub, { size: "18px", color: PORTFOLIO.textFaint, align: "left" }),
     ],
@@ -120,8 +123,7 @@ export function portfolioHomeTemplate(): PageContent {
     PORTFOLIO.paper,
     "140px 40px 100px",
     [
-      body("Replace with a discipline label", { size: "13px", weight: "700", color: PORTFOLIO.accent, align: "left" }),
-      heading("Replace with a two-line headline that states what you make.", { size: "104px", color: PORTFOLIO.text, align: "left", level: "h1", weight: "400", font: PORTFOLIO.font }),
+      heading("Replace with a two-line headline that states what you make.", { size: "104px", color: PORTFOLIO.text, align: "left", level: "h1", weight: "400", font: PORTFOLIO.font, animation: "slide-up" }),
       body("Replace with a supporting sentence: who you work with and what changes once they hire you.", { size: "18px", color: PORTFOLIO.textFaint, align: "left" }),
       mk("section", { layout: "row" }, { background: "transparent", padding: "0", gap: "12px", justify: "flex-start", animation: "fade-in" }, [
         cta("View work", { background: PORTFOLIO.accent, color: "#ffffff" }),
@@ -179,7 +181,7 @@ export function portfolioHomeTemplate(): PageContent {
   ])], "1000px", "0");
 
   const finalCta = bleed(
-    PORTFOLIO.accent,
+    `linear-gradient(135deg, ${PORTFOLIO.accent} 0%, #12261E 100%)`,
     "80px 40px",
     [
       heading("Replace with a closing call to action", { size: "36px", color: "#ffffff", align: "center", weight: "400", font: PORTFOLIO.font }),

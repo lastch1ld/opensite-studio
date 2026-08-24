@@ -74,12 +74,13 @@ function hotelFooter(): Block {
   );
 }
 
-function hotelPageHero(eyebrow: string, title: string, sub: string): Block {
+// `eyebrow` param kept for call-site compatibility but no longer rendered
+// as a kicker label — impeccable craft-floor bans it outright.
+function hotelPageHero(_eyebrow: string, title: string, sub: string): Block {
   return bleed(
     HOTEL.ink,
     "80px 40px 72px",
     [
-      body(eyebrow, { size: "13px", weight: "700", color: HOTEL.ice, align: "center" }),
       heading(title, { size: "44px", color: "#F4F4F1", align: "center", level: "h1", font: HOTEL.font }),
       body(sub, { size: "17px", color: HOTEL.inkMuted, align: "center" }),
     ],
@@ -141,7 +142,7 @@ export function hotelHomeTemplate(): PageContent {
   // Split hero: headline + image side by side, per the plan doc's
   // nordic-stone reference.
   const hero = bleed(
-    HOTEL.stone,
+    `linear-gradient(155deg, ${HOTEL.stone} 0%, ${HOTEL.iceSoft} 100%)`,
     "100px 40px",
     [
       mk(
@@ -150,7 +151,6 @@ export function hotelHomeTemplate(): PageContent {
         { gap: "56px", align: "center" },
         [
           mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "18px", animation: "slide-right" }, [
-            body("Replace with a location label", { size: "13px", weight: "700", color: HOTEL.clay }),
             heading("Replace with your hotel's core promise — quiet, place, comfort.", { size: "48px", color: HOTEL.text, level: "h1", font: HOTEL.font }),
             body("Replace with a sentence about the setting and the feeling of staying here.", { size: "17px", color: HOTEL.textFaint }),
             mk("section", { layout: "row" }, { background: "transparent", padding: "0", gap: "12px" }, [
@@ -229,7 +229,7 @@ export function hotelHomeTemplate(): PageContent {
   const review = bleed(HOTEL.ink, "80px 40px", [hotelReview("Replace with a real guest review — one honest sentence about the stay.", "Replace with a name, or “Verified guest”", "★★★★★ Replace with a real average rating")], "700px", "0");
 
   const finalCta = bleed(
-    HOTEL.clay,
+    `linear-gradient(135deg, ${HOTEL.clay} 0%, #7A5B41 100%)`,
     "72px 40px",
     [
       heading("Replace with a closing invitation to book", { size: "32px", color: "#ffffff", align: "center", font: HOTEL.font }),
