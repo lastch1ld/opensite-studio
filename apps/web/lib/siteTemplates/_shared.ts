@@ -48,12 +48,28 @@ export function cta(label: string, opts: { background: string; color: string; va
   );
 }
 
-/** Full-bleed background band wrapping a centered, width-capped content column — every genre's recurring section shape. */
-export function bleed(background: string, padding: string, content: Block[], contentWidth = "1100px", gap = "24px", extra: Record<string, unknown> = {}): Block {
+/**
+ * Full-bleed background band wrapping a centered, width-capped content
+ * column — every genre's recurring section shape. `outerExtra` reaches the
+ * *outer* (background-bearing) section — e.g. `{ backgroundTexture: "grain" }`,
+ * a real, separately-verified working style key (`section`'s render layers
+ * a noise data-URI via `backgroundImage`, distinct from the `background`
+ * style key itself, which only ever becomes `background-color` and cannot
+ * hold a gradient/image) — genuine textural depth on a flat-color band.
+ */
+export function bleed(
+  background: string,
+  padding: string,
+  content: Block[],
+  contentWidth = "1100px",
+  gap = "24px",
+  extra: Record<string, unknown> = {},
+  outerExtra: Record<string, unknown> = {},
+): Block {
   return mk(
     "section",
     { layout: "stack" },
-    { background, padding, align: "center", gap: "0" },
+    { background, padding, align: "center", gap: "0", ...outerExtra },
     [mk("section", { layout: "stack" }, { background: "transparent", padding: "0", maxWidth: contentWidth, align: "center", gap, ...extra }, content)],
   );
 }

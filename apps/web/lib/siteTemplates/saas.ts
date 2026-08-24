@@ -133,11 +133,15 @@ export function saasHomeTemplate(): PageContent {
   // check CSS semantic validity. `hero`'s own `backgroundImage` prop
   // composites a real photo with a built-in dark scrim for legible text.
   // No eyebrow label above the headline (impeccable craft-floor: the
-  // heading carries its own weight).
+  // heading carries its own weight). `backgroundTexture: "grain"` is a
+  // real, separately-verified working style key (confirmed in `hero`'s
+  // own render — a noise data-URI layered via backgroundImage, distinct
+  // from the broken `background` gradient mistake) — genuine photo +
+  // scrim + texture depth, not a second CSS trick that silently no-ops.
   const hero = mk(
     "hero",
     { backgroundImage: "https://placehold.co/1800x1200/1a1a2e/6D5EF5?text=" },
-    { background: SAAS.ink, padding: "130px 40px 110px", contentWidth: "740px", align: "center", gap: "22px" },
+    { background: SAAS.ink, padding: "130px 40px 110px", contentWidth: "740px", align: "center", gap: "22px", backgroundTexture: "grain" },
     [
       heading("Replace with your product's core value proposition.", { size: "56px", color: "#F4F4F5", align: "center", level: "h1", font: SAAS.font, animation: "slide-up" }),
       body("Replace with a supporting sentence that explains who this is for and what changes once they use it.", { size: "18px", color: SAAS.inkMuted, align: "center" }),

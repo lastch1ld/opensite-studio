@@ -212,7 +212,7 @@ export function restaurantHomeTemplate(): PageContent {
   // re-inspection). No CSS-gradient depth needed regardless: this hero
   // already carries a real photo via `heroImage` (imageOverlay) in the
   // split layout below, which is where the visual interest should live.
-  const hero = bleed(RESTAURANT.forest, "100px 40px 90px", [mk("columns", { columns: "2" }, { gap: "48px", align: "center" }, [heroTextStack, heroImage])], "1100px", "0");
+  const hero = bleed(RESTAURANT.forest, "100px 40px 90px", [mk("columns", { columns: "2" }, { gap: "48px", align: "center" }, [heroTextStack, heroImage])], "1100px", "0", {}, { backgroundTexture: "grain" });
 
   // Organic wave divider (embed block, per blocks-and-theming.md's framing
   // of `embed` as the lightweight one-off-custom-thing block) — a torn/
@@ -226,26 +226,38 @@ export function restaurantHomeTemplate(): PageContent {
     { height: "70px" },
   );
 
-  const dishCard = (): Block =>
+  const dishCard = (imageAspect: string, titleSize = "18px"): Block =>
     mk(
       "section",
       { layout: "stack" },
       { background: "#ffffff", padding: "0", borderRadius: "16px", gap: "0", align: "flex-start", borderColor: RESTAURANT.border, animation: "slide-up" },
       [
-        mk("imageOverlay", { src: "https://placehold.co/500x400", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "16px 16px 0 0" }),
+        mk("imageOverlay", { src: "https://placehold.co/500x400", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: imageAspect, borderRadius: "16px 16px 0 0" }),
         mk("section", { layout: "stack" }, { background: "transparent", padding: "20px", gap: "6px", align: "flex-start" }, [
-          heading("Replace with a dish name", { size: "18px", color: RESTAURANT.text, font: RESTAURANT.fontDisplay }),
+          heading("Replace with a dish name", { size: titleSize, color: RESTAURANT.text, font: RESTAURANT.fontDisplay }),
           body("Replace with a short, honest description.", { size: "14px", color: RESTAURANT.textFaint, font: RESTAURANT.fontBody }),
         ]),
       ],
     );
+  // One large dish (the kitchen's signature) beside two stacked smaller
+  // ones — a deliberate asymmetric composition, not the uniform 3-equal-
+  // column grid this project's own templates otherwise default to
+  // everywhere (docs/site-templates-plan.md's earlier "reskinned SaaS"
+  // lesson applies to layout monotony too, not only palette). `columns`
+  // itself has no per-column width control (verified against
+  // registry.tsx — always `repeat(N, 1fr)`), so the asymmetry comes from
+  // nesting: the outer 2-column split's right cell holds its own stacked
+  // sub-section instead of a third equal column.
   const signature = bleed(
     "#ffffff",
     "96px 40px",
     [
       heading("Replace with a signature-dishes headline", { size: "34px", color: RESTAURANT.text, align: "center", font: RESTAURANT.fontDisplay }),
       body("Replace with a sentence introducing what the kitchen is known for.", { size: "16px", color: RESTAURANT.textFaint, align: "center", font: RESTAURANT.fontBody }),
-      mk("columns", { columns: "3" }, { gap: "24px" }, [dishCard(), dishCard(), dishCard()]),
+      mk("columns", { columns: "2" }, { gap: "24px" }, [
+        dishCard("4 / 5", "22px"),
+        mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "24px" }, [dishCard("16 / 9"), dishCard("16 / 9")]),
+      ]),
     ],
     "1100px",
     "24px",

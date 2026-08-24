@@ -153,7 +153,7 @@ export function agencyHomeTemplate(): PageContent {
   const hero = mk(
     "hero",
     { backgroundImage: "https://placehold.co/1800x1200/0A0A0A/FF4B12?text=" },
-    { background: AGENCY.ink, padding: "120px 40px 100px", contentWidth: "760px", align: "center", gap: "22px" },
+    { background: AGENCY.ink, padding: "120px 40px 100px", contentWidth: "760px", align: "center", gap: "22px", backgroundTexture: "grain" },
     [
       heading("Replace with a bold statement of what this studio makes.", { size: "58px", color: "#F5F3EE", align: "center", level: "h1", font: AGENCY.font, animation: "slide-up" }),
       body("Replace with a supporting sentence naming who you work with and what kind of work you make for them.", { size: "18px", color: AGENCY.inkMuted, align: "center" }),
@@ -183,23 +183,28 @@ export function agencyHomeTemplate(): PageContent {
     "24px",
   );
 
-  const serviceCard = (title: string, copy: string): Block =>
+  const serviceCard = (title: string, copy: string, featured = false): Block =>
     mk(
       "section",
       { layout: "stack" },
-      { background: "#ffffff", padding: "32px", borderRadius: "16px", gap: "12px", align: "flex-start", borderColor: AGENCY.border, animation: "slide-up" },
-      [heading(title, { size: "19px", color: AGENCY.text, font: AGENCY.font }), body(copy, { size: "15px", color: AGENCY.textFaint })],
+      { background: featured ? AGENCY.paper : "#ffffff", padding: featured ? "40px" : "32px", borderRadius: "16px", gap: "12px", align: "flex-start", borderColor: AGENCY.border, animation: "slide-up" },
+      [heading(title, { size: featured ? "26px" : "19px", color: AGENCY.text, font: AGENCY.font }), body(copy, { size: featured ? "16px" : "15px", color: AGENCY.textFaint })],
     );
 
+  // One wide featured service on top, two narrower below — a different
+  // asymmetric shape from the signature-dishes split in restaurant.ts
+  // (large-beside-stacked there, wide-then-pair here), so this project's
+  // own "distinct devices per genre" rule extends to layout, not only
+  // the uniform 3-equal-column grid this codebase otherwise defaults to.
   const services = bleed(
     "#ffffff",
     "96px 40px",
     [
       heading("What we do", { size: "34px", color: AGENCY.text, align: "center", font: AGENCY.font }),
       body("Replace with one sentence about how these services fit together.", { size: "16px", color: AGENCY.textFaint, align: "center" }),
-      mk("section", { layout: "stack" }, { background: "transparent", padding: "0", maxWidth: "1100px", gap: "0" }, [
-        mk("columns", { columns: "3" }, { gap: "24px" }, [
-          serviceCard("Replace with service one", "Replace with a short description."),
+      mk("section", { layout: "stack" }, { background: "transparent", padding: "0", maxWidth: "1100px", gap: "24px" }, [
+        serviceCard("Replace with your primary service", "Replace with a short description of the core offering.", true),
+        mk("columns", { columns: "2" }, { gap: "24px" }, [
           serviceCard("Replace with service two", "Replace with a short description."),
           serviceCard("Replace with service three", "Replace with a short description."),
         ]),

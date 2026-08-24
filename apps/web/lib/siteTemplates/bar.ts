@@ -175,7 +175,7 @@ export function barHomeTemplate(): PageContent {
   const hero = mk(
     "hero",
     { backgroundImage: "https://placehold.co/1800x1200/110C09/CD9A4A?text=" },
-    { background: BAR.ink, padding: "130px 40px 100px", contentWidth: "760px", align: "center", gap: "22px" },
+    { background: BAR.ink, padding: "130px 40px 100px", contentWidth: "760px", align: "center", gap: "22px", backgroundTexture: "grain" },
     [
       heading("Replace with your bar's core promise — the room, the drinks, the night.", { size: "56px", color: BAR.cream, align: "center", level: "h1", font: BAR.font, animation: "slide-up" }),
       body("Replace with a supporting sentence about the atmosphere and who this room is for.", { size: "18px", color: BAR.creamFaint, align: "center" }),

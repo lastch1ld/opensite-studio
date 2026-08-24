@@ -173,6 +173,8 @@ export function hotelHomeTemplate(): PageContent {
     ],
     "1160px",
     "0",
+    {},
+    { backgroundTexture: "grain" },
   );
 
   const welcome = bleed(
