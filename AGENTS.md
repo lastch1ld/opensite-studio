@@ -87,10 +87,12 @@ block-based `BUILDER` site from a full-page `AI_CHAT` site. See
    (`requireSiteRole`/`requirePageRole`/`requireSiteOwner`). UI-level
    hiding of controls is a secondary nicety, never the actual gate.
 
-5. **No premature abstractions.** No `packages/` workspace split (see
-   `docs/architecture.md` — deferred until there's a second consumer), no
-   speculative error handling, no comments explaining *what* code does
-   (only non-obvious *why*).
+5. **No premature abstractions.** No speculative error handling, no
+   comments explaining *what* code does (only non-obvious *why*), and no
+   new `packages/` entry without a real second consumer. (`block-sdk` and
+   `plugin-api` are there because the plugin SDK became one —
+   `docs/architecture.md`'s own exception. The rule bars anticipating a
+   consumer, not extracting for one that exists.)
 
 6. **Verify before reporting done.** Inside `apps/web`: `npx tsc
    --noEmit`, `npm run build`, `npx eslint .` must all pass clean. If you

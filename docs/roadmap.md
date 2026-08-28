@@ -200,7 +200,10 @@ this out so they aren't re-proposed later.
 
 ## Security & architecture audit
 
-Deferred until **all** phases above (0–4) are built out — not run after
-each individual phase. Run a security recheck of the codebase and an
-architecture audit against docs/architecture.md once the roadmap is
-complete, or sooner only if explicitly requested.
+Ran 2026-08-28, once phases 0–4 were all complete, as this section
+specified. Findings, fixes, and what was deliberately left open are in
+[audit-2026-08.md](audit-2026-08.md) — five security findings (all fixed:
+a stored-XSS upload path, unauthenticated unbounded disk writes, an
+`embed` sandbox that wasn't one, an SSRF in the form webhook, plus a
+functional bug it turned up) and an architecture pass that found the
+load-bearing invariants intact and two pieces of doc drift.

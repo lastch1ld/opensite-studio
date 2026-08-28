@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { requireSiteRole } from "@/lib/permissions";
-import { saveMediaFile } from "@/lib/media";
+import { saveMediaFile, validateUpload } from "@/lib/media";
 import { actorHasScope, getRequestActor } from "@/lib/apiAuth";
 
 export async function GET(req: Request, { params }: { params: Promise<{ siteId: string }> }) {
@@ -29,6 +29,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ siteId:
   const formData = await req.formData();
   const file = formData.get("file");
   if (!(file instanceof File)) return NextResponse.json({ error: "file is required" }, { status: 400 });
+
+  const invalid = validateUpload(file);
+  if (invalid) return NextResponse.json({ error: invalid }, { status: 400 });
 
   const { storageKey, url } = await saveMediaFile(siteId, file);
   const media = await db.media.create({

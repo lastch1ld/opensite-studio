@@ -744,7 +744,14 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
       return (
         <iframe
           srcDoc={str(props.html)}
-          sandbox="allow-scripts allow-same-origin"
+          // `allow-scripts allow-same-origin` together is the same as no
+          // sandbox at all: a srcDoc frame with both keeps the embedding
+          // origin, so its scripts can reach `parent.document` and act as
+          // the signed-in user — including in the editor canvas, where the
+          // embedding origin is the dashboard. Dropping allow-same-origin
+          // runs the embed in an opaque origin, which is what "sandboxed"
+          // claimed here in the first place.
+          sandbox="allow-scripts"
           style={{ width: "100%", height: str(style.height, "300px"), border: "0" }}
           title="Embedded content"
         />

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { findBlock } from "@/lib/blockTree";
-import { saveMediaFile } from "@/lib/media";
+import { saveMediaFile, validateUpload } from "@/lib/media";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { safePostJson } from "@/lib/safeFetch";
 import type { PageContent, FormBlockProps } from "@/components/blocks/types";
 import type { Prisma } from "@prisma/client";
 
@@ -70,8 +71,19 @@ export async function POST(req: Request) {
   for (const [key, value] of formData.entries()) {
     if (!key.startsWith("file:") || !(value instanceof File)) continue;
     const fieldId = key.slice("file:".length);
-    const { url } = await saveMediaFile(siteId, value);
-    data[fieldId] = url;
+    // This endpoint is unauthenticated, so an unvalidated write here is a
+    // one-request way to fill the media volume or park an executable
+    // document on the app's origin — the same allowlist and size cap the
+    // authenticated upload path uses applies before anything touches disk.
+    const invalid = validateUpload(value);
+    if (invalid) return NextResponse.json({ error: invalid }, { status: 400 });
+    const { storageKey } = await saveMediaFile(siteId, value);
+    // Submitted files deliberately get no Media row (docs/forms.md keeps
+    // them out of the site's media library) — which also means the public
+    // /api/media route won't serve them, since it requires one. They're
+    // read back through the authenticated attachments route instead,
+    // which is the right exposure for a submitter-provided file anyway.
+    data[fieldId] = `/api/sites/${siteId}/form-attachments/${storageKey}`;
   }
 
   for (const field of formProps.fields ?? []) {
@@ -87,11 +99,11 @@ export async function POST(req: Request) {
   const onSubmit = formProps.onSubmit;
   if (onSubmit?.action === "webhook" && onSubmit.url) {
     try {
-      await fetch(onSubmit.url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pageId, blockId, data }),
-      });
+      // safePostJson, not a bare fetch: the URL comes from whoever edits
+      // the form block, and this server sits inside the self-hoster's
+      // network. The newsletter webhook already went through these guards
+      // (lib/safeFetch.ts) — this one had been missed.
+      await safePostJson(onSubmit.url, { pageId, blockId, data });
     } catch {
       // Best-effort: the submission itself is already durably stored above,
       // a failing/unreachable webhook shouldn't fail the visitor's submit.
