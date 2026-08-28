@@ -184,10 +184,12 @@ See starter-templates.md's "Status" section for the deliberate simplifications
 (no lightbox, no scroll-snap/IntersectionObserver dot-sync, single action
 button not an array).
 
-Note: this pass added `SiteSettings.analytics` (`Json?`) — schema.prisma is
-updated and `prisma generate` succeeds; needs its own incremental `npx prisma
-migrate dev` migration per this doc's 2026-08-23 note above (the initial
-migration predates this column).
+Note: this pass added `SiteSettings.analytics` (`Json?`) — its migration,
+`20260828120000_add_site_settings_analytics`, was written by hand on
+2026-08-28 (still no dev Postgres) from `prisma migrate diff`'s output
+comparing the schema at the last-migrated commit to the current one. That
+same diff confirmed `analytics` was the *only* column the migration chain
+was missing — every other schema change since `init` is covered.
 
 ## Explicitly out of scope
 
