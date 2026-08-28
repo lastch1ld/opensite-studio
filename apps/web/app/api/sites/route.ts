@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { actorHasScope, getRequestActorAnySite } from "@/lib/apiAuth";
-import type { SiteMode } from "@prisma/client";
+import { themePresetById } from "@/lib/themePresets";
+import type { Prisma, SiteMode } from "@prisma/client";
 
 const SITE_MODES: SiteMode[] = ["BUILDER", "AI_CHAT"];
 
@@ -28,7 +29,7 @@ export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, subdomain, mode } = await req.json();
+  const { name, subdomain, mode, themePresetId } = await req.json();
   if (typeof name !== "string" || !name.trim() || typeof subdomain !== "string" || !/^[a-z0-9-]+$/.test(subdomain)) {
     return NextResponse.json(
       { error: "Name is required and subdomain must be lowercase letters, numbers, and hyphens only." },
@@ -37,6 +38,14 @@ export async function POST(req: Request) {
   }
   if (mode !== undefined && !SITE_MODES.includes(mode)) {
     return NextResponse.json({ error: "Invalid mode." }, { status: 400 });
+  }
+
+  // docs/ui-ux-roadmap.md Phase B's "start from a preset" moment. Omitted
+  // (or "") keeps the previous behaviour: no Theme row, so the theme
+  // editor and renderer fall back to DEFAULT_THEME_TOKENS.
+  const preset = typeof themePresetId === "string" && themePresetId ? themePresetById(themePresetId) : undefined;
+  if (typeof themePresetId === "string" && themePresetId && !preset) {
+    return NextResponse.json({ error: "Unknown theme preset." }, { status: 400 });
   }
 
   const existing = await db.site.findUnique({ where: { subdomain } });
@@ -49,6 +58,7 @@ export async function POST(req: Request) {
       mode: (mode as SiteMode | undefined) ?? "BUILDER",
       ownerId: session.user.id,
       memberships: { create: { userId: session.user.id, role: "OWNER" } },
+      ...(preset ? { theme: { create: { tokens: preset.tokens as unknown as Prisma.InputJsonValue } } } : {}),
     },
   });
   return NextResponse.json(site, { status: 201 });

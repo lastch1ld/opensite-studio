@@ -88,27 +88,43 @@ asked to build next.
   that was never actually available in this workspace; build the
   equivalent presentational quality directly as block-tree templates
   here instead of depending on that port.
-- [ ] **A handful of theme presets** (color palette + typography pairing,
-  `Theme.tokens` — see blocks-and-theming.md) a new Site can start from
-  at creation time instead of the current bare default — e.g. 3–4
-  genuinely distinct, well-chosen palettes rather than a color picker
-  with no starting point.
-- [ ] **"Start from a template" step** in the site/page creation flow —
-  today `Create page` always creates one empty section; offer a small
-  template picker (uses this phase's templates) as an alternative to
-  blank, wired through the existing Page/Template content model (no new
-  storage mechanism — a starter template's content is just the
-  `draftContent` a new Page is seeded with).
-- [ ] Extend the Theme Builder's existing header/footer template system
-  (theme-builder.md) with **1–2 polished default header/footer templates**
-  so a new Site's site-wide chrome doesn't start empty either — same
-  content model, just better authored starting content.
+- [x] **A handful of theme presets** — `lib/themePresets.ts`: four
+  distinct palettes (Signal, Ink, Terrace, Midnight), each with its own
+  type/spacing scale. Offered in the site-creation form (creates the
+  `Theme` row with the preset's tokens; omitting it keeps the old
+  behaviour of no Theme row + `DEFAULT_THEME_TOKENS`) and as a "Start
+  from a preset" row in the theme editor. `tests/themePresets.test.ts`
+  holds them to the readability bar they'd otherwise be shipped past:
+  body and secondary text clear 4.5:1 on their own ground, and `primary`
+  carries a white button label.
+- [x] **"Start from a template" step** in the site/page creation flow —
+  shipped ahead of this doc as the "Create a full site" panel plus the
+  "New Page" template picker (docs/site-templates-plan.md).
+- [x] Extend the Theme Builder's existing header/footer template system
+  with **default header/footer templates** — `lib/chromeTemplates.ts`.
+  Creating a header or footer Template now seeds authored content
+  instead of one empty section (`blank: true` opts out, surfaced as a
+  checkbox in `TemplatesPanel`). Every value is a `$token` reference, so
+  the chrome wears whichever preset the site started from and follows
+  later theme edits.
 - [ ] Once this phase has shipped enough real visual work under one
   identity, consider `/impeccable document` to record it as this
   surface's `DESIGN.md` — not before there's an actual visual world to
   document.
 
-## Open question: component/styling framework
+## Resolved: component/styling framework
+
+**Decided 2026-08-28: stay on Tailwind + Radix primitives directly, no
+shadcn/ui**, for the dashboard as well as the editor. The `.chrome-*`
+token layer in `globals.css` already exists and is adopted across the
+editor chrome and the auth screens; adding a second component idiom for
+the dashboard alone would mean two vocabularies in one product and a
+default shadcn look to override. Remaining Phase A screens extend the
+existing token layer.
+
+The original framing is kept below for the reasoning that fed the call.
+
+### Original open question
 
 editor-ui-stack.md already evaluated this once and landed on Tailwind
 (already installed) + Radix Primitives directly, explicitly rejecting
