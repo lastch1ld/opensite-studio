@@ -390,12 +390,22 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         // block tree to be restructured. BlockRenderer.tsx separately
         // cancels a container's top-padding gap when this is its first
         // child (see `fullBleed` on this definition).
-        width: "100vw",
+        //
+        // `--osw-bleed-width` defaults to the viewport, which is right for
+        // the published page. The editor canvas is NOT the viewport — it's
+        // a centered, max-width frame inside a layout with side panels —
+        // so `100vw`/`-50vw` there resolve against the browser window and
+        // shift the hero sideways by half the difference, which reads as a
+        // background bleeding past one edge and clipped at the other
+        // (docs/site-templates-plan.md Phase G). EditorClient.tsx sets the
+        // variable to its own canvas width so the same breakout lands on
+        // the frame instead.
+        width: "var(--osw-bleed-width, 100vw)",
         position: "relative",
         left: "50%",
         right: "50%",
-        marginLeft: "-50vw",
-        marginRight: "-50vw",
+        marginLeft: "calc(-0.5 * var(--osw-bleed-width, 100vw))",
+        marginRight: "calc(-0.5 * var(--osw-bleed-width, 100vw))",
         boxSizing: "border-box",
         backgroundColor: bgImage ? undefined : str(style.background, "#0B1120"),
         ...(imageLayers.length

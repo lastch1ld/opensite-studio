@@ -626,7 +626,15 @@ export function EditorClient({
                 breakout, see registry.tsx) to this simulated-breakpoint
                 frame during editing — the real published page has no such
                 frame, so it stays genuinely edge-to-edge there. */}
-            <div className="mx-auto overflow-x-hidden bg-white shadow-sm" style={{ maxWidth: `${canvasWidth}px` }}>
+            {/* --osw-bleed-width re-points the hero block's 100vw/-50vw
+                breakout (registry.tsx) at this frame: the canvas is not
+                the viewport, so the viewport-relative form shifts the
+                block sideways here even though it is correct on the
+                published page. */}
+            <div
+              className="mx-auto overflow-x-hidden bg-white shadow-sm"
+              style={{ maxWidth: `${canvasWidth}px`, ["--osw-bleed-width" as string]: `${canvasWidth}px` }}
+            >
               {showComposedPreview ? (
                 <>
                   {templateType === "header" ? (

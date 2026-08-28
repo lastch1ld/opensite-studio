@@ -126,14 +126,42 @@ booking/rooms system).
 
 ## Todo
 
+**On Phases B–F's unchecked boxes (2026-08-28):** they stay unchecked, but
+the reason is now narrower. The whole "bulletproof" bar used to be blocked
+on a dev Postgres; the part of it that a block tree can be checked against
+without a browser is now enforced in CI by `tests/siteTemplates.test.ts`
+(see Phase H). What remains is genuinely visual — how a template actually
+lays out and reads in the editor canvas and `/preview` — and still needs a
+Postgres, which this machine has neither Docker nor a local install for.
+
 - [x] Phase A — SaaS template (5 pages, bulletproof + animated + shipped)
 - [ ] Phase B — Agency template (5 pages code-complete, `tsc`/`build`/`eslint` clean; left unchecked — live editor/preview verification still outstanding, no dev Postgres in this pass, same bar as Phase C below)
 - [ ] Phase C — Personal portfolio template (code built and tsc/eslint/build-clean — `lib/siteTemplates/portfolio.ts` — left unchecked because no dev Postgres was available in this pass, so it hasn't cleared the "bulletproof" live-browser bar Phase A's checked box implies)
 - [ ] Phase D — Restaurant template (code-complete — `lib/siteTemplates/restaurant.ts`, dispatcher + catalog wired — left unchecked: not live-verified in editor/preview, no dev Postgres in this pass)
 - [ ] Phase E — Hotel template (code-complete — `lib/siteTemplates/hotel.ts`, dispatcher + catalog wired — left unchecked: not live-verified in editor/preview, no dev Postgres in this pass)
 - [ ] Phase F — Bar template (code-complete — `lib/siteTemplates/bar.ts`, dispatcher + catalog wired — but left unchecked: not live-verified in editor/preview, no dev Postgres available in this pass)
-- [ ] Phase G — Editor-canvas background-bleed bugfix
-- [ ] Phase H — Final animation/image/quality pass across all 6 genres
+- [x] Phase G — Editor-canvas background-bleed bugfix. Root cause found by
+  reading the code, not by reproducing it live: the `hero` block's
+  full-bleed breakout (`width: 100vw; left: 50%; margin-left: -50vw`,
+  registry.tsx) is viewport-relative, which is exactly right on the
+  published page and wrong in the editor, where the canvas is a centered
+  max-width frame between two side panels. There the breakout resolves
+  against the browser window instead, shifting the block left by half the
+  difference — its background runs past one edge of the frame and its
+  content is clipped at the other. Fixed by expressing the breakout as
+  `var(--osw-bleed-width, 100vw)`, with EditorClient setting the variable
+  to its own canvas width; the published path keeps the `100vw` fallback
+  and is unchanged. Verified as a standalone CSS reproduction in a browser
+  (before/after side by side) rather than in the real editor, which still
+  needs a Postgres.
+- [x] Phase H — Final animation/image/quality pass across all 6 genres, as
+  far as it can go without a browser: `tests/siteTemplates.test.ts` now
+  asserts the checklist above per template page — registered block types,
+  unique ids, WCAG contrast against the resolved section background, a
+  real image on every image-bearing block, distinct `contentSwitcher`
+  labels, and an `animation` value on every content section. It found two
+  real contrast failures and 42 unanimated sections; both are fixed. The
+  live-browser half of the bar (below) is still outstanding.
 - [ ] Commit + push after each phase (matches this session's established cadence — never batch multiple genres into one commit)
 
 ## Skills — which to use for what
