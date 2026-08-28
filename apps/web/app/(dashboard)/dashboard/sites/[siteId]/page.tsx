@@ -7,6 +7,7 @@ import { PageList } from "@/components/dashboard/PageList";
 import { MembersPanel } from "@/components/dashboard/MembersPanel";
 import { ApiKeysPanel } from "@/components/dashboard/ApiKeysPanel";
 import { ChromeTabs } from "@/components/dashboard/ChromeTabs";
+import { AccessibilityPanel } from "@/components/dashboard/AccessibilityPanel";
 
 const secondaryNav = [
   { slug: "collections", label: "Collections" },
@@ -38,6 +39,11 @@ export default async function SitePagesPage({ params }: { params: Promise<{ site
           collections={collections.map((c) => ({ id: c.id, name: c.name }))}
         />
       ),
+    },
+    {
+      value: "accessibility",
+      label: "Accessibility",
+      content: <AccessibilityPanel siteId={site.id} />,
     },
   ];
   if (role === "OWNER") {

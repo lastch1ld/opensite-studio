@@ -110,7 +110,7 @@ function barEventSpotlight(date: string, title: string, blurb: string): Block {
     { columns: "2" },
     { gap: "40px", align: "center" },
     [
-      mk("imageOverlay", { src: "https://placehold.co/700x500", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0.1", aspectRatio: "4 / 3", borderRadius: "4px", animation: "slide-right" }),
+      mk("imageOverlay", { src: "https://placehold.co/700x500", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0.1", aspectRatio: "4 / 3", borderRadius: "4px", animation: "slide-right" }),
       mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "12px", align: "flex-start", animation: "slide-left" }, [
         body(date, { size: "13px", weight: "700", color: BAR.accent, font: BAR.labelFont }),
         heading(title, { size: "28px", color: BAR.cream, font: BAR.font }),
@@ -221,9 +221,9 @@ export function barHomeTemplate(): PageContent {
         { columns: "3" },
         { gap: "16px", animation: "fade-in" },
         [
-          mk("imageOverlay", { src: "https://placehold.co/700x900", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0.15", aspectRatio: "4 / 5", borderRadius: "4px" }),
-          mk("imageOverlay", { src: "https://placehold.co/700x900", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0.15", aspectRatio: "4 / 5", borderRadius: "4px" }),
-          mk("imageOverlay", { src: "https://placehold.co/700x900", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0.15", aspectRatio: "4 / 5", borderRadius: "4px" }),
+          mk("imageOverlay", { src: "https://placehold.co/700x900", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0.15", aspectRatio: "4 / 5", borderRadius: "4px" }),
+          mk("imageOverlay", { src: "https://placehold.co/700x900", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0.15", aspectRatio: "4 / 5", borderRadius: "4px" }),
+          mk("imageOverlay", { src: "https://placehold.co/700x900", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0.15", aspectRatio: "4 / 5", borderRadius: "4px" }),
         ],
       ),
     ],
@@ -260,7 +260,7 @@ export function barHomeTemplate(): PageContent {
     "72px 40px",
     [
       heading("Replace with a closing call to action", { size: "32px", color: BAR.ink, align: "center", font: BAR.font }),
-      body("Replace with a supporting sentence about reservations or walk-ins.", { size: "16px", color: BAR.accentDeep, align: "center" }),
+      body("Replace with a supporting sentence about reservations or walk-ins.", { size: "16px", color: BAR.ink, align: "center" }),
       cta("Reserve a table", { background: BAR.ink, color: BAR.cream }),
     ],
     "620px",
@@ -344,7 +344,7 @@ function barEventCard(e: EventSeed): Block {
     { layout: "stack" },
     { background: BAR.inkPanel, padding: "0", borderRadius: "4px", gap: "0", align: "flex-start", borderColor: BAR.panelBorder, animation: "slide-up" },
     [
-      mk("imageOverlay", { src: "https://placehold.co/700x500", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0.1", aspectRatio: "4 / 3", borderRadius: "4px 4px 0 0" }),
+      mk("imageOverlay", { src: "https://placehold.co/700x500", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0.1", aspectRatio: "4 / 3", borderRadius: "4px 4px 0 0" }),
       mk("section", { layout: "stack" }, { background: "transparent", padding: "24px", gap: "8px" }, [
         body(e.date, { size: "12px", weight: "700", color: BAR.accent, font: BAR.labelFont }),
         heading(e.title, { size: "19px", color: BAR.cream, font: BAR.font, level: "h3" }),
@@ -370,7 +370,16 @@ export function barEventsTemplate(): PageContent {
     { date: "Replace with a date 2", title: "Replace with event name 2", blurb: "Replace with a one-line description." },
     { date: "Replace with a date 3", title: "Replace with event name 3", blurb: "Replace with a one-line description." },
   ];
-  const eventGrid = bleed(BAR.ink, "88px 40px", [mk("columns", { columns: "3" }, { gap: "24px" }, events.map(barEventCard))], "1100px", "0");
+  const eventGrid = bleed(
+    BAR.ink,
+    "88px 40px",
+    [
+      heading("What's on", { size: "30px", color: BAR.cream, align: "center", font: BAR.font, animation: "fade-in" }),
+      mk("columns", { columns: "3" }, { gap: "24px" }, events.map(barEventCard)),
+    ],
+    "1100px",
+    "32px",
+  );
 
   const finalCta = bleed(BAR.accent, "72px 40px", [heading("Replace with a closing call to action", { size: "30px", color: BAR.ink, align: "center", font: BAR.font }), cta("RSVP", { background: BAR.ink, color: BAR.cream })], "600px", "20px", { animation: "scale-in" });
 

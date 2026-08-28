@@ -217,7 +217,7 @@ export function restaurantHomeTemplate(): PageContent {
       cta("Reserve a table", { background: "transparent", color: RESTAURANT.cream, variant: "secondary" }),
     ]),
   ]);
-  const heroImage = mk("imageOverlay", { src: "https://placehold.co/700x800", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 5", borderRadius: "20px", animation: "slide-left" });
+  const heroImage = mk("imageOverlay", { src: "https://placehold.co/700x800", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 5", borderRadius: "20px", animation: "slide-left" });
   // Plain solid forest — `bleed()`/`section`'s `background` style key maps
   // to CSS `background-color`, which cannot hold a gradient (a prior
   // pass's gradient here never actually rendered, caught on
@@ -244,7 +244,7 @@ export function restaurantHomeTemplate(): PageContent {
       { layout: "stack" },
       { background: "#ffffff", padding: "0", borderRadius: "16px", gap: "0", align: "flex-start", borderColor: RESTAURANT.border, animation: "slide-up" },
       [
-        mk("imageOverlay", { src: "https://placehold.co/500x400", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: imageAspect, borderRadius: "16px 16px 0 0" }),
+        mk("imageOverlay", { src: "https://placehold.co/500x400", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: imageAspect, borderRadius: "16px 16px 0 0" }),
         mk("section", { layout: "stack" }, { background: "transparent", padding: "20px", gap: "6px", align: "flex-start" }, [
           heading("Replace with a dish name", { size: titleSize, color: RESTAURANT.text, font: RESTAURANT.fontDisplay }),
           body("Replace with a short, honest description.", { size: "14px", color: RESTAURANT.textFaint, font: RESTAURANT.fontBody }),
@@ -291,7 +291,7 @@ export function restaurantHomeTemplate(): PageContent {
     "72px 40px",
     [
       heading("Replace with a closing call to action", { size: "32px", color: "#ffffff", align: "center", font: RESTAURANT.fontDisplay }),
-      body("Replace with a supporting sentence about walk-ins or reservations.", { size: "16px", color: "#FCE4D8", align: "center", font: RESTAURANT.fontBody }),
+      body("Replace with a supporting sentence about walk-ins or reservations.", { size: "16px", color: "#ffffff", align: "center", font: RESTAURANT.fontBody }),
       cta("Reserve a table", { background: "#ffffff", color: RESTAURANT.terracotta }),
     ],
     "620px",

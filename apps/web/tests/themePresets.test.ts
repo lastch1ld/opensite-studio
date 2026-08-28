@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_THEME_TOKENS } from "@/lib/theme";
 import { THEME_PRESETS, themePresetById } from "@/lib/themePresets";
-import { contrastRatio, parseColor } from "./support/blockAudit";
+import { contrastRatio, parseColor } from "@/lib/a11y";
 
 const ratio = (fg: string, bg: string) => contrastRatio(parseColor(fg)!, parseColor(bg)!);
 

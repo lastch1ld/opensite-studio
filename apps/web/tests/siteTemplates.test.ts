@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { SITE_TEMPLATES } from "@/lib/siteTemplateOptions";
 import { siteTemplatePageContent } from "@/lib/siteTemplates";
 import { registeredBlockTypes } from "./support/registry";
-import { contrastIssues, missingImages, walk } from "./support/blockAudit";
+import { missingImages, walk } from "./support/blockAudit";
+import { auditPageContent } from "@/lib/a11y";
+import { DEFAULT_THEME_TOKENS } from "@/lib/theme";
 
 // docs/site-templates-plan.md's Phases B–F shipped code-complete but
 // unverified (no dev Postgres, so no live editor/preview pass). These
@@ -37,8 +39,27 @@ describe.each(cases)("$templateId/$slug", ({ templateId, slug }) => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("has no text that fails WCAG contrast against its section background", () => {
-    expect(contrastIssues(visits)).toEqual([]);
+  it("clears the accessibility audit the product runs on its users' pages", () => {
+    // Same checker as the accessibility panel (lib/a11y.ts) — a template
+    // that ships with the product must not fail the audit the product
+    // performs on everyone else's pages. Errors only: the one warning the
+    // templates keep is `link-target`, since a placeholder link that goes
+    // nowhere yet is what a template is supposed to hand over.
+    const errors = content
+      ? auditPageContent(content, DEFAULT_THEME_TOKENS)
+          .filter((i) => i.severity === "error")
+          .map((i) => `${i.rule} at ${i.path}: ${i.message}`)
+      : [];
+    expect(errors).toEqual([]);
+  });
+
+  it("has no heading-order warnings", () => {
+    const headings = content
+      ? auditPageContent(content, DEFAULT_THEME_TOKENS)
+          .filter((i) => i.rule === "heading-order")
+          .map((i) => `${i.path}: ${i.message}`)
+      : [];
+    expect(headings).toEqual([]);
   });
 
   it("gives every image-bearing block a real image", () => {

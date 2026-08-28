@@ -26,6 +26,14 @@ const AGENCY = {
   textFaint: "#6B6862",
   accent: "#FF4B12",
   accentSoft: "#FFE4D9",
+  // The signal orange is a surface color, not a text color: at 3.0:1 on
+  // paper it fails WCAG AA for the 12-14px bold labels it kept being used
+  // for, and white on it only reaches 3.4:1, so it can't back small light
+  // text either (lib/a11y.ts). accentInk is the same hue taken deep enough
+  // to do both jobs.
+  accentInk: "#C43503",
+  // inkMuted is tuned for the dark bands; on paper it lands at 2.3:1.
+  mutedOnLight: "#6E6E6E",
   border: "#DEDACD",
   font: "fraunces",
 } as const;
@@ -42,7 +50,7 @@ function agencyNav(active: string): Block {
         "section",
         { layout: "row" },
         { background: "transparent", padding: "0", gap: "28px", align: "center" },
-        links.map((l) => body(l, { size: "14px", weight: l === active ? "700" : "400", color: l === active ? AGENCY.accent : AGENCY.textFaint })),
+        links.map((l) => body(l, { size: "14px", weight: l === active ? "700" : "400", color: l === active ? AGENCY.accentInk : AGENCY.textFaint })),
       ),
     ],
   );
@@ -73,7 +81,7 @@ function agencyPageHero(eyebrow: string, title: string, sub: string): Block {
     AGENCY.ink,
     "80px 40px 72px",
     [
-      body(eyebrow, { size: "13px", weight: "700", color: AGENCY.accent, align: "center" }),
+      body(eyebrow, { size: "13px", weight: "700", color: AGENCY.accentSoft, align: "center" }),
       heading(title, { size: "46px", color: "#F5F3EE", align: "center", level: "h1", font: AGENCY.font }),
       body(sub, { size: "17px", color: AGENCY.inkMuted, align: "center" }),
     ],
@@ -105,7 +113,7 @@ function agencyLogoMarquee(): Block {
     "marquee",
     { speed: "24", direction: "left", pauseOnHover: "true" },
     { gap: "56px", animation: "fade-in" },
-    names.map((n) => body(n, { size: "18px", weight: "600", color: AGENCY.inkMuted })),
+    names.map((n) => body(n, { size: "18px", weight: "600", color: AGENCY.mutedOnLight })),
   );
 }
 
@@ -137,7 +145,7 @@ function agencyWorkSwitcher(items: WorkItemSeed[]): Block {
   return mk(
     "contentSwitcher",
     { items: items.map((w) => ({ id: randomUUID(), label: w.name, image: "https://placehold.co/900x1125", description: w.blurb })) },
-    { activeColor: AGENCY.text, inactiveColor: AGENCY.inkMuted, imageAspectRatio: "4 / 5", gap: "40px", animation: "fade-in" },
+    { activeColor: AGENCY.text, inactiveColor: AGENCY.mutedOnLight, imageAspectRatio: "4 / 5", gap: "40px", animation: "fade-in" },
   );
 }
 
@@ -160,7 +168,7 @@ export function agencyHomeTemplate(): PageContent {
       heading("Replace with a bold statement of what this studio makes.", { size: "64px", color: "#F5F3EE", align: "center", level: "h1", font: AGENCY.font, animation: "slide-up" }),
       body("Replace with a supporting sentence naming who you work with and what kind of work you make for them.", { size: "18px", color: AGENCY.inkMuted, align: "center" }),
       mk("section", { layout: "row" }, { background: "transparent", padding: "0", gap: "12px", justify: "center", animation: "fade-in" }, [
-        cta("See our work", { background: AGENCY.accent, color: "#ffffff" }),
+        cta("See our work", { background: AGENCY.accentInk, color: "#ffffff" }),
         cta("Start a project", { background: "transparent", color: "#F5F3EE", variant: "secondary" }),
       ]),
     ],
@@ -228,12 +236,12 @@ export function agencyHomeTemplate(): PageContent {
   );
 
   const finalCta = bleed(
-    AGENCY.accent,
+    AGENCY.accentInk,
     "72px 40px",
     [
       heading("Replace with a closing call to action", { size: "32px", color: "#ffffff", align: "center", font: AGENCY.font }),
-      body("Replace with a supporting sentence.", { size: "16px", color: AGENCY.accentSoft, align: "center" }),
-      cta("Start a project", { background: "#ffffff", color: AGENCY.accent }),
+      body("Replace with a supporting sentence.", { size: "16px", color: "#ffffff", align: "center" }),
+      cta("Start a project", { background: "#ffffff", color: AGENCY.accentInk }),
     ],
     "620px",
     "16px",
@@ -289,15 +297,15 @@ export function agencyWorkTemplate(): PageContent {
         heading("More projects", { size: "30px", color: AGENCY.text, align: "center", font: AGENCY.font }),
         body("Replace with a sentence about how projects are organized (by discipline, industry, or year).", { size: "15px", color: AGENCY.textFaint, align: "center" }),
         mk("list", { collectionId: "", columns: "3" }, { display: "grid", gap: "24px", animation: "fade-in" }, [
-          mk("imageOverlay", { src: "https://placehold.co/700x525", alt: "", caption: "Replace with project name 6" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 3", borderRadius: "12px" }),
-          mk("imageOverlay", { src: "https://placehold.co/700x525", alt: "", caption: "Replace with project name 7" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 3", borderRadius: "12px" }),
-          mk("imageOverlay", { src: "https://placehold.co/700x525", alt: "", caption: "Replace with project name 8" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 3", borderRadius: "12px" }),
+          mk("imageOverlay", { src: "https://placehold.co/700x525", alt: "Replace with a description of this image", caption: "Replace with project name 6" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 3", borderRadius: "12px" }),
+          mk("imageOverlay", { src: "https://placehold.co/700x525", alt: "Replace with a description of this image", caption: "Replace with project name 7" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 3", borderRadius: "12px" }),
+          mk("imageOverlay", { src: "https://placehold.co/700x525", alt: "Replace with a description of this image", caption: "Replace with project name 8" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 3", borderRadius: "12px" }),
         ]),
       ]),
     ],
   );
 
-  const finalCta = bleed(AGENCY.ink, "72px 40px", [heading("Replace with a closing call to action", { size: "30px", color: "#F5F3EE", align: "center", font: AGENCY.font }), cta("Start a project", { background: AGENCY.accent, color: "#ffffff" })], "600px", "20px", { animation: "scale-in" });
+  const finalCta = bleed(AGENCY.ink, "72px 40px", [heading("Replace with a closing call to action", { size: "30px", color: "#F5F3EE", align: "center", font: AGENCY.font }), cta("Start a project", { background: AGENCY.accentInk, color: "#ffffff" })], "600px", "20px", { animation: "scale-in" });
 
   return {
     version: 1,
@@ -315,20 +323,20 @@ export function agencyServicesTemplate(): PageContent {
       { gap: "48px", align: "center" },
       reverse
         ? [
-            mk("imageOverlay", { src: "https://placehold.co/700x500", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "16px", animation: "slide-right" }),
+            mk("imageOverlay", { src: "https://placehold.co/700x500", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "16px", animation: "slide-right" }),
             mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "12px", animation: "slide-left" }, [
-              body(eyebrow, { size: "12px", weight: "700", color: AGENCY.accent }),
+              body(eyebrow, { size: "12px", weight: "700", color: AGENCY.accentInk }),
               heading(title, { size: "26px", color: AGENCY.text, font: AGENCY.font }),
               body(copy, { size: "16px", color: AGENCY.textFaint }),
             ]),
           ]
         : [
             mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "12px", animation: "slide-right" }, [
-              body(eyebrow, { size: "12px", weight: "700", color: AGENCY.accent }),
+              body(eyebrow, { size: "12px", weight: "700", color: AGENCY.accentInk }),
               heading(title, { size: "26px", color: AGENCY.text, font: AGENCY.font }),
               body(copy, { size: "16px", color: AGENCY.textFaint }),
             ]),
-            mk("imageOverlay", { src: "https://placehold.co/700x500", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "16px", animation: "slide-left" }),
+            mk("imageOverlay", { src: "https://placehold.co/700x500", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "16px", animation: "slide-left" }),
           ],
     );
 
@@ -349,7 +357,7 @@ export function agencyServicesTemplate(): PageContent {
       "section",
       { layout: "stack" },
       { background: "transparent", padding: "0", gap: "10px", align: "flex-start", animation: "slide-up" },
-      [body(num, { size: "13px", weight: "700", color: AGENCY.accent }), heading(title, { size: "19px", color: AGENCY.text, font: AGENCY.font }), body(copy, { size: "15px", color: AGENCY.textFaint })],
+      [body(num, { size: "13px", weight: "700", color: AGENCY.accentInk }), heading(title, { size: "19px", color: AGENCY.text, font: AGENCY.font }), body(copy, { size: "15px", color: AGENCY.textFaint })],
     );
 
   const process = bleed(
@@ -372,7 +380,7 @@ export function agencyServicesTemplate(): PageContent {
 
   const faq = bleed("#ffffff", "88px 40px", [heading("Engagement questions", { size: "30px", color: AGENCY.text, align: "center", font: AGENCY.font }), agencyFaq()], "760px", "24px");
 
-  const finalCta = bleed(AGENCY.accent, "72px 40px", [heading("Replace with a closing call to action", { size: "30px", color: "#ffffff", align: "center", font: AGENCY.font }), cta("Start a project", { background: "#ffffff", color: AGENCY.accent })], "600px", "20px", { animation: "scale-in" });
+  const finalCta = bleed(AGENCY.accentInk, "72px 40px", [heading("Replace with a closing call to action", { size: "30px", color: "#ffffff", align: "center", font: AGENCY.font }), cta("Start a project", { background: "#ffffff", color: AGENCY.accentInk })], "600px", "20px", { animation: "scale-in" });
 
   return {
     version: 1,
@@ -415,14 +423,14 @@ export function agencyAboutTemplate(): PageContent {
       mk(
         "contentSwitcher",
         { items: team.map((t) => ({ id: randomUUID(), label: t.name, image: "https://placehold.co/600x750", description: t.role })) },
-        { activeColor: AGENCY.text, inactiveColor: AGENCY.inkMuted, imageAspectRatio: "4 / 5", animation: "fade-in" },
+        { activeColor: AGENCY.text, inactiveColor: AGENCY.mutedOnLight, imageAspectRatio: "4 / 5", animation: "fade-in" },
       ),
     ],
     "900px",
     "32px",
   );
 
-  const finalCta = bleed(AGENCY.accent, "72px 40px", [heading("Replace with a closing call to action", { size: "30px", color: "#ffffff", align: "center", font: AGENCY.font }), cta("Get in touch", { background: "#ffffff", color: AGENCY.accent })], "600px", "20px", { animation: "scale-in" });
+  const finalCta = bleed(AGENCY.accentInk, "72px 40px", [heading("Replace with a closing call to action", { size: "30px", color: "#ffffff", align: "center", font: AGENCY.font }), cta("Get in touch", { background: "#ffffff", color: AGENCY.accentInk })], "600px", "20px", { animation: "scale-in" });
 
   return {
     version: 1,

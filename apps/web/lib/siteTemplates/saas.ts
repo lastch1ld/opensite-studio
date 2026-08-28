@@ -25,6 +25,15 @@ const SAAS = {
   textFaint: "#6B7280",
   accent: "#6D5EF5",
   accentSoft: "#EEECFE",
+  // Accent variants that carry small text. The accent itself is a surface
+  // color: at 4.4:1 on the body ground and 4.3:1 on ink it fails WCAG AA
+  // for anything under 24px, which is exactly where a 13px bold eyebrow
+  // lives (lib/a11y.ts).
+  accentText: "#4F46E5",
+  accentOnDark: "#8F86FF",
+  // inkMuted is tuned for dark bands; on the light ground it lands at
+  // 2.4:1, so light-ground muted text uses this instead.
+  mutedOnLight: "#6B7280",
   border: "#E5E7EB",
   font: "space-grotesk",
 } as const;
@@ -41,7 +50,7 @@ function saasNav(active: string): Block {
         "section",
         { layout: "row" },
         { background: "transparent", padding: "0", gap: "28px", align: "center" },
-        links.map((l) => body(l, { size: "14px", weight: l === active ? "700" : "400", color: l === active ? SAAS.accent : SAAS.textFaint })),
+        links.map((l) => body(l, { size: "14px", weight: l === active ? "700" : "400", color: l === active ? SAAS.accentText : SAAS.textFaint })),
       ),
     ],
   );
@@ -72,7 +81,7 @@ function saasPageHero(eyebrow: string, title: string, sub: string): Block {
     SAAS.ink,
     "80px 40px 72px",
     [
-      body(eyebrow, { size: "13px", weight: "700", color: SAAS.accent, align: "center" }),
+      body(eyebrow, { size: "13px", weight: "700", color: SAAS.accentOnDark, align: "center" }),
       heading(title, { size: "44px", color: "#F4F4F5", align: "center", level: "h1", font: SAAS.font }),
       body(sub, { size: "17px", color: SAAS.inkMuted, align: "center" }),
     ],
@@ -104,7 +113,7 @@ function saasLogoMarquee(): Block {
     "marquee",
     { speed: "24", direction: "left", pauseOnHover: "true" },
     { gap: "56px", animation: "fade-in" },
-    names.map((n) => body(n, { size: "18px", weight: "600", color: SAAS.inkMuted })),
+    names.map((n) => body(n, { size: "18px", weight: "600", color: SAAS.mutedOnLight })),
   );
 }
 
@@ -227,7 +236,7 @@ export function saasHomeTemplate(): PageContent {
     "72px 40px",
     [
       heading("Replace with a closing call to action", { size: "32px", color: "#ffffff", align: "center", font: SAAS.font }),
-      body("Replace with a supporting sentence.", { size: "16px", color: SAAS.accentSoft, align: "center" }),
+      body("Replace with a supporting sentence.", { size: "16px", color: "#ffffff", align: "center" }),
       cta("Start free trial", { background: "#ffffff", color: SAAS.accent }),
     ],
     "620px",
@@ -262,20 +271,20 @@ export function saasFeaturesTemplate(): PageContent {
       { gap: "48px", align: "center" },
       reverse
         ? [
-            mk("imageOverlay", { src: "https://placehold.co/700x500", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "16px", animation: "slide-right" }),
+            mk("imageOverlay", { src: "https://placehold.co/700x500", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "16px", animation: "slide-right" }),
             mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "12px", animation: "slide-left" }, [
-              body(eyebrow, { size: "12px", weight: "700", color: SAAS.accent }),
+              body(eyebrow, { size: "12px", weight: "700", color: SAAS.accentText }),
               heading(title, { size: "26px", color: SAAS.text, font: SAAS.font }),
               body(copy, { size: "16px", color: SAAS.textFaint }),
             ]),
           ]
         : [
             mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "12px", animation: "slide-right" }, [
-              body(eyebrow, { size: "12px", weight: "700", color: SAAS.accent }),
+              body(eyebrow, { size: "12px", weight: "700", color: SAAS.accentText }),
               heading(title, { size: "26px", color: SAAS.text, font: SAAS.font }),
               body(copy, { size: "16px", color: SAAS.textFaint }),
             ]),
-            mk("imageOverlay", { src: "https://placehold.co/700x500", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "16px", animation: "slide-left" }),
+            mk("imageOverlay", { src: "https://placehold.co/700x500", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "16px", animation: "slide-left" }),
           ],
     );
 
@@ -391,7 +400,7 @@ export function saasAboutTemplate(): PageContent {
       mk(
         "contentSwitcher",
         { items: team.map((t) => ({ id: randomUUID(), label: t.name, image: "https://placehold.co/600x750", description: t.role })) },
-        { activeColor: SAAS.text, inactiveColor: SAAS.inkMuted, imageAspectRatio: "4 / 5", animation: "fade-in" },
+        { activeColor: SAAS.text, inactiveColor: SAAS.mutedOnLight, imageAspectRatio: "4 / 5", animation: "fade-in" },
       ),
     ],
     "900px",

@@ -34,6 +34,13 @@ const HOTEL = {
   ice: "#7E97A3",
   iceSoft: "#E4EBEC",
   clay: "#AD8462",
+  // ice and clay are surface/large-type colors: as 14-15px bold text they
+  // sit at 2.9-3.4:1, under WCAG AA. These are the same hues taken deep
+  // enough to carry small text, and clayDeep additionally lets a CTA band
+  // in this palette hold white body copy (lib/a11y.ts).
+  iceText: "#57727F",
+  clayText: "#7A5334",
+  clayDeep: "#8A6242",
   border: "#DEDACF",
   font: "fraunces",
 } as const;
@@ -50,7 +57,7 @@ function hotelNav(active: string): Block {
         "section",
         { layout: "row" },
         { background: "transparent", padding: "0", gap: "28px", align: "center" },
-        links.map((l) => body(l, { size: "14px", weight: l === active ? "700" : "400", color: l === active ? HOTEL.ice : HOTEL.textFaint })),
+        links.map((l) => body(l, { size: "14px", weight: l === active ? "700" : "400", color: l === active ? HOTEL.iceText : HOTEL.textFaint })),
       ),
     ],
   );
@@ -103,11 +110,11 @@ function hotelRoomRateCard(r: RoomRateSeed): Block {
     { layout: "stack" },
     { background: "#ffffff", padding: "0", borderRadius: "4px", gap: "0", align: "flex-start", borderColor: HOTEL.border, animation: "slide-up" },
     [
-      mk("imageOverlay", { src: "https://placehold.co/600x450", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "4px 4px 0 0" }),
+      mk("imageOverlay", { src: "https://placehold.co/600x450", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "4px 4px 0 0" }),
       mk("section", { layout: "stack" }, { background: "transparent", padding: "20px", gap: "6px", align: "flex-start" }, [
         mk("section", { layout: "row" }, { background: "transparent", padding: "0", justify: "space-between", align: "center" }, [
           heading(r.name, { size: "18px", color: HOTEL.text, font: HOTEL.font }),
-          body(r.rate, { size: "15px", weight: "700", color: HOTEL.clay }),
+          body(r.rate, { size: "15px", weight: "700", color: HOTEL.clayText }),
         ]),
         body(r.description, { size: "14px", color: HOTEL.textFaint }),
       ]),
@@ -243,12 +250,12 @@ export function hotelHomeTemplate(): PageContent {
   const review = bleed(HOTEL.ink, "80px 40px", [hotelReview("Replace with a real guest review — one honest sentence about the stay.", "Replace with a name, or “Verified guest”", "★★★★★ Replace with a real average rating")], "700px", "0", { animation: "fade-in" });
 
   const finalCta = bleed(
-    HOTEL.clay,
+    HOTEL.clayDeep,
     "72px 40px",
     [
       heading("Replace with a closing invitation to book", { size: "32px", color: "#ffffff", align: "center", font: HOTEL.font }),
-      body("Replace with a supporting sentence.", { size: "16px", color: "#FBEFE5", align: "center" }),
-      cta("Check availability", { background: "#ffffff", color: HOTEL.clay }),
+      body("Replace with a supporting sentence.", { size: "16px", color: "#ffffff", align: "center" }),
+      cta("Check availability", { background: "#ffffff", color: HOTEL.clayDeep }),
     ],
     "620px",
     "16px",
@@ -293,7 +300,7 @@ export function hotelRoomsTemplate(): PageContent {
       mk(
         "contentSwitcher",
         { items: rooms.map((r) => ({ id: randomUUID(), label: r.name, image: "https://placehold.co/900x650", description: r.description })) },
-        { activeColor: HOTEL.text, inactiveColor: HOTEL.inkMuted, imageAspectRatio: "3 / 2", animation: "fade-in" },
+        { activeColor: HOTEL.text, inactiveColor: HOTEL.textFaint, imageAspectRatio: "3 / 2", animation: "fade-in" },
       ),
     ],
     "1000px",
@@ -366,7 +373,7 @@ export function hotelAmenitiesTemplate(): PageContent {
     "24px",
   );
 
-  const finalCta = bleed(HOTEL.clay, "72px 40px", [heading("Replace with a closing invitation to book", { size: "30px", color: "#ffffff", align: "center", font: HOTEL.font }), cta("Check availability", { background: "#ffffff", color: HOTEL.clay })], "600px", "20px", { animation: "scale-in" });
+  const finalCta = bleed(HOTEL.clayDeep, "72px 40px", [heading("Replace with a closing invitation to book", { size: "30px", color: "#ffffff", align: "center", font: HOTEL.font }), cta("Check availability", { background: "#ffffff", color: HOTEL.clayDeep })], "600px", "20px", { animation: "scale-in" });
 
   return {
     version: 1,
