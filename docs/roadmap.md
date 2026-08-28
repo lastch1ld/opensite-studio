@@ -191,6 +191,39 @@ comparing the schema at the last-migrated commit to the current one. That
 same diff confirmed `analytics` was the *only* column the migration chain
 was missing — every other schema change since `init` is covered.
 
+## Post-roadmap features (2026-08-28)
+
+Built after phases 0–4 closed, from a parity/competitive read of what
+hosted builders lead with that this didn't have. Each is deliberately
+scoped to what could be built and tested without a database here — see
+the note at the end of this section.
+
+- [x] **Accessibility scanner** — `lib/a11y.ts` plus an Accessibility tab
+  per site. Audits the block tree (contrast against the resolved
+  background, alt text, control names, form labels, heading order) rather
+  than rendered HTML, so a finding points at a block someone can fix.
+  Elementor's equivalent is a headline feature; this had nothing.
+- [x] **Image optimisation on upload** — WebP re-encode capped at 2400px
+  via `sharp` (`lib/media.ts`). See [media.md](media.md), including the
+  half deliberately not built (responsive `srcset`).
+- [x] **Whole-site export** — `lib/siteExport.ts` and an OWNER-only route:
+  the content is yours, and the only way out used to be `pg_dump`.
+- [x] **Automatic responsive scaling** — type and spacing scale down at
+  tablet/mobile unless overridden ([editor.md](editor.md)).
+- [x] **AI site generation** — describe the business, get the template's
+  copy written for it ([ai-mode.md](ai-mode.md)).
+
+Not built, and worth naming: responsive `srcset`, an **import** to pair
+with the export, and an OpenAI adapter for generation (the Anthropic one
+is what exists).
+
+**Standing constraint:** this machine has no Docker and no local Postgres,
+so nothing in this section — or in Phases B–F of
+[site-templates-plan.md](site-templates-plan.md) — has been exercised
+against a running app. Everything is covered by unit tests over the pure
+logic, and `tsc`/`eslint`/`next build` pass. A pass through the real UI is
+the outstanding verification for all of it.
+
 ## Explicitly out of scope
 
 Ecommerce (product/cart/checkout, Wix Stores/WooCommerce-equivalent) and
