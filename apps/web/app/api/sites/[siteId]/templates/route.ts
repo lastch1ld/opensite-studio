@@ -35,7 +35,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ siteId:
   }
 
   // Header and footer templates start from authored content rather than one
-  // empty section (docs/ui-ux-roadmap.md Phase B) — `blank: true` opts back
+  // empty section (docs/ui-ux-roadmap.md) — `blank: true` opts back
   // out. Every other type has no meaningful default and still starts empty.
   const starter = blank === true ? null : starterTemplateContent(type);
 

@@ -6,12 +6,12 @@ import { missingImages, walk } from "./support/blockAudit";
 import { auditPageContent } from "@/lib/a11y";
 import { DEFAULT_THEME_TOKENS } from "@/lib/theme";
 
-// docs/site-templates-plan.md's Phases B–F shipped code-complete but
-// unverified (no dev Postgres, so no live editor/preview pass). These
-// assertions cover the part of its "bulletproof" and Phase H bars that a
-// block tree can be checked against without a browser: the checklist under
-// "Bugs found and fixed while building the SaaS template", plus the
-// animation/real-image requirement Phase H spells out.
+// The templates have never been opened in a running app — no Postgres
+// here — so these assertions are the half of docs/site-templates-plan.md's
+// quality bar that a block tree can be checked against without a browser:
+// registered types, unique ids, real images, distinct switcher labels,
+// animation on every content section, and a clean pass of the product's
+// own accessibility audit.
 
 const cases = SITE_TEMPLATES.flatMap((t) => t.pages.map((p) => ({ templateId: t.id, slug: p.slug })));
 const known = new Set(registeredBlockTypes());
@@ -78,7 +78,7 @@ describe.each(cases)("$templateId/$slug", ({ templateId, slug }) => {
   });
 
   it("animates every major section", () => {
-    // Phase H: "make sure all have animations". Checked per top-level
+    // Checked per top-level
     // section rather than per block — a section counts as animated if
     // anything in its subtree carries an `animation` value, which is how
     // the shipped templates express it (the heading animates, not the

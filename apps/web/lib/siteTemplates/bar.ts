@@ -2,7 +2,7 @@ import type { Block, PageContent } from "@/components/blocks/types";
 import { randomUUID } from "crypto";
 import { mk, heading, body, cta, bleed, badge } from "./_shared";
 
-// Bar / nightlife genre — docs/site-templates-plan.md Phase F.
+// Bar / nightlife genre — docs/site-templates-plan.md.
 // Palette: near-black warm brown (not SaaS's blue-black ink) + a single
 // amber/copper accent, deliberately dark-heavy end to end — distinct from
 // Hotel's cooler stone/ice restraint and Restaurant's warmer palette.

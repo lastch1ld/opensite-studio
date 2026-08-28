@@ -2,7 +2,7 @@ import type { Block, PageContent } from "@/components/blocks/types";
 import { randomUUID } from "crypto";
 import { mk, heading, body, cta, bleed, badge } from "./_shared";
 
-// SaaS / tech product genre — docs/site-templates-plan.md Phase A.
+// SaaS / tech product genre — docs/site-templates-plan.md.
 // Palette: near-black ink + one vivid indigo accent on a warm-white body —
 // distinct from lib/pageTemplates.ts's amber/ink pairing so the two don't
 // read as the same template recolored. Space Grotesk (already a curated

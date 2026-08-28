@@ -397,7 +397,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         // so `100vw`/`-50vw` there resolve against the browser window and
         // shift the hero sideways by half the difference, which reads as a
         // background bleeding past one edge and clipped at the other
-        // (docs/site-templates-plan.md Phase G). EditorClient.tsx sets the
+        // (docs/site-templates-plan.md). EditorClient.tsx sets the
         // variable to its own canvas width so the same breakout lands on
         // the frame instead.
         width: "var(--osw-bleed-width, 100vw)",

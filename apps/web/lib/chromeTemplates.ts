@@ -1,7 +1,7 @@
 import type { Block, PageContent } from "@/components/blocks/types";
 import { randomUUID } from "crypto";
 
-// docs/ui-ux-roadmap.md Phase B: "1–2 polished default header/footer
+// docs/ui-ux-roadmap.md: "1–2 polished default header/footer
 // templates so a new Site's site-wide chrome doesn't start empty either —
 // same content model, just better authored starting content."
 //

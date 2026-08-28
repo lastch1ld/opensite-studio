@@ -95,27 +95,39 @@ block-based `BUILDER` site from a full-page `AI_CHAT` site. See
    consumer, not extracting for one that exists.)
 
 6. **Verify before reporting done.** Inside `apps/web`: `npx tsc
-   --noEmit`, `npm run build`, `npx eslint .` must all pass clean. If you
-   touched `schema.prisma`, run `npx prisma generate` to confirm it's
-   valid. There is usually no live Postgres available in this
-   environment — don't attempt `prisma migrate dev`; instead leave a note
-   (see convention below) that a migration still needs generating.
+   --noEmit`, `npm run build`, `npx eslint .` and `npm test` must all pass
+   clean. If you touched `schema.prisma`, run `npx prisma generate` to
+   confirm it's valid, then write the migration (rule 7).
 
-7. **Migration note convention.** Every doc/agent run that adds a Prisma
-   model appends to (or creates) a note in `docs/roadmap.md`'s relevant
-   phase section: *"a Prisma migration for the new `X` table still needs
-   to be generated (`npx prisma migrate dev`) once a dev Postgres is
-   available."* Extend the existing note rather than duplicating it.
+7. **Write the migration, don't leave a note about it.** There is usually
+   no live Postgres here, so `prisma migrate dev` won't run — but
+   `prisma migrate diff` needs no database:
+
+   ```
+   npx prisma migrate diff \
+     --from-schema-datamodel <schema.prisma at the last migrated commit> \
+     --to-schema-datamodel prisma/schema.prisma \
+     --script
+   ```
+
+   Commit that SQL as a normal migration under `prisma/migrations/`. The
+   old convention of appending "a migration still needs generating" notes
+   to `docs/roadmap.md` is retired: it produced a wall of stale notes and
+   one column that shipped without a migration anyway. CI applies the
+   chain to a real Postgres and fails on drift.
 
 8. **Don't commit or push.** Leave the working tree for the orchestrator
    (human or coordinating agent) to review and commit, unless explicitly
    told otherwise.
 
-9. **Avoid editing `docs/roadmap.md` concurrently with another running
-   agent.** If you know another task is mid-flight and also touches
-   `docs/roadmap.md`, either skip that file (report the checklist items
-   that should be checked off, let the orchestrator do it) or make sure
-   your edit targets a different section/line range than theirs.
+9. **Docs record what is, not what was.** `docs/roadmap.md` is a record of
+   what's built plus what isn't; the live roadmap is
+   `docs/ui-ux-roadmap.md`. When you finish something, rewrite the entry
+   as documentation of the thing that now exists, or delete it — don't
+   leave a checked box and a note about the pass that produced it. Keep
+   the *why* (a rejected alternative, a gotcha that will recur, a
+   deliberate simplification); drop the chronology. If another agent is
+   mid-flight in the same doc, target a different section.
 
 10. **Match existing patterns over inventing new ones.** Look at how the
     nearest analogous feature was built (a similar API route, a similar
@@ -126,6 +138,9 @@ block-based `BUILDER` site from a full-page `AI_CHAT` site. See
     Don't propose or build toward them — see `docs/roadmap.md`'s
     "Explicitly out of scope" section.
 
-12. **Security/architecture audit is deferred** until all roadmap phases
-    are complete — don't launch one after an individual phase lands
-    unless explicitly asked.
+12. **The security/architecture audit has been run** (2026-08-28,
+    `docs/audit-2026-08.md`). Don't launch another unprompted. Do read
+    its "Open, not fixed here" section before touching uploads, the
+    public form endpoint, visitor auth or outbound fetches — and use
+    `lib/safeFetch.ts` for any server-side fetch of a user-supplied URL,
+    which is the one that had already been missed once.

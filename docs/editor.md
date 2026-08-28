@@ -1,6 +1,6 @@
 # Live Editor
 
-## MVP `[ ]` (minimal — first real slice of work after auth+data scaffolding)
+## Built
 
 - Canvas renders the current page's `Block` tree using the **same block
   renderer components** the public site uses (see architecture.md), inside

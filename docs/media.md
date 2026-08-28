@@ -1,6 +1,6 @@
 # Media
 
-## MVP `[ ]`
+## Built
 
 - Local filesystem storage under a mounted volume (`/data/media`), one
   subfolder per site. Upload API route: multipart POST → save file → create

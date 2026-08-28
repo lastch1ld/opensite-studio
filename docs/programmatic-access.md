@@ -1,7 +1,6 @@
 # Programmatic Access: CLI, MCP, and Public API
 
-Not part of Phase 0/1. A cross-cutting requirement rather than a single
-feature: everything a user can do through the dashboard/editor UI should
+Built. A cross-cutting requirement rather than a single feature: everything a user can do through the dashboard/editor UI should
 also be reachable **without** the UI — scriptably, from an agent, or from
 another system — gated by the same permission model as the UI itself.
 

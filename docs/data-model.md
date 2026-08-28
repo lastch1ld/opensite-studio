@@ -2,7 +2,7 @@
 
 Prisma + Postgres. Core entities needed for full parity, with MVP subset marked.
 
-## MVP entities `[x]`
+## Entities
 
 - **User** — id, email, passwordHash (nullable if OAuth-only), name, image, role (`OWNER` default), timestamps.
 - **Site** — id, ownerId → User, name, subdomain (unique, for the default `*.host` preview), customDomain (nullable, deferred activation — see deployment.md), timestamps.

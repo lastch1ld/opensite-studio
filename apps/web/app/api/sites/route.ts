@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid mode." }, { status: 400 });
   }
 
-  // docs/ui-ux-roadmap.md Phase B's "start from a preset" moment. Omitted
+  // docs/ui-ux-roadmap.md's "start from a preset" moment. Omitted
   // (or "") keeps the previous behaviour: no Theme row, so the theme
   // editor and renderer fall back to DEFAULT_THEME_TOKENS.
   const preset = typeof themePresetId === "string" && themePresetId ? themePresetById(themePresetId) : undefined;

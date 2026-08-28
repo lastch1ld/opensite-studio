@@ -1,10 +1,9 @@
 # AI Mode (Full-Page Chat App) & Whitelabeling
 
-Not part of the Phase 0 MVP. Documented up front because it touches the
-same secrets-storage and script-injection plumbing as integrations.md, so
-that groundwork should account for it.
+Built. Shares the secrets-storage and script-injection plumbing with
+integrations.md, which is why it was documented before it was built.
 
-## Also here: AI site generation `[x]`
+## Also here: AI site generation
 
 A second, unrelated use of the same plumbing, built 2026-08-28: "describe
 your business, get a site". `POST /api/sites/[siteId]/generate` creates
@@ -44,7 +43,7 @@ The model provider API key **only ever lives server-side**. The browser
 never sees it; every request goes through this app's own API route, which
 attaches the key and proxies to the provider.
 
-## MVP for this feature (once picked up — not Phase 0) `[ ]`
+## Built
 
 - **`Site.mode` field**: `"BUILDER"` (default, today's block-based site) or
   `"AI_CHAT"`. An AI_CHAT site skips the page/block system entirely —

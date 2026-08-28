@@ -1,9 +1,8 @@
 # Multilingual
 
-Not part of Phase 0/1/2/3. Previously just a one-line placeholder in
-renderer.md and a Phase 4 roadmap bullet — this doc gives it an actual
-design, informed by collections.md and theme-builder.md already existing
-(a multilingual system built before those would have had to be redone).
+Built, deliberately after collections.md and theme-builder.md — a
+multilingual system designed before those existed would have had to be
+redone once they did.
 
 ## Core concept
 

@@ -1,9 +1,8 @@
 # Forms
 
-Not part of Phase 0/1. Expands on data-model.md's `FormSubmission` stub
-and roadmap.md's Phase 3 "Forms block + submissions" one-liner — research
-against Elementor's form builder showed that's meaningfully underspecified
-on its own, so it gets its own doc.
+Built. Expands on data-model.md's `FormSubmission` stub: research against
+Elementor's form builder showed "a forms block with submissions" is
+meaningfully underspecified on its own, so it gets its own doc.
 
 ## Core concept
 

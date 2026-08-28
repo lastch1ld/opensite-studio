@@ -2,7 +2,7 @@ import type { Block, PageContent } from "@/components/blocks/types";
 import { randomUUID } from "crypto";
 import { mk, heading, body, cta, bleed, badge } from "./_shared";
 
-// Hotel genre — docs/site-templates-plan.md Phase E. Structural reference
+// Hotel genre — docs/site-templates-plan.md. Structural reference
 // is the plan doc's own description of tourism-wix-generator's
 // "nordic-stone" template (split hero, page-hero subpages, "explore
 // tiles" grid, stats row, restrained stone/ice palette) — the sibling

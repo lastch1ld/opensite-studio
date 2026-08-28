@@ -2,7 +2,7 @@ import type { Block, PageContent } from "@/components/blocks/types";
 import { randomUUID } from "crypto";
 import { mk, heading, body, cta, bleed, badge } from "./_shared";
 
-// Agency / creative services genre — docs/site-templates-plan.md Phase B.
+// Agency / creative services genre — docs/site-templates-plan.md.
 // Palette: near-black ink + one loud signal-orange accent on a warm
 // off-white paper — high-contrast, portfolio-forward register (reference:
 // docs/reference-sites-research.md's Heretic/Métier entries), deliberately

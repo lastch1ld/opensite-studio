@@ -68,7 +68,7 @@ publishes, with no build step.
   (typed datasets + dynamic/repeater pages), Theme Builder (header/footer/
   page templates with conditional targeting), Forms, Popups, custom
   domains + TLS, and a Plugin/Block SDK are all already built (see
-  docs/roadmap.md — Phases 0–4 are complete as of this writing).
+  docs/roadmap.md).
 - Explicitly out of scope for the product: ecommerce (cart/checkout) and
   any analytics/reporting dashboard (docs/roadmap.md).
 - Undecided: no confirmed brand name beyond "OpenSite Studio," no logo/mark,

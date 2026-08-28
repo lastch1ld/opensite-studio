@@ -2,7 +2,7 @@ import type { Block, PageContent } from "@/components/blocks/types";
 import { randomUUID } from "crypto";
 import { mk, heading, body, cta, bleed, badge } from "./_shared";
 
-// Personal portfolio genre — docs/site-templates-plan.md Phase C.
+// Personal portfolio genre — docs/site-templates-plan.md.
 // Palette: warm off-white paper + near-black charcoal ink + one restrained
 // deep forest-green accent — a minimal, high-end-freelancer register
 // distinct from the SaaS genre's near-black/vivid-indigo pairing (no

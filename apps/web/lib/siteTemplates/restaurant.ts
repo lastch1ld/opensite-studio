@@ -2,7 +2,7 @@ import type { Block, PageContent } from "@/components/blocks/types";
 import { randomUUID } from "crypto";
 import { mk, heading, body, cta, bleed, badge } from "./_shared";
 
-// Restaurant genre — docs/site-templates-plan.md Phase D.
+// Restaurant genre — docs/site-templates-plan.md.
 // Palette: deep forest green (dark band + hero, the "vintage seal" register
 // from docs/reference-sites-research.md's Banh Mi & You entry) + warm cream
 // paper + a terracotta accent for prices/CTAs, with a small gold accent
@@ -183,7 +183,7 @@ function menuItemCard(name: string, price: string, desc: string, tag?: string): 
 // collectionId bound, BlockRenderer.tsx's "list" branch still renders the
 // child subtree once as a responsive CSS grid (matched items empty ->
 // one static pass over `children`) — exactly the "menu-as-list-block, no
-// booking/ordering system" shape docs/site-templates-plan.md's Phase D
+// booking/ordering system" shape docs/site-templates-plan.md
 // calls for, reusing the existing block instead of a bespoke component.
 function menuCategory(title: string, items: Block[], background: string = RESTAURANT.cream): Block {
   return bleed(

@@ -1,280 +1,118 @@
-# Full site templates — scope, phases, and status
+# Full site templates
 
-Source material: `docs/reference-sites-research.md`/`docs/reference-sites-plan.md`
-(the block-library work) plus a second local reference,
-`C:\Users\Tobi\Repos\tourism-wix-generator` — a separate repo with 6
-hand-built Astro hotel/tourism site templates (alpine-editorial,
-hotel-modern-alpine, meadow, nordic-stone, townhouse, verde). Their
-structural patterns (split hero, page-hero for subpages, alternating
-feature rows, stats row, quote block, "explore tiles" grid) informed the
-SaaS template below and are the intended reference for the hospitality
-templates (Restaurant/Hotel/Bar) still to come.
+The library of complete, multi-page site templates — one per genre, each a
+cohesive set of pages sharing one palette, type system, nav and footer.
+Not single isolated landing pages like `lib/pageTemplates.ts`'s starters.
+All six genres are built; this doc is how they work, the bar they're held
+to, and the lessons worth carrying into a seventh.
 
-## Scope
+Structural reference for the hospitality genres was
+`tourism-wix-generator`, a separate repo of hand-built Astro hotel
+templates: its split hero, page-hero-for-subpages, alternating feature
+rows, quote block and "explore tiles" grid. Mood references per genre are
+in [reference-sites-research.md](reference-sites-research.md).
 
-Build a library of **complete, multi-page site templates**, one per
-genre, each genre a cohesive set of pages sharing one palette/type
-system/nav/footer — not single isolated landing pages like
-`lib/pageTemplates.ts`'s original `landingPageTemplateContent`. Every
-template must clear two bars:
+## The genres
 
-- **Bulletproof**: no rendering bugs, no invisible/low-contrast text, no
-  broken bindings — verified live in the browser (editor canvas + public
-  `/preview`), not just by reading the generated JSX.
-- **Pretty**: real design intent per genre (palette, type pairing,
-  restraint) — not a recolor of the same layout six times. Every
-  template should use scroll-in animation (`ANIMATION_FIELD`) on its
-  major sections and real (placeholder) images (`placehold.co`), not
-  bare text blocks.
-
-All template copy stays deliberately generic/placeholder ("Replace with
-...") — never a fabricated real metric, testimonial, or company name, per
-the existing convention in `lib/pageTemplates.ts`.
-
-## Genres (6 total)
-
-| Genre | Pages | Status |
+| Genre | Pages | File |
 |---|---|---|
-| SaaS / tech product | Home, Features, Pricing, About, Contact | ✅ Done — `lib/siteTemplates.ts` |
-| Agency / creative services | Home, Work, Services, About, Contact | 🔶 Built, not live-verified (no dev Postgres in this pass) — `lib/siteTemplates/agency.ts` |
-| Personal portfolio | Home, Work, About, Contact | 🔶 Built, not live-verified (no dev Postgres in this pass) — `lib/siteTemplates/portfolio.ts` |
-| Restaurant | Home, Menu, About, Contact/Reservations | 🔶 Built, not live-verified (no dev Postgres in this pass) — `lib/siteTemplates/restaurant.ts` |
-| Hotel | Home, Rooms, Amenities/Gallery, Contact/Book | 🔶 Built, not live-verified (no dev Postgres in this pass) — `lib/siteTemplates/hotel.ts` |
-| Bar | Home, Menu (drinks), Events, Contact | 🔶 Built, not live-verified (no dev Postgres in this pass) — `lib/siteTemplates/bar.ts` |
+| SaaS / tech product | Home, Features, Pricing, About, Contact | `lib/siteTemplates/saas.ts` |
+| Agency / creative services | Home, Work, Services, About, Contact | `lib/siteTemplates/agency.ts` |
+| Personal portfolio | Home, Work, About, Contact | `lib/siteTemplates/portfolio.ts` |
+| Restaurant | Home, Menu, About, Contact/Reservations | `lib/siteTemplates/restaurant.ts` |
+| Hotel | Home, Rooms, Amenities/Gallery, Contact/Book | `lib/siteTemplates/hotel.ts` |
+| Bar | Home, Menu (drinks), Events, Contact | `lib/siteTemplates/bar.ts` |
 
-Restaurant/Hotel/Bar were originally one "local business/hospitality"
-bucket — split into three separate templates per direct request, since a
-restaurant and a boutique hotel don't share an IA even though both are
-hospitality. `tourism-wix-generator`'s Nordic Stone template (split hero,
-grayscale-filtered photography, thin rules, "explore tiles") is the
-strongest structural reference for Hotel specifically; Restaurant/Bar
-need their own lighter-weight pass (menu-as-list-block, no
-booking/rooms system).
+Restaurant, Hotel and Bar started as one "hospitality" bucket and were
+split, because a restaurant and a boutique hotel don't share an
+information architecture even though they share an industry.
 
-## Architecture (established by the SaaS template, reuse for every genre)
+## Architecture
 
 - `lib/siteTemplateOptions.ts` — client-safe catalog (`SITE_TEMPLATES`:
-  id/name/description/pages\[\]), imported by `PageList.tsx`.
-- `lib/siteTemplates.ts` — server-only content builders (uses
-  `crypto`'s `randomUUID`, same client/server split as
-  `pageTemplateOptions.ts`/`pageTemplates.ts`) + `siteTemplatePageContent(templateId, slug)`
-  dispatcher.
+  id/name/description/pages), imported by `PageList.tsx`.
+- `lib/siteTemplates/` — server-only content builders (they use `crypto`'s
+  `randomUUID`, the same client/server split as
+  `pageTemplateOptions.ts`/`pageTemplates.ts`), one module per genre plus
+  `_shared.ts` for the `mk`/`heading`/`body`/`cta`/`bleed`/`badge` helpers
+  and `index.ts` for the `siteTemplatePageContent(templateId, slug)`
+  dispatcher. One file per genre so genres can be authored independently,
+  including in parallel, without touching a shared growing file.
 - `app/api/sites/[siteId]/site-templates/route.ts` — POST creates every
   page a template defines in one transaction, skipping (not failing on)
-  any slug that already exists — idempotent, safe to re-run.
-- `components/dashboard/PageList.tsx` — "Create a full site" panel next
-  to the existing single-page "Create page" form.
-- Per genre: a `mk`/`heading`/`body`/`cta`/`bleed` helper set (copy the
-  SaaS section's shape, new palette constant), a shared nav/footer/
-  page-hero function, and one exported `*Template()` function per page.
+  any slug that already exists, so it's idempotent and safe to re-run.
+- `app/api/sites/[siteId]/generate/route.ts` — the same batch, with the
+  placeholder copy filled in by a model ([ai-mode.md](ai-mode.md)).
+- `components/dashboard/PageList.tsx` — the "Create a full site" panel.
 
-### Bugs found and fixed while building the SaaS template (apply this checklist to every new genre)
+Every page root is `[nav, ...content, footer]`. The nav and footer are
+baked into each page rather than coming from a Theme Builder template: a
+page template only ever produces one Page's `draftContent`, and baking
+them in is what makes the pages read as one site from the moment they're
+created.
 
-1. **Stat counter on a dark band**: `statCounter`'s default `valueColor`
-   is near-black — invisible on an ink-colored section. Any stat row
-   dropped onto a dark `bleed()` needs explicit light `valueColor`/
-   `labelColor`.
-2. **Identical placeholder labels in one `contentSwitcher`**: three
-   items all saying "Replace with a name" makes the switcher's own list
-   unreadable (which one is selected?) — number them ("Replace with name 1/2/3").
-3. Always spot-check any block placed on a non-default background for
-   contrast, not just the copy.
+## The bar
 
-## Phases
+**Copy is always placeholder** — "Replace with a headline", never a
+fabricated metric, testimonial, rate or company name. That convention now
+does double duty: those strings are the slots AI generation fills, and
+they were written to tell a human what belongs there, which turns out to
+work just as well on a model (`lib/aiGenerate.ts`).
 
-- **Phase A — SaaS template.** ✅ Done: 5 pages, "Create a full site" UI
-  wired end-to-end, verified live (fresh site, all 5 pages, editor +
-  preview), the two bugs above found and fixed, animations + placeholder
-  images added to every major section. Committed/pushed.
-- **Phase B — Agency / creative services template.** Home, Work
-  (portfolio grid — `contentSwitcher` or `list`+`imageOverlay`), Services,
-  About, Contact. Reference: `docs/reference-sites-research.md`'s
-  Heretic/Métier entries (high-contrast, portfolio-forward).
-- **Phase C — Personal portfolio template.** Home, Work, About, Contact.
-  Reference: Karolina Hess/Métier entries (minimal, confident type,
-  work-sample-forward).
-- **Phase D — Restaurant template.** Home, Menu, About,
-  Contact/Reservations. Reference: Banh Mi & You entry + a lighter cut of
-  `tourism-wix-generator`'s structure (no rooms/booking system needed).
-- **Phase E — Hotel template.** Home, Rooms, Amenities/Gallery,
-  Contact/Book. Reference: `tourism-wix-generator`'s nordic-stone
-  template directly (split hero, page-hero subpages, explore-tiles grid,
-  stats row, restrained stone/ice palette translated into OpenSite
-  Studio's block system). 🔶 Code complete (`lib/siteTemplates/hotel.ts`,
-  wired into the dispatcher + catalog; `tsc`/`eslint`/`build` all pass
-  clean) but **not live-verified** — no dev Postgres was available in
-  this pass, so the "bulletproof" bar (live browser check across editor
-  canvas + `/preview`) is still outstanding. Built from
-  `tourism-wix-generator`'s nordic-stone reference as described in this
-  doc, not the original repo, which wasn't available in this worktree.
-- **Phase F — Bar template.** Home, Menu (drinks), Events, Contact.
-  Reference: relief.pisapain/NKORA entries for mood, adapted to a
-  bar/nightlife register (darker palette, marquee for a "as seen in"/
-  event strip).
-- **Phase G — Bugfixing pass (deferred, tracked separately).** The
-  editor-canvas-only background-bleed issue flagged mid-session (**not**
-  reproduced on the public/preview render path — editor-canvas-specific,
-  root cause not yet identified). Revisit after Phases B–F so it's fixed
-  once against the full, final block/template surface rather than
-  mid-flight.
-- **Phase H — Final polish + verification pass.** Once all 6 genres
-  exist: confirm every genre's major sections carry an `animation` value
-  and every image-bearing block has a real `placehold.co` src (per
-  direct request — "make sure all have animations and sample images"),
-  then one `code-review`/`impeccable` pass across the whole
-  `lib/siteTemplates.ts` surface before calling the library done.
+**`tests/siteTemplates.test.ts` enforces the rest**, per template page:
+only registered block types, unique block ids, a real image on every
+image-bearing block, distinct `contentSwitcher` labels, an `animation`
+value on every content section (nav and footer excluded — scroll-revealing
+chrome that's already on screen would be a bug, not polish), and a clean
+pass of the product's own accessibility audit (`lib/a11y.ts`), errors and
+heading order included. A template that ships with the product must not
+fail the audit the product runs on everyone else's pages.
 
-## Todo
+That last check earned itself: pointed at the finished templates it found
+41 real contrast failures across five genres, all since fixed. The
+recurring cause is worth naming, because it will happen again — **an
+accent color tuned as a surface is not a text color.** The signal orange
+sat at 3.0:1 on paper; white on it reached only 3.4:1, so its CTA bands
+couldn't hold body copy either. Each palette now separates the surface
+color from the deepened variant that carries small text (`accentInk`,
+`accentText`, `clayText`, `iceText`, and so on).
 
-**On Phases B–F's unchecked boxes (2026-08-28):** they stay unchecked, but
-the reason is now narrower. The whole "bulletproof" bar used to be blocked
-on a dev Postgres; the part of it that a block tree can be checked against
-without a browser is now enforced in CI by `tests/siteTemplates.test.ts`
-(see Phase H). What remains is genuinely visual — how a template actually
-lays out and reads in the editor canvas and `/preview` — and still needs a
-Postgres, which this machine has neither Docker nor a local install for.
+**Still outstanding: the live-browser half.** None of the six has been
+opened in the editor canvas and `/preview` on a running app, because this
+machine has neither Docker nor a local Postgres. Everything a block tree
+can be checked against is in CI; how a template actually lays out and
+reads is not.
 
-- [x] Phase A — SaaS template (5 pages, bulletproof + animated + shipped)
-- [ ] Phase B — Agency template (5 pages code-complete, `tsc`/`build`/`eslint` clean; left unchecked — live editor/preview verification still outstanding, no dev Postgres in this pass, same bar as Phase C below)
-- [ ] Phase C — Personal portfolio template (code built and tsc/eslint/build-clean — `lib/siteTemplates/portfolio.ts` — left unchecked because no dev Postgres was available in this pass, so it hasn't cleared the "bulletproof" live-browser bar Phase A's checked box implies)
-- [ ] Phase D — Restaurant template (code-complete — `lib/siteTemplates/restaurant.ts`, dispatcher + catalog wired — left unchecked: not live-verified in editor/preview, no dev Postgres in this pass)
-- [ ] Phase E — Hotel template (code-complete — `lib/siteTemplates/hotel.ts`, dispatcher + catalog wired — left unchecked: not live-verified in editor/preview, no dev Postgres in this pass)
-- [ ] Phase F — Bar template (code-complete — `lib/siteTemplates/bar.ts`, dispatcher + catalog wired — but left unchecked: not live-verified in editor/preview, no dev Postgres available in this pass)
-- [x] Phase G — Editor-canvas background-bleed bugfix. Root cause found by
-  reading the code, not by reproducing it live: the `hero` block's
-  full-bleed breakout (`width: 100vw; left: 50%; margin-left: -50vw`,
-  registry.tsx) is viewport-relative, which is exactly right on the
-  published page and wrong in the editor, where the canvas is a centered
-  max-width frame between two side panels. There the breakout resolves
-  against the browser window instead, shifting the block left by half the
-  difference — its background runs past one edge of the frame and its
-  content is clipped at the other. Fixed by expressing the breakout as
-  `var(--osw-bleed-width, 100vw)`, with EditorClient setting the variable
-  to its own canvas width; the published path keeps the `100vw` fallback
-  and is unchanged. Verified as a standalone CSS reproduction in a browser
-  (before/after side by side) rather than in the real editor, which still
-  needs a Postgres.
-- [x] Phase H — Final animation/image/quality pass across all 6 genres, as
-  far as it can go without a browser: `tests/siteTemplates.test.ts` now
-  asserts the checklist above per template page — registered block types,
-  unique ids, WCAG contrast against the resolved section background, a
-  real image on every image-bearing block, distinct `contentSwitcher`
-  labels, and an `animation` value on every content section. It found two
-  real contrast failures and 42 unanimated sections; both are fixed. The
-  live-browser half of the bar (below) is still outstanding.
-- [ ] Commit + push after each phase (matches this session's established cadence — never batch multiple genres into one commit)
+## Lessons for a seventh genre
 
-## Skills — which to use for what
+**Don't reskin `saas.ts`.** Every genre's home page originally copied its
+section *sequence* — hero → logos → grid → stat row → CTA — even where
+palette, type and copy were genuinely distinct. The result was a
+restaurant showing "90%" (of what?) and a bar showing "40+" with no
+referent, while neither mentioned hours or location. Work out what that
+business's homepage visitor is actually deciding — book a table? check a
+rate? see if the studio's work is good? — and build the section list from
+that before reaching for another genre's shapes. SaaS and Portfolio kept
+their stat rows, because a SaaS product and a freelancer legitimately have
+numbers worth showing.
 
-| Skill | When |
-|---|---|
-| `hallmark` | Before starting each new genre's palette/type/copy pass — anti-AI-slop calibration (restrained accent, confident type scale, honest copy, no fabricated metrics). Already the design basis for the existing 27-preset section library (`lib/sectionPresets.ts`); apply the same bar here. |
-| `frontend-design` | Alongside `hallmark` for the aesthetic-direction decisions specific to each genre (Hotel's stone/ice restraint vs. Bar's darker nightlife register vs. Agency's high-contrast portfolio look) — distinct visual identities, not six recolors of the same layout. |
-| `impeccable` | A review pass per finished genre template (hierarchy, spacing, contrast, responsive behavior) — catches exactly the class of bug Phase A found (stat-counter contrast) before it ships, not after. |
-| `webapp-testing` | For Phase H's cross-template verification — Playwright-driven checks across 6 genres × ~5 pages (30 pages) are more reliable and token-cheaper than manual browser-tool clicking through each one by hand. |
-| `simplify` | After Phase F, on `lib/siteTemplates.ts` as a whole — by then it holds 6 genres' worth of near-duplicate `mk`/`heading`/`body`/`cta`/`bleed` helpers; worth extracting the truly-shared pieces (the helper shapes themselves, not the palettes/copy) into one common module. |
-| `code-review` | End of Phase H, once per the whole feature — the "bulletproof" quality gate before considering the template library finished. |
-| `security-review` | **Not** run per-phase — stays deferred until all roadmap + template work is complete, per `AGENTS.md` rule #12. |
+**Watch what a block's defaults do on your background.** `statCounter`'s
+default `valueColor` is near-black and vanishes on a dark band; the
+contrast test catches this now, but the same class of trap applies to any
+block dropped onto a non-default background.
 
-### Suggested new skill (lower token cost per genre)
+**Number your repeated placeholders.** Three `contentSwitcher` items all
+reading "Replace with a name" make the switcher's own list unreadable —
+which one is selected?
 
-Building Phase A required re-deriving, from scratch, in this
-conversation: every Phase 1–5 block's exact prop/style shape
-(`AccordionItem`/`PricingTier`/`ContentSwitcherItem`/`ComparisonColumn`/
-`ComparisonRow`), the `mk`/`bleed` helper pattern, the "generic
-placeholder copy only" rule, and the stat-counter-contrast gotcha above —
-all real context that Phases B–F would otherwise re-derive identically
-five more times. A packaged skill (e.g. `opensite-site-template`) capturing:
+## Open question: Collections as data binding
 
-- the block-type prop/style reference (the exact shapes, current as of
-  Phase 1–5's block system),
-- the `mk`/`heading`/`body`/`cta`/`bleed` helper pattern as a starting
-  file,
-- the placeholder-copy rule,
-- the verified gotcha checklist above,
-- the "create page → tsc/eslint/build → live browser spot-check on both
-  editor and /preview" verification loop,
+Direct feedback: "I don't quite like that as a logical solution for
+connecting data to Components." The current Collection → `$bind` →
+block-prop model (see `AGENTS.md` and [index.md](index.md) for how `$bind`
+resolves) is being questioned as the right mental model, but no
+alternative has been discussed and the review was explicitly deferred.
 
-... would let each subsequent genre start from that packaged context
-instead of this conversation's accumulated discovery, meaningfully
-cutting token cost per phase. Worth building via `skill-creator` once
-Phase B confirms the pattern generalizes (building it after Phase A
-alone risks baking in something SaaS-specific that doesn't fit
-Hotel/Restaurant's different page shapes).
-
-## Bug found and fixed after Phases B–F: reskinned SaaS structure, not genre-logical content
-
-Every genre's home page (Agency/Portfolio/Restaurant/Hotel/Bar) had copied
-`saas.ts`'s section *sequence* — hero → logos/pillars → content grid →
-statCounter row → CTA — not just its `mk`/`heading`/`body`/`cta`/`bleed`
-helper conventions. Palette/type/copy were genuinely distinct per genre
-(the "bulletproof"/"pretty" bars above were met), but the page *structure*
-wasn't: a restaurant showing a statCounter row with values like "90%" (of
-what?), a bar showing "40+" with no referent, neither business's home page
-mentioning hours or location at all. Direct feedback: "they look all too
-similar with the same Components... not logical." Fixed (commit
-`95792d8`) by replacing the generic stat row per genre with what that
-business's homepage visitor actually needs:
-
-- Restaurant: stat row → a real guest review + hours & location
-- Hotel: stat row → room/rate teaser cards + a named guest review+rating
-- Bar: stat row → an upcoming-event spotlight + hours & location
-- Agency: team/founding stats moved to About-only; work moved directly
-  after the hero with the client quote beside it (portfolio-first, matches
-  the Heretic/Métier references this genre was already built from)
-
-SaaS and Portfolio weren't touched — their existing structure already
-fits their genre (SaaS legitimately uses logos/stats/pricing; a freelance
-portfolio legitimately uses a small stat row of years/projects). **Apply
-this lesson to any future genre**: don't just reference a different mood
-site and reuse `saas.ts` as a structural template — work out what that
-business's own homepage visitor is actually deciding (book a table? check
-a rate? see if the studio's work is good?) and build the section list from
-that, before reaching for `saas.ts`'s section shapes.
-
-## Notes from later review (not yet scoped into phases above)
-
-- **Multiselect delete should extend beyond Collections.** Shipped for
-  Collection items (`CollectionEditorClient.tsx`'s Items table — header
-  select-all + per-row checkboxes + "Delete N selected", firing the
-  existing per-item DELETE route concurrently rather than adding a new
-  bulk endpoint). Direct feedback: the same pattern is wanted "not just
-  in collections but in the pages list etc." — `PageList.tsx`'s page
-  table (`handleDelete`, currently one-at-a-time via a per-row Delete
-  button) is the next candidate, and any other item-list-with-delete
-  surface in the dashboard should get the same treatment for
-  consistency. Not yet scoped as its own phase — pick up alongside or
-  after Phase G.
-- **Collections-as-data-binding is under reconsideration.** Direct
-  feedback: "I dont quite like that as a logical solution for connecting
-  data to Components" — the current Collection → `$bind` → block-prop
-  model (see `AGENTS.md`/`docs/index.md` for how `$bind` currently
-  resolves) is being questioned as the right mental model for wiring
-  data into components, but no alternative has been discussed yet.
-  Explicitly deferred: "we will review the collections thing later."
-  Don't invest further in the Collections binding UX (beyond what
-  already exists) until that review happens — flag before extending it
-  further (e.g. before building richer bind UI or new bind sources).
-
-## Suggested subagent use
-
-Phases B–F are **structurally independent** of each other — different
-palette constants, different helper functions, different page sets, no
-shared mutable state, and (if split into one file per genre, e.g.
-`lib/siteTemplates/agency.ts`, `lib/siteTemplates/hotel.ts`, ... rather
-than one growing monolithic file) **no file-collision risk** — unlike
-Phase 1's six block types, which all had to touch the same
-`registry.tsx` and were explicitly built sequentially for exactly that
-reason. This is the shape of work this session's own history already
-flagged as parallelizable (the Plugin SDK/Multilingual/Programmatic
-Access phases, per `docs/reference-sites-plan.md`'s own "Subagent
-feasibility" section).
-
-Concretely: once the suggested skill above exists (or even without it,
-handing each agent this doc + the finished `saas.ts` as a pattern to
-follow), Phases B–F could run as four parallel agents — each producing
-one self-contained template file — reviewed and wired into the
-dispatcher afterward, rather than four sequential single-threaded passes
-in one conversation. Only worth doing on explicit request (subagents
-aren't invoked automatically per this session's own operating rules) —
-noted here as a recommendation, not started.
+Until it happens, don't invest further in the Collections binding UX
+beyond what exists — flag it before building richer bind UI or new bind
+sources.

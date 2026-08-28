@@ -1,7 +1,7 @@
 # Starter Templates (reusing `blog-template` / "Aperture")
 
-Not part of Phase 0. Documented so the port is deliberate, not ad hoc, when
-it's picked up.
+Ported. Documented so the port stayed deliberate rather than ad hoc; see
+the Status section for the simplifications it deliberately kept.
 
 ## Source
 

@@ -1,6 +1,6 @@
 # Popups & Modals
 
-Not part of Phase 0/1. The Elementor "Popup Builder" pattern.
+Built. The Elementor "Popup Builder" pattern.
 
 ## Core concept
 

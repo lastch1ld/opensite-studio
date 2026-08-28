@@ -1,6 +1,6 @@
 import type { ThemeTokens } from "./theme";
 
-// docs/ui-ux-roadmap.md Phase B: "a handful of theme presets ... 3–4
+// docs/ui-ux-roadmap.md: "a handful of theme presets ... 3–4
 // genuinely distinct, well-chosen palettes rather than a color picker with
 // no starting point". A new Site's Theme is otherwise seeded with
 // DEFAULT_THEME_TOKENS (lib/theme.ts) — a generic blue that reads as

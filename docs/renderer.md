@@ -1,6 +1,6 @@
 # Public Renderer
 
-## MVP `[ ]`
+## Built
 
 - Single catch-all route `app/(public)/[[...slug]]/page.tsx`.
 - Host resolution: read the `Host` header → match against `Site.subdomain`
