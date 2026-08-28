@@ -86,6 +86,7 @@ function barPageHero(_eyebrow: string, title: string, sub: string): Block {
     ],
     "680px",
     "16px",
+    { animation: "fade-in" },
   );
 }
 
@@ -94,7 +95,7 @@ function barPressMarquee(): Block {
   return mk(
     "marquee",
     { speed: "26", direction: "left", pauseOnHover: "true" },
-    { gap: "56px" },
+    { gap: "56px", animation: "fade-in" },
     names.map((n) => body(n, { size: "16px", weight: "600", color: BAR.creamFaint, font: BAR.labelFont })),
   );
 }
@@ -126,7 +127,7 @@ function barHoursLocation(): Block {
   return mk(
     "columns",
     { columns: "2" },
-    { gap: "48px", align: "flex-start" },
+    { gap: "48px", align: "flex-start", animation: "fade-in" },
     [
       mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "10px", align: "flex-start" }, [
         heading("Hours", { size: "18px", color: BAR.cream, font: BAR.font }),
@@ -244,7 +245,7 @@ export function barHomeTemplate(): PageContent {
     BAR.ink,
     "96px 40px",
     [
-      heading("On the menu", { size: "34px", color: BAR.cream, align: "center", font: BAR.font }),
+      heading("On the menu", { size: "34px", color: BAR.cream, align: "center", font: BAR.font, animation: "fade-in" }),
       body("Replace with a one-line description of the drinks program. See the full menu for the list.", { size: "16px", color: BAR.creamFaint, align: "center" }),
       cta("See full menu", { background: BAR.accent, color: BAR.ink }),
     ],
@@ -326,6 +327,7 @@ export function barMenuTemplate(): PageContent {
     [body("Replace with a note about allergens, substitutions, or a snack/food-pairing menu if applicable.", { size: "14px", color: BAR.creamFaint, align: "center" })],
     "700px",
     "0",
+    { animation: "fade-in" },
   );
 
   return {
@@ -388,7 +390,7 @@ export function barContactTemplate(): PageContent {
       mk(
         "columns",
         { columns: "2" },
-        { gap: "56px", align: "flex-start" },
+        { gap: "56px", align: "flex-start", animation: "fade-in" },
         [
           mk(
             "form",

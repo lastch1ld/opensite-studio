@@ -86,7 +86,7 @@ function portfolioPageHero(_eyebrow: string, title: string, sub: string): Block 
     ],
     "820px",
     "18px",
-    { align: "flex-start" },
+    { align: "flex-start", animation: "fade-in" },
   );
 }
 
@@ -331,7 +331,7 @@ export function portfolioContactTemplate(): PageContent {
       mk(
         "columns",
         { columns: "2" },
-        { gap: "56px", align: "flex-start" },
+        { gap: "56px", align: "flex-start", animation: "fade-in" },
         [
           mk(
             "form",

@@ -173,7 +173,9 @@ function menuItemCard(name: string, price: string, desc: string, tag?: string): 
     body(price, { size: "16px", weight: "700", color: RESTAURANT.terracotta, align: "right", font: RESTAURANT.fontBody }),
   ]);
   const children: Block[] = [header, body(desc, { size: "14px", color: RESTAURANT.textFaint, font: RESTAURANT.fontBody })];
-  if (tag) children.push(pill(tag, { background: RESTAURANT.gold, color: "#ffffff" }));
+  // Ink on gold, not white on gold: white only reaches 2.6:1 against this
+  // gold and the tag is small type (tests/siteTemplates.test.ts).
+  if (tag) children.push(pill(tag, { background: RESTAURANT.gold, color: RESTAURANT.text }));
   return mk("section", { layout: "stack" }, { background: "#ffffff", padding: "20px", borderRadius: "14px", gap: "10px", align: "flex-start", borderColor: RESTAURANT.border, animation: "fade-in" }, children);
 }
 
@@ -233,7 +235,7 @@ export function restaurantHomeTemplate(): PageContent {
   const waveDivider = mk(
     "embed",
     { html: `<style>body{margin:0}</style><svg viewBox="0 0 1440 80" preserveAspectRatio="none" style="width:100%;height:70px;display:block;"><path d="M0,0 L0,38 C240,74 480,8 720,34 C960,60 1200,14 1440,40 L1440,0 Z" fill="${RESTAURANT.forest}"/></svg>` },
-    { height: "70px" },
+    { height: "70px", animation: "fade-in" },
   );
 
   const dishCard = (imageAspect: string, titleSize = "18px"): Block =>
@@ -279,9 +281,10 @@ export function restaurantHomeTemplate(): PageContent {
     [restaurantReview("Replace with a real guest review — one honest sentence about the food or the room.", "Replace with a name, or “Google review”")],
     "700px",
     "0",
+    { animation: "fade-in" },
   );
 
-  const hoursLocation = bleed(RESTAURANT.forest, "72px 40px", [restaurantHoursLocation()], "800px", "0");
+  const hoursLocation = bleed(RESTAURANT.forest, "72px 40px", [restaurantHoursLocation()], "800px", "0", { animation: "fade-in" });
 
   const finalCta = bleed(
     RESTAURANT.terracotta,
@@ -332,7 +335,7 @@ export function restaurantMenuTemplate(): PageContent {
     menuItemCard("Replace with a drink name", "$0", "Replace with a short, honest description."),
   ]);
 
-  const note = bleed(RESTAURANT.paper, "40px 40px", [body("Replace with a note about allergens, substitutions, or a chef's-table option.", { size: "14px", color: RESTAURANT.textFaint, align: "center", font: RESTAURANT.fontBody })], "700px", "0");
+  const note = bleed(RESTAURANT.paper, "40px 40px", [body("Replace with a note about allergens, substitutions, or a chef's-table option.", { size: "14px", color: RESTAURANT.textFaint, align: "center", font: RESTAURANT.fontBody })], "700px", "0", { animation: "fade-in" });
 
   return {
     version: 1,
@@ -349,7 +352,7 @@ export function restaurantAboutTemplate(): PageContent {
     "#ffffff",
     "80px 40px",
     [
-      heading("Replace with your mission statement", { size: "28px", color: RESTAURANT.text, align: "center", font: RESTAURANT.fontDisplay }),
+      heading("Replace with your mission statement", { size: "28px", color: RESTAURANT.text, align: "center", font: RESTAURANT.fontDisplay, animation: "fade-in" }),
       body("Replace with a longer paragraph about how the kitchen sources, cooks, and serves.", { size: "17px", color: RESTAURANT.textFaint, align: "center", font: RESTAURANT.fontBody }),
     ],
     "700px",
@@ -415,7 +418,7 @@ export function restaurantContactTemplate(): PageContent {
       mk(
         "columns",
         { columns: "2" },
-        { gap: "56px", align: "flex-start" },
+        { gap: "56px", align: "flex-start", animation: "fade-in" },
         [
           mk(
             "form",

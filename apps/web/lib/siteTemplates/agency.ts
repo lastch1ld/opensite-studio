@@ -79,6 +79,7 @@ function agencyPageHero(eyebrow: string, title: string, sub: string): Block {
     ],
     "680px",
     "16px",
+    { animation: "fade-in" },
   );
 }
 
@@ -103,7 +104,7 @@ function agencyLogoMarquee(): Block {
   return mk(
     "marquee",
     { speed: "24", direction: "left", pauseOnHover: "true" },
-    { gap: "56px" },
+    { gap: "56px", animation: "fade-in" },
     names.map((n) => body(n, { size: "18px", weight: "600", color: AGENCY.inkMuted })),
   );
 }
@@ -219,7 +220,7 @@ export function agencyHomeTemplate(): PageContent {
     AGENCY.paper,
     "88px 40px",
     [
-      heading("“Replace with a short client quote about working with the studio.”", { size: "28px", color: AGENCY.text, align: "center", font: AGENCY.font, weight: "500" }),
+      heading("“Replace with a short client quote about working with the studio.”", { size: "28px", color: AGENCY.text, align: "center", font: AGENCY.font, weight: "500", animation: "fade-in" }),
       body("Replace with a name, role", { size: "14px", color: AGENCY.textFaint, align: "center" }),
     ],
     "760px",
@@ -388,7 +389,7 @@ export function agencyAboutTemplate(): PageContent {
     "#ffffff",
     "80px 40px",
     [
-      heading("Replace with your studio's mission statement", { size: "28px", color: AGENCY.text, align: "center", font: AGENCY.font }),
+      heading("Replace with your studio's mission statement", { size: "28px", color: AGENCY.text, align: "center", font: AGENCY.font, animation: "fade-in" }),
       body("Replace with a longer paragraph about how the studio approaches the work it makes.", { size: "17px", color: AGENCY.textFaint, align: "center" }),
     ],
     "700px",
@@ -439,7 +440,7 @@ export function agencyContactTemplate(): PageContent {
       mk(
         "columns",
         { columns: "2" },
-        { gap: "56px", align: "flex-start" },
+        { gap: "56px", align: "flex-start", animation: "fade-in" },
         [
           mk(
             "form",

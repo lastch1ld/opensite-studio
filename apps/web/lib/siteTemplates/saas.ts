@@ -78,6 +78,7 @@ function saasPageHero(eyebrow: string, title: string, sub: string): Block {
     ],
     "680px",
     "16px",
+    { animation: "fade-in" },
   );
 }
 
@@ -102,7 +103,7 @@ function saasLogoMarquee(): Block {
   return mk(
     "marquee",
     { speed: "24", direction: "left", pauseOnHover: "true" },
-    { gap: "56px" },
+    { gap: "56px", animation: "fade-in" },
     names.map((n) => body(n, { size: "18px", weight: "600", color: SAAS.inkMuted })),
   );
 }
@@ -211,7 +212,7 @@ export function saasHomeTemplate(): PageContent {
     "#ffffff",
     "96px 40px",
     [
-      heading("Simple pricing", { size: "34px", color: SAAS.text, align: "center", font: SAAS.font }),
+      heading("Simple pricing", { size: "34px", color: SAAS.text, align: "center", font: SAAS.font, animation: "fade-in" }),
       body("Replace with a one-line pricing philosophy. See the full pricing page for tier details.", { size: "16px", color: SAAS.textFaint, align: "center" }),
       cta("See full pricing", { background: SAAS.accent, color: "#ffffff" }),
     ],
@@ -364,7 +365,7 @@ export function saasAboutTemplate(): PageContent {
     "#ffffff",
     "80px 40px",
     [
-      heading("Replace with your mission statement", { size: "28px", color: SAAS.text, align: "center", font: SAAS.font }),
+      heading("Replace with your mission statement", { size: "28px", color: SAAS.text, align: "center", font: SAAS.font, animation: "fade-in" }),
       body("Replace with a longer paragraph about how the company approaches the problem it's solving.", { size: "17px", color: SAAS.textFaint, align: "center" }),
     ],
     "700px",
@@ -415,7 +416,7 @@ export function saasContactTemplate(): PageContent {
       mk(
         "columns",
         { columns: "2" },
-        { gap: "56px", align: "flex-start" },
+        { gap: "56px", align: "flex-start", animation: "fade-in" },
         [
           mk(
             "form",

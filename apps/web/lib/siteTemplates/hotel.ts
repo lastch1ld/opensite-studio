@@ -28,7 +28,9 @@ const HOTEL = {
   stoneDeep: "#E8E4DA",
   paper: "#FBFAF7",
   text: "#20241F",
-  textFaint: "#666F68",
+  // Dark enough to clear WCAG AA (4.5) on `stoneDeep`, the darkest surface
+  // it lands on — the previous #666F68 only made 4.1 there (tests/siteTemplates.test.ts).
+  textFaint: "#5C645D",
   ice: "#7E97A3",
   iceSoft: "#E4EBEC",
   clay: "#AD8462",
@@ -86,6 +88,7 @@ function hotelPageHero(_eyebrow: string, title: string, sub: string): Block {
     ],
     "680px",
     "16px",
+    { animation: "fade-in" },
   );
 }
 
@@ -185,7 +188,7 @@ export function hotelHomeTemplate(): PageContent {
     HOTEL.paper,
     "88px 40px",
     [
-      heading("Replace with a welcoming line about arrival", { size: "30px", color: HOTEL.text, align: "center", font: HOTEL.font }),
+      heading("Replace with a welcoming line about arrival", { size: "30px", color: HOTEL.text, align: "center", font: HOTEL.font, animation: "fade-in" }),
       body("Replace with two or three sentences about what makes a stay here different — the setting, the pace, the craft in the details.", { size: "17px", color: HOTEL.textFaint, align: "center" }),
     ],
     "700px",
@@ -237,7 +240,7 @@ export function hotelHomeTemplate(): PageContent {
     "28px",
   );
 
-  const review = bleed(HOTEL.ink, "80px 40px", [hotelReview("Replace with a real guest review — one honest sentence about the stay.", "Replace with a name, or “Verified guest”", "★★★★★ Replace with a real average rating")], "700px", "0");
+  const review = bleed(HOTEL.ink, "80px 40px", [hotelReview("Replace with a real guest review — one honest sentence about the stay.", "Replace with a name, or “Verified guest”", "★★★★★ Replace with a real average rating")], "700px", "0", { animation: "fade-in" });
 
   const finalCta = bleed(
     HOTEL.clay,
@@ -381,7 +384,7 @@ export function hotelContactTemplate(): PageContent {
       mk(
         "columns",
         { columns: "2" },
-        { gap: "56px", align: "flex-start" },
+        { gap: "56px", align: "flex-start", animation: "fade-in" },
         [
           mk(
             "form",
