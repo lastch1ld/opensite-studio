@@ -4,6 +4,31 @@ Not part of the Phase 0 MVP. Documented up front because it touches the
 same secrets-storage and script-injection plumbing as integrations.md, so
 that groundwork should account for it.
 
+## Also here: AI site generation `[x]`
+
+A second, unrelated use of the same plumbing, built 2026-08-28: "describe
+your business, get a site". `POST /api/sites/[siteId]/generate` creates
+every page of a genre template and fills its placeholder copy with copy
+written for that business.
+
+**The model does not emit block trees.** Asking an LLM for structured page
+JSON produces invalid trees, unregistered block types and broken bindings
+often enough that the failure mode is a broken site. Structure comes from
+the six hand-built, contrast-audited genre templates
+(docs/site-templates-plan.md); the model only writes words. It therefore
+cannot produce anything the block system can't render, and every generated
+site inherits the accessibility and design work already done.
+
+The slots are the templates' own "Replace with a features-page headline"
+placeholders — text written to tell a human what belongs there, which
+turns out to work just as well on a model. See `lib/aiGenerate.ts`. A
+malformed reply, an invented slot id, or a failed call all degrade to
+"that slot kept its placeholder", never to a corrupt page, and copy
+someone has already edited is never overwritten.
+
+Key resolution: the site's own configured provider key if it has one,
+otherwise the server's `ANTHROPIC_API_KEY`.
+
 ## What it is
 
 Not an embeddable widget on a page — a standalone, full-page chat

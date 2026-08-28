@@ -30,8 +30,40 @@ export function PageList({
   const [siteTemplateId, setSiteTemplateId] = useState(SITE_TEMPLATES[0]?.id ?? "");
   const [siteTemplateLoading, setSiteTemplateLoading] = useState(false);
   const [siteTemplateNote, setSiteTemplateNote] = useState<string | null>(null);
+  const [description, setDescription] = useState("");
+  const [generating, setGenerating] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
+
+  // Same batch of pages as handleCreateFullSite, with the template's
+  // placeholder copy replaced by copy written for this business. Reports
+  // per-page how many slots were actually filled — a page whose generation
+  // failed still gets created with its placeholders, which is a usable
+  // starting point rather than a silent gap.
+  async function handleGenerate() {
+    if (!siteTemplateId || description.trim().length < 20) return;
+    setGenerating(true);
+    setSiteTemplateNote(null);
+    const res = await fetch(`/api/sites/${siteId}/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ templateId: siteTemplateId, description }),
+    });
+    setGenerating(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setSiteTemplateNote(data.error ?? "Failed to generate the site.");
+      return;
+    }
+    const data: { created: Page[]; skipped: string[]; copyFilled: { slug: string; filled: number }[] } = await res.json();
+    setPages((prev) => [...prev, ...data.created]);
+    const withCopy = data.copyFilled.filter((c) => c.filled > 0).length;
+    setSiteTemplateNote(
+      `Created ${data.created.length} page(s); ${withCopy} got generated copy.` +
+        (data.skipped.length ? ` Skipped (slug already exists): ${data.skipped.join(", ")}.` : ""),
+    );
+    router.refresh();
+  }
 
   async function handleCreateFullSite() {
     if (!siteTemplateId) return;
@@ -216,6 +248,31 @@ export function PageList({
             {siteTemplateLoading ? "Creating…" : `Create ${SITE_TEMPLATES.find((t) => t.id === siteTemplateId)?.pages.length ?? 0} pages`}
           </button>
           {siteTemplateNote && <p className="w-full text-sm text-[var(--text-muted)]">{siteTemplateNote}</p>}
+
+          <div className="w-full border-t border-[var(--border)] pt-3">
+            <label className="chrome-label">…or describe the business and let AI write the copy</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              placeholder="A family-run bike repair shop in Bolzano, open since 2016. Same-day tune-ups, custom wheel builds, and winter storage."
+              className="chrome-input mt-1 w-full"
+            />
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              <button
+                onClick={handleGenerate}
+                disabled={generating || description.trim().length < 20}
+                className="chrome-btn chrome-btn-primary"
+                title="Creates the same pages, with the template's placeholder copy replaced by copy written for this business"
+              >
+                {generating ? "Writing…" : "Generate site copy"}
+              </button>
+              <span className="text-xs text-[var(--text-muted)]">
+                Uses this site&apos;s configured AI key, or the server&apos;s. Structure comes from the template above — only
+                the words are generated.
+              </span>
+            </div>
+          </div>
         </div>
       )}
 

@@ -7,6 +7,44 @@
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
 
+// Non-streaming sibling of streamAnthropicChat, for the places where the
+// whole reply is needed before anything can be done with it — site copy
+// generation (lib/aiGenerate.ts) parses one JSON object, so streaming it
+// token by token would buy nothing.
+export async function completeAnthropic(options: {
+  apiKey: string;
+  model: string;
+  systemPrompt?: string;
+  messages: ChatMessage[];
+  maxTokens?: number;
+}): Promise<string> {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": options.apiKey,
+      "anthropic-version": "2023-06-01",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model: options.model,
+      system: options.systemPrompt || undefined,
+      max_tokens: options.maxTokens ?? 4096,
+      messages: options.messages.map((m) => ({ role: m.role, content: m.content })),
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Anthropic API error (${res.status}): ${text.slice(0, 500)}`);
+  }
+
+  const body = (await res.json()) as { content?: { type?: string; text?: string }[] };
+  return (body.content ?? [])
+    .filter((part) => part.type === "text" && typeof part.text === "string")
+    .map((part) => part.text)
+    .join("");
+}
+
 export async function* streamAnthropicChat(options: {
   apiKey: string;
   model: string;
