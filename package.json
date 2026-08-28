@@ -4,5 +4,8 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "scripts": {
+    "test": "npm run test --workspace=web"
+  }
 }

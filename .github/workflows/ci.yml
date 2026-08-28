@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      # AGENTS.md's verification gate (tsc / eslint / build) runs without a
+      # database — Prisma only needs DATABASE_URL to be parseable, not live.
+      DATABASE_URL: postgresql://opensite:opensite@localhost:5432/opensite?schema=public
+      NEXTAUTH_SECRET: ci-placeholder-secret
+      NEXTAUTH_URL: http://localhost:3000
+      SECRETS_ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx prisma generate
+        working-directory: apps/web
+
+      - run: npx tsc --noEmit
+        working-directory: apps/web
+
+      - run: npx eslint .
+        working-directory: apps/web
+
+      - run: npm test
+
+      - run: npm run build
+        working-directory: apps/web
+
+  migrations:
+    # Guards the drift class of bug that shipped `SiteSettings.analytics`
+    # without a migration: applies the committed migration chain to a real
+    # Postgres, then asks Prisma whether the schema still differs from it.
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: opensite
+          POSTGRES_PASSWORD: opensite
+          POSTGRES_DB: opensite
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    env:
+      DATABASE_URL: postgresql://opensite:opensite@localhost:5432/opensite?schema=public
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx prisma migrate deploy
+        working-directory: apps/web
+
+      - name: Fail if schema.prisma has drifted from the migration chain
+        working-directory: apps/web
+        run: |
+          npx prisma migrate diff \
+            --from-url "$DATABASE_URL" \
+            --to-schema-datamodel prisma/schema.prisma \
+            --exit-code \
+          && echo "No drift." \
+          || {
+            echo "::error::schema.prisma differs from the applied migrations — run 'npx prisma migrate dev' and commit the migration."
+            exit 1
+          }
