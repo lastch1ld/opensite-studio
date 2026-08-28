@@ -96,6 +96,15 @@ export default async function SitePagesPage({ params }: { params: Promise<{ site
               {item.label}
             </Link>
           ))}
+          {role === "OWNER" && (
+            <a
+              href={`/api/sites/${site.id}/export`}
+              className="chrome-btn chrome-btn-secondary"
+              title="Download this site's pages, theme, templates, collections and settings as one JSON file"
+            >
+              Export
+            </a>
+          )}
         </nav>
       </div>
 

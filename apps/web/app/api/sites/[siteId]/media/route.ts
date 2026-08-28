@@ -33,13 +33,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ siteId:
   const invalid = validateUpload(file);
   if (invalid) return NextResponse.json({ error: invalid }, { status: 400 });
 
-  const { storageKey, url } = await saveMediaFile(siteId, file);
+  // `mimeType` comes back from saveMediaFile, not from the upload: a raster
+  // image is stored re-encoded as WebP, and the serve route sets
+  // Content-Type from this row.
+  const { storageKey, url, mimeType } = await saveMediaFile(siteId, file);
   const media = await db.media.create({
     data: {
       siteId,
       url,
       storageKey,
-      mimeType: file.type || "application/octet-stream",
+      mimeType,
       altText: null,
     },
   });
