@@ -30,6 +30,18 @@
 - **Responsive breakpoint editing** — desktop/tablet/mobile toggle, with
   per-breakpoint style overrides stored per block (Wix/Elementor both let
   you set different padding/font-size/visibility per breakpoint).
+
+  Since 2026-08-28 those overrides sit on top of an **automatic
+  down-scale** (`lib/responsiveStyle.ts`'s `autoScaleStyle`): type and
+  spacing values shrink proportionally at tablet and mobile unless the
+  author set something explicit there. Wix's own "responsive toggle" is
+  this, and it's the difference between a 104px desktop headline being a
+  design decision and being 104px on a 375px phone because nobody wrote
+  an override. Constrained deliberately: down only, px values only, never
+  below a readability floor (16px type, 12px spacing), never on keys that
+  aren't type or spacing, and always beaten by an explicit override —
+  the same "applies automatically, not configured per block" contract
+  `responsiveColumnCount` already established for grid collapse.
 - **Undo/redo stack** — command-based history over block-tree mutations,
   not just relying on browser undo.
 - **Multi-select + copy/paste/duplicate** blocks.

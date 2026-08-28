@@ -7,14 +7,68 @@ export const BREAKPOINTS: { id: Breakpoint; label: string; previewWidth: number 
   { id: "mobile", label: "Mobile", previewWidth: 375 },
 ];
 
-// Desktop-first cascade: tablet overrides base, mobile overrides tablet+base.
+// Automatic down-scaling of type and spacing at narrower breakpoints —
+// the same "applies automatically, not configured per block" contract as
+// responsiveColumnCount below, and the thing every page builder does that
+// a naive breakpoint-override system doesn't: a 104px desktop headline
+// that nobody wrote a mobile override for is 104px on a 375px screen,
+// which is not a design decision anyone made.
+//
+// Only scales *down*, only px values, and only past a floor — shrinking
+// 16px body copy to 11px would trade one unreadable layout for another.
+// An explicit tablet/mobile override always wins over the derived value:
+// this fills the gap where the author said nothing, it doesn't overrule
+// them.
+const SCALE_FACTORS: Record<Exclude<Breakpoint, "base">, { type: number; space: number }> = {
+  tablet: { type: 0.85, space: 0.8 },
+  mobile: { type: 0.72, space: 0.62 },
+};
+
+const TYPE_KEYS = ["fontSize", "valueFontSize"];
+const SPACE_KEYS = ["padding", "gap", "margin", "marginTop", "marginBottom", "rowGap", "columnGap"];
+
+const TYPE_FLOOR_PX = 16;
+const SPACE_FLOOR_PX = 12;
+
+/** Scales every px component of a value ("96px 40px" -> "69px 29px"), leaving non-px values alone. */
+function scalePxValue(value: string, factor: number, floor: number): string | null {
+  if (!/\dpx/.test(value)) return null;
+  let changed = false;
+  const scaled = value.replace(/(-?\d*\.?\d+)px/g, (_match, num: string) => {
+    const n = Number(num);
+    if (!Number.isFinite(n) || Math.abs(n) <= floor) return `${num}px`;
+    const next = Math.max(floor, Math.round(Math.abs(n) * factor)) * Math.sign(n);
+    if (next !== n) changed = true;
+    return `${next}px`;
+  });
+  return changed ? scaled : null;
+}
+
+/** The derived tablet/mobile values for a base style — only keys that actually change. */
+export function autoScaleStyle(base: Record<string, unknown>, breakpoint: Exclude<Breakpoint, "base">): Record<string, unknown> {
+  const { type, space } = SCALE_FACTORS[breakpoint];
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(base)) {
+    if (typeof value !== "string") continue;
+    const isType = TYPE_KEYS.includes(key);
+    const isSpace = SPACE_KEYS.includes(key);
+    if (!isType && !isSpace) continue;
+    const scaled = scalePxValue(value, isType ? type : space, isType ? TYPE_FLOOR_PX : SPACE_FLOOR_PX);
+    if (scaled !== null) out[key] = scaled;
+  }
+  return out;
+}
+
+// Desktop-first cascade: auto-scaled base, then tablet, then mobile — each
+// later source overriding the earlier one, so anything the author set
+// explicitly beats what was derived for them.
 export function resolveStyle(style: BlockStyle | undefined, breakpoint: Breakpoint): Record<string, unknown> {
   const base = style?.base ?? {};
   if (breakpoint === "base") return base;
   const tablet = style?.tablet ?? {};
-  if (breakpoint === "tablet") return { ...base, ...tablet };
+  if (breakpoint === "tablet") return { ...base, ...autoScaleStyle(base, "tablet"), ...tablet };
   const mobile = style?.mobile ?? {};
-  return { ...base, ...tablet, ...mobile };
+  return { ...base, ...autoScaleStyle(base, "mobile"), ...tablet, ...mobile };
 }
 
 function isTokenRef(v: unknown): v is { $token: string } {
@@ -71,8 +125,16 @@ export function buildResponsiveCss(
   style: BlockStyle | undefined,
   theme: ThemeTokens | null = null,
 ): string | null {
-  const tablet = resolveTokens(style?.tablet ?? {}, theme);
-  const mobile = resolveTokens(style?.mobile ?? {}, theme);
+  // Tokens are resolved before scaling: a `{ $token: "typography.xl" }`
+  // font size is "32px" by the time it reaches autoScaleStyle, and a token
+  // that resolves to something non-px is simply left alone.
+  const resolvedBase = resolveTokens(style?.base ?? {}, theme);
+  const tablet = { ...autoScaleStyle(resolvedBase, "tablet"), ...resolveTokens(style?.tablet ?? {}, theme) };
+  const mobile = {
+    ...autoScaleStyle(resolvedBase, "mobile"),
+    ...resolveTokens(style?.tablet ?? {}, theme),
+    ...resolveTokens(style?.mobile ?? {}, theme),
+  };
   const parts: string[] = [];
   if (Object.keys(tablet).length) {
     parts.push(`@media (max-width:991px){[data-block-id="${blockId}"]{${ruleBody(tablet)}}}`);
