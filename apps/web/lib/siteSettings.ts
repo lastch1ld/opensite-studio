@@ -120,6 +120,56 @@ export function defaultAnalyticsSettings(): AnalyticsSettings {
   return { enabled: false, provider: "none" };
 }
 
+const ANALYTICS_PROVIDERS: readonly AnalyticsProvider[] = ["none", "plausible", "ga4", "umami"];
+
+// A GA4 measurement id: "G-" and an alphanumeric tag, nothing else.
+const GA4_MEASUREMENT_ID = /^G-[A-Z0-9]{4,24}$/i;
+
+// `analytics` reaches the settings API as an opaque JSON blob and comes back
+// out inside the public page's markup, so this is the only thing standing
+// between an EDITOR-typed string and what runs on every visitor's page view.
+// Two of the four fields are genuinely dangerous, and are matched against a
+// shape rather than escaped, because neither is free text:
+// `ga4MeasurementId` is interpolated into an inline <script> body (see
+// components/AnalyticsScripts.tsx), where escaping doesn't apply, and
+// `umamiScriptUrl` becomes a <script src>, which is a code-execution URL —
+// it stays configurable because Umami is usually self-hosted, but it has to
+// at least be an absolute https URL.
+//
+// The other two are only ever rendered as React attributes
+// (`data-domain`/`data-website-id`), which React escapes, so they get a type
+// and length guard and no format opinion — Plausible's data-domain is
+// legitimately a comma-separated list, and Umami's website id has changed
+// shape across versions.
+export function sanitizeAnalyticsSettings(input: unknown): AnalyticsSettings {
+  const raw = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
+  const provider = ANALYTICS_PROVIDERS.includes(raw.provider as AnalyticsProvider)
+    ? (raw.provider as AnalyticsProvider)
+    : "none";
+  const settings: AnalyticsSettings = { enabled: raw.enabled === true, provider };
+
+  const ga4 = typeof raw.ga4MeasurementId === "string" ? raw.ga4MeasurementId.trim() : "";
+  if (GA4_MEASUREMENT_ID.test(ga4)) settings.ga4MeasurementId = ga4;
+
+  const umamiScriptUrl = typeof raw.umamiScriptUrl === "string" ? raw.umamiScriptUrl.trim() : "";
+  if (umamiScriptUrl) {
+    try {
+      const url = new URL(umamiScriptUrl);
+      if (url.protocol === "https:") settings.umamiScriptUrl = url.toString();
+    } catch {
+      // Not a URL at all — dropped, same as a mistyped measurement id.
+    }
+  }
+
+  const plausibleDomain = typeof raw.plausibleDomain === "string" ? raw.plausibleDomain.trim() : "";
+  if (plausibleDomain && plausibleDomain.length <= 253) settings.plausibleDomain = plausibleDomain;
+
+  const umamiWebsiteId = typeof raw.umamiWebsiteId === "string" ? raw.umamiWebsiteId.trim() : "";
+  if (umamiWebsiteId && umamiWebsiteId.length <= 128) settings.umamiWebsiteId = umamiWebsiteId;
+
+  return settings;
+}
+
 // docs/reference-sites-plan.md Tier 4's custom font upload (5/13 reference
 // sites use a bespoke/licensed display face). `format` drives the
 // `@font-face` `src: url(...) format(...)` hint (lib/customFonts.ts) —
@@ -170,3 +220,4 @@ export function isFontFilename(filename: string): boolean {
   const lower = filename.toLowerCase();
   return FONT_EXTENSIONS.some((ext) => lower.endsWith(ext));
 }
+
