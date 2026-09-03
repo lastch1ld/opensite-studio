@@ -98,6 +98,37 @@ function camelToKebab(key: string): string {
   return key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
 }
 
+// Every string this file interpolates into CSS comes out of a page's block
+// tree, and app/api/sites/[siteId]/pages/[pageId] stores that tree as the
+// opaque JSON blob the client sent — block ids and style values included.
+// The CSS then ships inside a <style dangerouslySetInnerHTML> on the public
+// page *and* on the editor canvas, which is the dashboard's own origin, so
+// nothing reaching this file can be treated as author-trusted.
+//
+// Two escaping problems, because these are two different CSS contexts:
+
+// (a) A value inside an attribute selector's quoted string. Rewriting it as
+// CSS hex escapes leaves the *value* identical — `\3c ` parses back to
+// `<`, so the selector still matches the element's real data-block-id —
+// while removing the literal characters that would end the string, or the
+// <style> element, early. An HTML parser closes a <style> on the byte
+// sequence "</style" whatever CSS thinks of it, which is why `<` and `>`
+// are escaped here and not just the quote.
+const CSS_STRING_ESCAPE = /["'<>\\\r\n\f\u0000-\u001f]/g;
+
+export function cssStringValue(value: string): string {
+  return value.replace(CSS_STRING_ESCAPE, (ch) => `\\${ch.codePointAt(0)!.toString(16)} `);
+}
+
+// (b) A declaration is not a string, so the same trick doesn't apply: there
+// is no encoding of `}` that still closes the declaration block for the
+// property parser but not for the block parser. Declarations that don't look
+// like declarations are dropped instead. Legitimate values keep working —
+// commas, quotes, parens and slashes are all still allowed, so font stacks,
+// rgb()/var()/calc() and shorthand values pass through untouched.
+const CSS_PROPERTY = /^-{0,2}[a-z][a-z0-9-]*$/;
+const CSS_VALUE_UNSAFE = /[<>{};@\\]|\/\*/;
+
 // `!important` is required, not decorative: the public renderer always
 // renders a block's *base* style values inline (`style={{...}}` on the
 // DOM node — see components/blocks/registry.tsx's render functions), and
@@ -112,7 +143,9 @@ function camelToKebab(key: string): string {
 function ruleBody(props: Record<string, unknown>): string {
   return Object.entries(props)
     .filter(([, v]) => v !== undefined && v !== null && v !== "")
-    .map(([k, v]) => `${camelToKebab(k)}:${String(v)} !important;`)
+    .map(([k, v]) => [camelToKebab(k), String(v)] as const)
+    .filter(([property, value]) => CSS_PROPERTY.test(property) && !CSS_VALUE_UNSAFE.test(value))
+    .map(([property, value]) => `${property}:${value} !important;`)
     .join("");
 }
 
@@ -135,12 +168,13 @@ export function buildResponsiveCss(
     ...resolveTokens(style?.tablet ?? {}, theme),
     ...resolveTokens(style?.mobile ?? {}, theme),
   };
+  const id = cssStringValue(blockId);
   const parts: string[] = [];
   if (Object.keys(tablet).length) {
-    parts.push(`@media (max-width:991px){[data-block-id="${blockId}"]{${ruleBody(tablet)}}}`);
+    parts.push(`@media (max-width:991px){[data-block-id="${id}"]{${ruleBody(tablet)}}}`);
   }
   if (Object.keys(mobile).length) {
-    parts.push(`@media (max-width:767px){[data-block-id="${blockId}"]{${ruleBody(mobile)}}}`);
+    parts.push(`@media (max-width:767px){[data-block-id="${id}"]{${ruleBody(mobile)}}}`);
   }
   return parts.length ? parts.join("") : null;
 }
@@ -176,5 +210,6 @@ export function columnsResponsiveCss(blockId: string, desktopCount: number): str
   // `!important` for the same reason as ruleBody() above — the base
   // column count is set inline (`style={{gridTemplateColumns:...}}`) on
   // the same element these rules target.
-  return `@media (max-width:991px){[data-columns-id="${blockId}"]{grid-template-columns:repeat(${tabletCount},1fr) !important}}@media (max-width:767px){[data-columns-id="${blockId}"]{grid-template-columns:repeat(1,1fr) !important}}`;
+  const id = cssStringValue(blockId);
+  return `@media (max-width:991px){[data-columns-id="${id}"]{grid-template-columns:repeat(${tabletCount},1fr) !important}}@media (max-width:767px){[data-columns-id="${id}"]{grid-template-columns:repeat(1,1fr) !important}}`;
 }

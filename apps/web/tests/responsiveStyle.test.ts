@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { autoScaleStyle, buildResponsiveCss, resolveStyle, responsiveColumnCount } from "@/lib/responsiveStyle";
+import {
+  autoScaleStyle,
+  buildResponsiveCss,
+  columnsResponsiveCss,
+  cssStringValue,
+  resolveStyle,
+  responsiveColumnCount,
+} from "@/lib/responsiveStyle";
 import { DEFAULT_THEME_TOKENS } from "@/lib/theme";
 
 describe("autoScaleStyle", () => {
@@ -99,5 +106,53 @@ describe("responsiveColumnCount", () => {
     expect(responsiveColumnCount(4, "tablet")).toBe(2);
     expect(responsiveColumnCount(4, "mobile")).toBe(1);
     expect(responsiveColumnCount(1, "tablet")).toBe(1);
+  });
+});
+
+// The page API stores a block tree as the opaque JSON the client sent, so
+// block ids and style values are attacker-controlled by anyone who can
+// edit a page — and this CSS renders inside a <style> element on both the
+// published site and the dashboard's own editor canvas.
+describe("CSS injection through the block tree", () => {
+  const BREAKOUT = 'x"]{}</style><script>alert(1)</script><style>[a="';
+
+  it("escapes an id that would close the style element", () => {
+    const escaped = cssStringValue(BREAKOUT);
+    expect(escaped).not.toContain("</style");
+    expect(escaped).not.toContain('"');
+    // Escaped, not stripped: the value still resolves to the same string,
+    // so the selector keeps matching the element's real data-block-id.
+    expect(escaped).toContain("\\22 ");
+    expect(escaped).toContain("\\3c ");
+  });
+
+  it("leaves an ordinary block id untouched", () => {
+    expect(cssStringValue("blk_01HXYZ-42")).toBe("blk_01HXYZ-42");
+    expect(buildResponsiveCss("blk_1", { base: { fontSize: "104px" } })).toContain('[data-block-id="blk_1"]');
+  });
+
+  it("cannot break out of either generated selector", () => {
+    const responsive = buildResponsiveCss(BREAKOUT, { base: { fontSize: "104px" } }) ?? "";
+    expect(responsive).not.toContain("</style");
+    expect(responsive).not.toContain("<script");
+    expect(columnsResponsiveCss(BREAKOUT, 3)).not.toContain("</style");
+  });
+
+  it("drops a declaration that would escape its rule, and keeps real ones", () => {
+    const hostile = buildResponsiveCss("b1", {
+      base: { fontSize: "104px" },
+      mobile: { color: "red}</style><script>alert(1)</script>" },
+    }) ?? "";
+    expect(hostile).not.toContain("</style");
+    expect(hostile).not.toContain("color:red}");
+
+    // Commas, quotes, parens and slashes are all legitimate CSS.
+    const real = buildResponsiveCss("b1", {
+      base: { fontSize: "104px" },
+      mobile: { fontFamily: '"Space Grotesk", system-ui, sans-serif', background: "rgb(0, 0, 0)", font: "12px/1.5 serif" },
+    }) ?? "";
+    expect(real).toContain('font-family:"Space Grotesk", system-ui, sans-serif !important');
+    expect(real).toContain("background:rgb(0, 0, 0) !important");
+    expect(real).toContain("font:12px/1.5 serif !important");
   });
 });

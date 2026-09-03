@@ -12,7 +12,7 @@ import type {
   FormField,
   PricingTier,
 } from "./types";
-import { columnsResponsiveCss, hasContainerChildren, responsiveColumnCount } from "@/lib/responsiveStyle";
+import { columnsResponsiveCss, cssStringValue, hasContainerChildren, responsiveColumnCount } from "@/lib/responsiveStyle";
 import { FormBlock } from "./FormBlock";
 import { NewsletterBlock } from "./NewsletterBlock";
 import { AccordionBlock } from "./AccordionBlock";
@@ -1069,7 +1069,10 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
           {pauseOnHover && (
             <style
               dangerouslySetInnerHTML={{
-                __html: `[data-marquee-id="${meta.blockId}"]:hover .opensite-marquee-track{animation-play-state:paused}`,
+                // Escaped for the same reason as lib/responsiveStyle.ts's
+                // own selectors: meta.blockId comes from the stored block
+                // tree, and this <style> renders on the dashboard origin.
+                __html: `[data-marquee-id="${cssStringValue(meta.blockId)}"]:hover .opensite-marquee-track{animation-play-state:paused}`,
               }}
             />
           )}
