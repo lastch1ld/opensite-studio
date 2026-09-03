@@ -40,8 +40,46 @@ export function validateUpload(file: File): string | null {
   return null;
 }
 
+// Fonts are uploaded through app/api/sites/[siteId]/fonts rather than the
+// image routes, so they get an allowlist of their own instead of widening
+// the one above — an image upload has no business being a font, or the
+// reverse. It's keyed by extension because browsers routinely send an empty
+// or generic type for .ttf/.otf (see lib/siteSettings.ts's
+// customFontFormat), which makes `file.type` useless as a gate here; the
+// type that gets *stored* is then derived from the extension, so a forged
+// `file.type` never reaches the Media row or the serve route's
+// Content-Type header.
+const FONT_TYPE_BY_EXTENSION: Record<string, string> = {
+  ".woff2": "font/woff2",
+  ".woff": "font/woff",
+  ".ttf": "font/ttf",
+  ".otf": "font/otf",
+};
+
+const FONT_EXTENSION_BY_TYPE: Record<string, string> = Object.fromEntries(
+  Object.entries(FONT_TYPE_BY_EXTENSION).map(([extension, type]) => [type, extension]),
+);
+
+/** The canonical font type for an upload's filename, or null if it isn't one. */
+export function fontTypeForFilename(filename: string): string | null {
+  const lower = filename.toLowerCase();
+  const extension = Object.keys(FONT_TYPE_BY_EXTENSION).find((candidate) => lower.endsWith(candidate));
+  return extension ? FONT_TYPE_BY_EXTENSION[extension] : null;
+}
+
+/** Returns an error message, or null when the font file may be stored. */
+export function validateFontUpload(file: File): string | null {
+  if (!fontTypeForFilename(file.name)) {
+    return "File must be a .woff2, .woff, .ttf, or .otf font file.";
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    return `File is too large (max ${Math.floor(MAX_UPLOAD_BYTES / 1024 / 1024)}MB).`;
+  }
+  return null;
+}
+
 function extensionFor(mimeType: string): string {
-  return EXTENSION_BY_TYPE[mimeType] ?? "";
+  return EXTENSION_BY_TYPE[mimeType] ?? FONT_EXTENSION_BY_TYPE[mimeType] ?? "";
 }
 
 // Raster uploads are re-encoded to WebP on the way in. A self-hosted site
@@ -102,9 +140,15 @@ export async function processImage(buffer: Buffer, mimeType: string): Promise<Pr
 // and returns the storage key, the URL it's served from
 // (app/api/media/[siteId]/[file]), and the type it was actually stored as —
 // which is not necessarily the type it arrived as, see processImage.
+// `storeAsMimeType` overrides the type the file is stored *as*, for callers
+// that have already established it more reliably than `file.type` can —
+// the fonts route derives it from the validated extension. Everything
+// downstream (the extension on disk, the returned mimeType) follows from
+// it, so it is never a client-supplied string.
 export async function saveMediaFile(
   siteId: string,
   file: File,
+  storeAsMimeType?: string,
 ): Promise<{ storageKey: string; url: string; mimeType: string; width?: number; height?: number }> {
   // MEDIA_STORAGE_PATH is a runtime-configured mounted volume outside the
   // build output, not a project file — exclude it from Turbopack's output
@@ -112,7 +156,7 @@ export async function saveMediaFile(
   const dir = path.join(/* turbopackIgnore: true */ storageRoot(), siteId);
   await mkdir(dir, { recursive: true });
 
-  const processed = await processImage(Buffer.from(await file.arrayBuffer()), file.type);
+  const processed = await processImage(Buffer.from(await file.arrayBuffer()), storeAsMimeType ?? file.type);
   const filename = `${randomUUID()}${processed.extension}`;
   await writeFile(path.join(/* turbopackIgnore: true */ dir, filename), processed.buffer);
 

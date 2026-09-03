@@ -214,10 +214,3 @@ export function customFontFormat(mimeType: string, filename: string): CustomFont
   return "truetype";
 }
 
-const FONT_EXTENSIONS = [".woff2", ".woff", ".ttf", ".otf"];
-
-export function isFontFilename(filename: string): boolean {
-  const lower = filename.toLowerCase();
-  return FONT_EXTENSIONS.some((ext) => lower.endsWith(ext));
-}
-

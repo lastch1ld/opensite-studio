@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import sharp from "sharp";
-import { ALLOWED_UPLOAD_TYPES, MAX_IMAGE_WIDTH, MAX_UPLOAD_BYTES, processImage, validateUpload } from "@/lib/media";
+import {
+  ALLOWED_UPLOAD_TYPES,
+  MAX_IMAGE_WIDTH,
+  MAX_UPLOAD_BYTES,
+  fontTypeForFilename,
+  processImage,
+  validateFontUpload,
+  validateUpload,
+} from "@/lib/media";
 
 const file = (type: string, size: number) => ({ type, size, name: "x" }) as File;
 
@@ -40,6 +48,39 @@ describe("validateUpload", () => {
   it("rejects an oversized file", () => {
     expect(validateUpload(file("image/png", MAX_UPLOAD_BYTES + 1))).toMatch(/too large/);
     expect(validateUpload(file("image/png", MAX_UPLOAD_BYTES))).toBeNull();
+  });
+});
+
+describe("validateFontUpload", () => {
+  const named = (name: string, size = 1000, type = "") => ({ type, size, name }) as File;
+
+  it("accepts the four font extensions whatever type the browser sent", () => {
+    // Browsers routinely send an empty or generic type for .ttf/.otf, so
+    // the extension is the gate here — the stored type is derived from it.
+    expect(validateFontUpload(named("Display.woff2"))).toBeNull();
+    expect(validateFontUpload(named("Display.WOFF"))).toBeNull();
+    expect(validateFontUpload(named("Display.ttf", 1000, "application/octet-stream"))).toBeNull();
+    expect(validateFontUpload(named("Display.otf"))).toBeNull();
+  });
+
+  it("rejects a non-font, however it is typed", () => {
+    expect(validateFontUpload(named("payload.html", 1000, "font/woff2"))).toMatch(/must be a/);
+    expect(validateFontUpload(named("payload", 1000, "font/woff2"))).toMatch(/must be a/);
+  });
+
+  it("rejects an oversized font", () => {
+    expect(validateFontUpload(named("Display.woff2", MAX_UPLOAD_BYTES + 1))).toMatch(/too large/);
+    expect(validateFontUpload(named("Display.woff2", MAX_UPLOAD_BYTES))).toBeNull();
+  });
+
+  it("derives the stored type from the extension, never from file.type", () => {
+    // The forged-type case: this is what keeps text/html out of the Media
+    // row, and out of the serve route's Content-Type.
+    expect(fontTypeForFilename("Display.woff2")).toBe("font/woff2");
+    expect(fontTypeForFilename("Display.woff")).toBe("font/woff");
+    expect(fontTypeForFilename("Display.TTF")).toBe("font/ttf");
+    expect(fontTypeForFilename("Display.otf")).toBe("font/otf");
+    expect(fontTypeForFilename("payload.html")).toBeNull();
   });
 });
 
