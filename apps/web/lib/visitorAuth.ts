@@ -1,6 +1,6 @@
-import crypto from "crypto";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
+import { MAX_AGE_SECONDS, signVisitorToken, verifyVisitorToken } from "@/lib/visitorToken";
 
 // Session mechanism for AI_CHAT site visitors — deliberately NOT NextAuth.
 // docs/ai-mode.md calls this out as the thing that forces "public visitor
@@ -13,36 +13,6 @@ import { db } from "@/lib/db";
 // minimal approach for a first pass, not a general-purpose auth system.
 
 const COOKIE_PREFIX = "opensite_visitor_";
-const MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 days
-
-type VisitorTokenPayload = { visitorId: string; siteId: string };
-
-function secret(): string {
-  const value = process.env.NEXTAUTH_SECRET;
-  if (!value) throw new Error("NEXTAUTH_SECRET is not set.");
-  return value;
-}
-
-function sign(payload: VisitorTokenPayload): string {
-  const json = JSON.stringify(payload);
-  const body = Buffer.from(json, "utf8").toString("base64url");
-  const sig = crypto.createHmac("sha256", secret()).update(body).digest("base64url");
-  return `${body}.${sig}`;
-}
-
-function verify(token: string): VisitorTokenPayload | null {
-  const [body, sig] = token.split(".");
-  if (!body || !sig) return null;
-  const expected = crypto.createHmac("sha256", secret()).update(body).digest("base64url");
-  if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) {
-    return null;
-  }
-  try {
-    return JSON.parse(Buffer.from(body, "base64url").toString("utf8")) as VisitorTokenPayload;
-  } catch {
-    return null;
-  }
-}
 
 function cookieName(siteId: string): string {
   return `${COOKIE_PREFIX}${siteId}`;
@@ -50,7 +20,7 @@ function cookieName(siteId: string): string {
 
 export async function setVisitorSession(siteId: string, visitorId: string) {
   const jar = await cookies();
-  jar.set(cookieName(siteId), sign({ visitorId, siteId }), {
+  jar.set(cookieName(siteId), signVisitorToken(visitorId, siteId), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -71,7 +41,7 @@ export async function getVisitor(siteId: string) {
   const jar = await cookies();
   const token = jar.get(cookieName(siteId))?.value;
   if (!token) return null;
-  const payload = verify(token);
+  const payload = verifyVisitorToken(token);
   if (!payload || payload.siteId !== siteId) return null;
   return db.siteVisitor.findUnique({ where: { id: payload.visitorId } });
 }
