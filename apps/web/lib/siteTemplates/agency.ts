@@ -25,6 +25,15 @@ const AGENCY = {
   text: "#151513",
   textFaint: "#6B6862",
   accent: "#DC2F2F",
+  // Same crimson taken light enough for 13px bold on ink and deep enough
+  // for 13px bold on paper: no single value clears WCAG AA 4.5:1 against
+  // both #0A0A0A and #F5F3EE (lib/a11y.ts, tests/siteTemplates.test.ts).
+  accentOnInk: "#E23535",
+  accentOnPaper: "#D52828",
+  // inkMuted carries 13-17px on ink fine; at 18px/600 on white it is 2.52:1.
+  inkMutedOnPaper: "#767676",
+  // contentSwitcher inactive labels sit on both white and paper.
+  switcherInactive: "#6F6F6F",
   accentSoft: "#FFE4D9",
   border: "#DEDACD",
   font: "fraunces",
@@ -99,8 +108,8 @@ function agencyPageHero(eyebrow: string, title: string, sub: string): Block {
     AGENCY.ink,
     "80px 40px 72px",
     [
-      body(eyebrow, { size: "13px", weight: "700", color: AGENCY.accent, align: "center" }),
-      heading(title, { size: "46px", color: "#F5F3EE", align: "center", level: "h1", font: AGENCY.font }),
+      body(eyebrow, { size: "13px", weight: "700", color: AGENCY.accentOnInk, align: "center" }),
+      heading(title, { size: "46px", color: "#F5F3EE", align: "center", level: "h1", font: AGENCY.font, animation: "slide-up" }),
       body(sub, { size: "17px", color: AGENCY.inkMuted, align: "center" }),
     ],
     "680px",
@@ -129,8 +138,8 @@ function agencyLogoMarquee(): Block {
   return mk(
     "marquee",
     { speed: "24", direction: "left", pauseOnHover: "true" },
-    { gap: "56px" },
-    names.map((n) => body(n, { size: "18px", weight: "600", color: AGENCY.inkMuted })),
+    { gap: "56px", animation: "fade-in" },
+    names.map((n) => body(n, { size: "18px", weight: "600", color: AGENCY.inkMutedOnPaper })),
   );
 }
 
@@ -162,7 +171,7 @@ function agencyWorkSwitcher(items: WorkItemSeed[]): Block {
   return mk(
     "contentSwitcher",
     { items: items.map((w) => ({ id: randomUUID(), label: w.name, image: "https://placehold.co/900x1125", description: w.blurb })) },
-    { activeColor: AGENCY.text, inactiveColor: AGENCY.inkMuted, imageAspectRatio: "4 / 5", gap: "40px", animation: "fade-in" },
+    { activeColor: AGENCY.text, inactiveColor: AGENCY.switcherInactive, imageAspectRatio: "4 / 5", gap: "40px", animation: "fade-in" },
   );
 }
 
@@ -269,7 +278,7 @@ export function agencyHomeTemplate(): PageContent {
     AGENCY.paper,
     "88px 40px",
     [
-      heading("“Replace with a short client quote about working with the studio.”", { size: "28px", color: AGENCY.text, align: "center", font: AGENCY.font, weight: "500" }),
+      heading("“Replace with a short client quote about working with the studio.”", { size: "28px", color: AGENCY.text, align: "center", font: AGENCY.font, weight: "500" , animation: "scale-in" }),
       body("Replace with a name, role", { size: "14px", color: AGENCY.textFaint, align: "center" }),
     ],
     "760px",
@@ -281,7 +290,7 @@ export function agencyHomeTemplate(): PageContent {
     "72px 40px",
     [
       heading("Replace with a closing call to action", { size: "32px", color: "#ffffff", align: "center", font: AGENCY.font }),
-      body("Replace with a supporting sentence.", { size: "16px", color: AGENCY.accentSoft, align: "center" }),
+      body("Replace with a supporting sentence.", { size: "16px", color: "#ffffff", align: "center" }),
       cta("Start a project", { background: "#ffffff", color: AGENCY.accent }),
     ],
     "620px",
@@ -408,7 +417,7 @@ export function agencyServicesTemplate(): PageContent {
       "section",
       { layout: "stack" },
       { background: "transparent", padding: "0", gap: "10px", align: "flex-start", animation: "slide-up" },
-      [body(num, { size: "13px", weight: "700", color: AGENCY.accent }), heading(title, { size: "19px", color: AGENCY.text, font: AGENCY.font }), body(copy, { size: "15px", color: AGENCY.textFaint })],
+      [body(num, { size: "13px", weight: "700", color: AGENCY.accentOnPaper }), heading(title, { size: "19px", color: AGENCY.text, font: AGENCY.font }), body(copy, { size: "15px", color: AGENCY.textFaint })],
     );
 
   const process = bleed(
@@ -448,7 +457,7 @@ export function agencyAboutTemplate(): PageContent {
     "#ffffff",
     "80px 40px",
     [
-      heading("Replace with your studio's mission statement", { size: "28px", color: AGENCY.text, align: "center", font: AGENCY.font }),
+      heading("Replace with your studio's mission statement", { size: "28px", color: AGENCY.text, align: "center", font: AGENCY.font , animation: "slide-up" }),
       body("Replace with a longer paragraph about how the studio approaches the work it makes.", { size: "17px", color: AGENCY.textFaint, align: "center" }),
     ],
     "700px",
@@ -474,7 +483,7 @@ export function agencyAboutTemplate(): PageContent {
       mk(
         "contentSwitcher",
         { items: team.map((t) => ({ id: randomUUID(), label: t.name, image: "https://placehold.co/600x750", description: t.role })) },
-        { activeColor: AGENCY.text, inactiveColor: AGENCY.inkMuted, imageAspectRatio: "4 / 5", animation: "fade-in" },
+        { activeColor: AGENCY.text, inactiveColor: AGENCY.switcherInactive, imageAspectRatio: "4 / 5", animation: "fade-in" },
       ),
     ],
     "900px",
@@ -515,7 +524,7 @@ export function agencyContactTemplate(): PageContent {
             { padding: "0" },
           ),
           mk("section", { layout: "stack" }, { background: AGENCY.paper, padding: "32px", borderRadius: "16px", gap: "16px" }, [
-            heading("Replace with contact details", { size: "20px", color: AGENCY.text, font: AGENCY.font }),
+            heading("Replace with contact details", { size: "20px", color: AGENCY.text, font: AGENCY.font , animation: "fade-in" }),
             body("Replace with an email address.", { size: "15px", color: AGENCY.textFaint }),
             body("Replace with a phone number (optional).", { size: "15px", color: AGENCY.textFaint }),
             body("Replace with a studio address (optional).", { size: "15px", color: AGENCY.textFaint }),

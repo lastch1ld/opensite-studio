@@ -7,6 +7,7 @@ import {
   parseGeneratedCopy,
 } from "@/lib/aiGenerate";
 import { siteTemplatePageContent } from "@/lib/siteTemplates";
+import { SITE_TEMPLATES } from "@/lib/siteTemplateOptions";
 import type { Block, PageContent } from "@/components/blocks/types";
 
 const block = (id: string, type: string, props: Record<string, unknown>, children?: Block[]): Block => ({
@@ -144,7 +145,10 @@ describe("buildGenerationPrompt", () => {
 
 describe("against the real templates", () => {
   it("finds slots on every genre's home page and can round-trip them", () => {
-    for (const genre of ["saas", "agency", "portfolio", "restaurant", "hotel", "bar"]) {
+    // Derived from the catalog rather than hardcoded: the single "hotel"
+    // genre was retired for hotel-modern/hotel-boutique/hotel-resort, and a
+    // hardcoded list silently passes null into collectTextSlots when that happens.
+    for (const genre of SITE_TEMPLATES.map((t) => t.id)) {
       const content = siteTemplatePageContent(genre, "home")!;
       const slots = collectTextSlots(content, "home");
       expect(slots.length, genre).toBeGreaterThan(5);

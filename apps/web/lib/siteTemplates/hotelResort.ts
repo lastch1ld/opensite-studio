@@ -22,6 +22,12 @@ const RESORT = {
   text: "#1B1712",
   textFaint: "#7A7166",
   accent: "#B68A3E",
+  // The gold reads fine as large type, but at 12-14px bold on paper it is
+  // 2.96:1 and as a filled band behind #F1E4C8 body copy it is 2.49:1.
+  accentText: "#966A1E",
+  accentBand: "#8A5E12",
+  // textFaint carries on paper (4.52:1) but not at 13px on the ink footer.
+  textFaintOnInk: "#8A8176",
   accentSoft: "#F1E4C8",
   border: "#3A332A",
   font: "fraunces",
@@ -56,7 +62,7 @@ function resortFooter(): Block {
         { background: "transparent", padding: "0", justify: "space-between", align: "center" },
         [
           body("Resort name", { size: "15px", weight: "700", color: RESORT.paper, font: RESORT.font }),
-          body("Replace with a real copyright line and links.", { size: "13px", color: "#7A7166" }),
+          body("Replace with a real copyright line and links.", { size: "13px", color: RESORT.textFaintOnInk }),
         ],
       ),
     ],
@@ -73,7 +79,7 @@ function resortPageHero(title: string, sub: string): Block {
     { backgroundImage: heroPhotoPlaceholder(RESORT.accent) },
     { background: RESORT.ink, padding: "72px 40px", contentWidth: "700px", align: "center", gap: "16px", minHeight: "42vh" },
     [
-      heading(title, { size: "42px", color: RESORT.paper, align: "center", level: "h1", font: RESORT.font }),
+      heading(title, { size: "42px", color: RESORT.paper, align: "center", level: "h1", font: RESORT.font, animation: "slide-up" }),
       body(sub, { size: "17px", color: "#B3A88F", align: "center" }),
     ],
   );
@@ -90,7 +96,7 @@ function resortRoomCard(r: RoomSeed): Block {
       mk("imageOverlay", { src: "https://placehold.co/700x525", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "8px" }),
       mk("section", { layout: "row" }, { background: "transparent", padding: "0", justify: "space-between", align: "center" }, [
         heading(r.name, { size: "18px", color: RESORT.text, font: RESORT.font }),
-        body(r.rate, { size: "14px", weight: "700", color: RESORT.accent }),
+        body(r.rate, { size: "14px", weight: "700", color: RESORT.accentText }),
       ]),
       body(r.description, { size: "14px", color: RESORT.textFaint }),
     ],
@@ -132,8 +138,8 @@ export function hotelResortHomeTemplate(): PageContent {
     RESORT.paper,
     "88px 40px",
     [
-      body("★ ★ ★ World Travel Awards", { size: "13px", weight: "700", color: RESORT.accent, align: "center" }),
-      heading("Replace with a statement about how every detail here is designed to deliver comfort, service, and unforgettable moments.", { size: "30px", color: RESORT.text, align: "center", font: RESORT.font }),
+      body("★ ★ ★ World Travel Awards", { size: "13px", weight: "700", color: RESORT.accentText, align: "center" }),
+      heading("Replace with a statement about how every detail here is designed to deliver comfort, service, and unforgettable moments.", { size: "30px", color: RESORT.text, align: "center", font: RESORT.font , animation: "slide-up" }),
       cta("Discover more", { background: RESORT.ink, color: "#ffffff" }),
     ],
     "760px",
@@ -184,7 +190,7 @@ export function hotelResortHomeTemplate(): PageContent {
     [
       mk("section", { layout: "row" }, { background: "transparent", padding: "0", justify: "space-between", align: "flex-end" }, [
         mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "6px", align: "flex-start" }, [
-          body("RESORT ACCOMMODATIONS", { size: "12px", weight: "700", color: RESORT.accent }),
+          body("RESORT ACCOMMODATIONS", { size: "12px", weight: "700", color: RESORT.accentText }),
           heading("Rooms & rates", { size: "32px", color: RESORT.text, font: RESORT.font }),
         ]),
         cta("View all rooms", { background: RESORT.accent, color: "#ffffff" }),
@@ -200,7 +206,7 @@ export function hotelResortHomeTemplate(): PageContent {
   );
 
   const finalCta = bleed(
-    RESORT.accent,
+    RESORT.accentBand,
     "72px 40px",
     [
       heading("Replace with a closing invitation to book", { size: "32px", color: "#ffffff", align: "center", font: RESORT.font }),
@@ -354,7 +360,7 @@ export function hotelResortContactTemplate(): PageContent {
             { padding: "0" },
           ),
           mk("section", { layout: "stack" }, { background: RESORT.inkPanel, padding: "32px", borderRadius: "8px", gap: "16px" }, [
-            heading("Replace with contact details", { size: "20px", color: RESORT.paper, font: RESORT.font }),
+            heading("Replace with contact details", { size: "20px", color: RESORT.paper, font: RESORT.font , animation: "fade-in" }),
             body("Replace with an email address.", { size: "15px", color: "#A79E8E" }),
             body("Replace with a phone number (optional).", { size: "15px", color: "#A79E8E" }),
             body("Replace with a physical address.", { size: "15px", color: "#A79E8E" }),

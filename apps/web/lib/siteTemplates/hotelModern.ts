@@ -26,6 +26,8 @@ const MODERN = {
   text: "#12151C",
   textFaint: "#5C6270",
   accent: "#5B7A8C",
+  // 13px bold on the near-black hero ink was 4.11:1.
+  accentOnInk: "#628193",
   accentDeep: "#33475A",
   border: "#DEDCD3",
   font: "jakarta-sans",
@@ -88,7 +90,7 @@ function modernPageHero(title: string, sub: string): Block {
       minHeight: "44vh",
     },
     [
-      heading(title, { size: "44px", color: "#ffffff", align: "center", level: "h1", font: MODERN.font }),
+      heading(title, { size: "44px", color: "#ffffff", align: "center", level: "h1", font: MODERN.font, animation: "slide-up" }),
       body(sub, { size: "17px", color: "#CBD2DA", align: "center" }),
     ],
   );
@@ -187,7 +189,7 @@ export function hotelModernHomeTemplate(): PageContent {
     MODERN.paper,
     "96px 40px 88px",
     [
-      heading("Replace with a welcoming line about arrival", { size: "30px", color: MODERN.text, align: "center", font: MODERN.font }),
+      heading("Replace with a welcoming line about arrival", { size: "30px", color: MODERN.text, align: "center", font: MODERN.font , animation: "slide-up" }),
       body("Replace with two or three sentences about what makes a stay here different — the setting, the architecture, the quiet.", { size: "17px", color: MODERN.textFaint, align: "center" }),
     ],
     "700px",
@@ -212,8 +214,8 @@ export function hotelModernHomeTemplate(): PageContent {
     MODERN.ink,
     "80px 40px",
     [
-      mk("text", { content: "★★★★★  REPLACE WITH A REAL AVERAGE RATING" }, { fontSize: "13px", fontWeight: "700", color: MODERN.accent, textAlign: "center", letterSpacing: "0.06em" }),
-      heading("“Replace with a real guest review — one honest sentence about the stay.”", { size: "26px", color: "#ffffff", align: "center", font: MODERN.font, weight: "500" }),
+      mk("text", { content: "★★★★★  REPLACE WITH A REAL AVERAGE RATING" }, { fontSize: "13px", fontWeight: "700", color: MODERN.accentOnInk, textAlign: "center", letterSpacing: "0.06em" }),
+      heading("“Replace with a real guest review — one honest sentence about the stay.”", { size: "26px", color: "#ffffff", align: "center", font: MODERN.font, weight: "500" , animation: "scale-in" }),
       body("Replace with a name, or “Verified guest”", { size: "14px", color: "#8A93A3", align: "center" }),
     ],
     "700px",
@@ -378,7 +380,7 @@ export function hotelModernContactTemplate(): PageContent {
             { padding: "0" },
           ),
           mk("section", { layout: "stack" }, { background: "#ffffff", padding: "32px", borderRadius: "12px", gap: "16px", borderColor: MODERN.border }, [
-            heading("Replace with contact details", { size: "20px", color: MODERN.text, font: MODERN.font }),
+            heading("Replace with contact details", { size: "20px", color: MODERN.text, font: MODERN.font , animation: "fade-in" }),
             body("Replace with an email address.", { size: "15px", color: MODERN.textFaint }),
             body("Replace with a phone number (optional).", { size: "15px", color: MODERN.textFaint }),
             body("Replace with a physical address.", { size: "15px", color: MODERN.textFaint }),

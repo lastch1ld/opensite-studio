@@ -21,10 +21,14 @@ const BOUTIQUE = {
   paper: "#F5EFE2",
   paperDim: "#EBE1CB",
   text: "#2B2318",
-  textFaint: "#7A6F58",
+  // Deepened to clear WCAG AA 4.5:1 on both paper (#F5EFE2, was 4.32:1)
+  // and paperDim (#EBE1CB, was 3.81:1) -- one value covers both.
+  textFaint: "#6E634C",
   accent: "#3F5B45",
   accentDeep: "#28392C",
-  terracotta: "#C1693F",
+  // Deepened so it works both as 14px bold on paper (was 3.42:1) and as a
+  // filled band behind #F7E4D6 body copy (was 3.18:1).
+  terracotta: "#A64E24",
   border: "#E1D4B5",
   font: "instrument-serif",
 } as const;
@@ -80,7 +84,7 @@ function boutiquePageHero(title: string, sub: string): Block {
     { backgroundImage: heroPhotoPlaceholder(BOUTIQUE.accent) },
     { background: BOUTIQUE.ink, padding: "72px 40px", contentWidth: "700px", align: "center", gap: "16px", minHeight: "42vh" },
     [
-      heading(title, { size: "42px", color: BOUTIQUE.paper, align: "center", level: "h1", weight: "400", font: BOUTIQUE.font }),
+      heading(title, { size: "42px", color: BOUTIQUE.paper, align: "center", level: "h1", weight: "400", font: BOUTIQUE.font, animation: "slide-up" }),
       body(sub, { size: "17px", color: "#D9CDB0", align: "center" }),
     ],
   );
@@ -118,7 +122,7 @@ function boutiqueAmenityMarquee(): Block {
   return mk(
     "marquee",
     { speed: "22", direction: "left", pauseOnHover: "true" },
-    { gap: "48px" },
+    { gap: "48px", animation: "fade-in" },
     items.map((n) => body(n, { size: "20px", weight: "400", color: BOUTIQUE.textFaint, font: BOUTIQUE.font })),
   );
 }
@@ -181,7 +185,7 @@ export function hotelBoutiqueHomeTemplate(): PageContent {
     BOUTIQUE.accent,
     "88px 40px",
     [
-      heading("“Replace with a real guest review — one honest sentence about the stay.”", { size: "28px", color: "#ffffff", align: "center", font: BOUTIQUE.font, weight: "400" }),
+      heading("“Replace with a real guest review — one honest sentence about the stay.”", { size: "28px", color: "#ffffff", align: "center", font: BOUTIQUE.font, weight: "400" , animation: "scale-in" }),
       body("Replace with a name, or “Verified guest”", { size: "14px", color: "#D8E3D9", align: "center" }),
     ],
     "740px",
@@ -350,7 +354,7 @@ export function hotelBoutiqueContactTemplate(): PageContent {
             { padding: "0" },
           ),
           mk("section", { layout: "stack" }, { background: BOUTIQUE.paperDim, padding: "32px", borderRadius: "8px", gap: "16px" }, [
-            heading("Replace with contact details", { size: "20px", color: BOUTIQUE.text, font: BOUTIQUE.font, weight: "400" }),
+            heading("Replace with contact details", { size: "20px", color: BOUTIQUE.text, font: BOUTIQUE.font, weight: "400" , animation: "fade-in" }),
             body("Replace with an email address.", { size: "15px", color: BOUTIQUE.textFaint }),
             body("Replace with a phone number (optional).", { size: "15px", color: BOUTIQUE.textFaint }),
             body("Replace with a physical address.", { size: "15px", color: BOUTIQUE.textFaint }),

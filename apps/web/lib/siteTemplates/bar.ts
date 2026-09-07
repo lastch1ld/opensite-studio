@@ -31,6 +31,10 @@ const BAR = {
   cream: "#F2ECEF",
   creamFaint: "#9C8FA3",
   accent: "#D9469E",
+  // 12px bold on the panel ink sat at 4.49:1 -- a hair under AA.
+  accentText: "#DA479F",
+  // White body copy on a #D9469E fill is 3.95:1; this deepening carries it.
+  accentBand: "#CD3A92",
   accentDeep: "#4A1E3B",
   font: "instrument-serif",
   labelFont: "plex-mono",
@@ -89,7 +93,7 @@ function barPageHero(_eyebrow: string, title: string, sub: string): Block {
     BAR.ink,
     "80px 40px 72px",
     [
-      heading(title, { size: "44px", color: BAR.cream, align: "left", level: "h1", font: BAR.font }),
+      heading(title, { size: "44px", color: BAR.cream, align: "left", level: "h1", font: BAR.font, animation: "slide-up" }),
       body(sub, { size: "17px", color: BAR.creamFaint, align: "left" }),
     ],
     "680px",
@@ -105,7 +109,7 @@ type DrinkSeed = { name: string; desc: string; price: string };
 function drinkRow(d: DrinkSeed): Block {
   return mk("section", { layout: "stack" }, { background: "transparent", padding: "14px 0", gap: "4px", borderColor: BAR.panelBorder }, [
     mk("section", { layout: "row" }, { background: "transparent", padding: "0", justify: "space-between", align: "baseline", gap: "12px" }, [
-      heading(d.name, { size: "19px", color: BAR.cream, font: BAR.font, level: "h3" }),
+      heading(d.name, { size: "19px", color: BAR.cream, font: BAR.font, level: "h2" }),
       body(d.price, { size: "14px", color: BAR.creamFaint, font: BAR.labelFont }),
     ]),
     body(d.desc, { size: "13px", color: BAR.creamFaint }),
@@ -114,7 +118,7 @@ function drinkRow(d: DrinkSeed): Block {
 
 function menuColumn(category: string, drinks: DrinkSeed[]): Block {
   return mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "2px" }, [
-    body(category, { size: "12px", weight: "700", color: BAR.accent, font: BAR.labelFont }),
+    body(category, { size: "12px", weight: "700", color: BAR.accentText, font: BAR.labelFont }),
     ...drinks.map(drinkRow),
   ]);
 }
@@ -176,7 +180,7 @@ export function barHomeTemplate(): PageContent {
     "88px 40px",
     [
       mk("columns", { columns: "2" }, { gap: "40px", align: "flex-start" }, [
-        heading("01", { size: "128px", color: BAR.accent, weight: "400", font: BAR.font }),
+        heading("01", { size: "128px", color: BAR.accent, weight: "400", font: BAR.font , animation: "slide-up" }),
         mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "12px", align: "flex-start" }, [
           body("THIS FRIDAY", { size: "12px", weight: "700", color: BAR.creamFaint, font: BAR.labelFont }),
           heading("Replace with tonight's event name", { size: "30px", color: BAR.cream, font: BAR.font }),
@@ -193,7 +197,7 @@ export function barHomeTemplate(): PageContent {
     BAR.inkPanel,
     "88px 40px",
     [
-      heading("On the menu", { size: "32px", color: BAR.cream, font: BAR.font }),
+      heading("On the menu", { size: "32px", color: BAR.cream, font: BAR.font , animation: "slide-up" }),
       body("Replace with a one-line description of the drinks program.", { size: "15px", color: BAR.creamFaint }),
       mk("columns", { columns: "2" }, { gap: "56px" }, [
         menuColumn("SIGNATURES", [
@@ -217,7 +221,7 @@ export function barHomeTemplate(): PageContent {
     [
       mk("columns", { columns: "2" }, { gap: "48px", align: "flex-start" }, [
         mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "10px", align: "flex-start" }, [
-          heading("Hours", { size: "18px", color: BAR.cream, font: BAR.font }),
+          heading("Hours", { size: "18px", color: BAR.cream, font: BAR.font , animation: "fade-in" }),
           body("Replace with days and hours, e.g. Wed–Sat, 6pm–2am.", { size: "15px", color: BAR.creamFaint }),
         ]),
         mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "10px", align: "flex-start" }, [
@@ -231,7 +235,7 @@ export function barHomeTemplate(): PageContent {
   );
 
   const finalCta = bleed(
-    BAR.accent,
+    BAR.accentBand,
     "72px 40px",
     [
       heading("Replace with a closing call to action", { size: "32px", color: "#ffffff", align: "center", font: BAR.font }),
@@ -274,7 +278,7 @@ export function barMenuTemplate(): PageContent {
   const menuSheet = bleed(
     BAR.ink,
     "80px 40px 96px",
-    [mk("columns", { columns: "2" }, { gap: "56px" }, [menuColumn("SIGNATURES", cocktails), menuColumn("WINE & BEER", beerWine)])],
+    [mk("columns", { columns: "2" }, { gap: "56px", animation: "fade-in" }, [menuColumn("SIGNATURES", cocktails), menuColumn("WINE & BEER", beerWine)])],
     "900px",
     "0",
   );
@@ -285,6 +289,7 @@ export function barMenuTemplate(): PageContent {
     [body("Replace with a note about allergens, substitutions, or a snack/food-pairing menu if applicable.", { size: "14px", color: BAR.creamFaint, align: "center" })],
     "700px",
     "0",
+    { animation: "fade-in" },
   );
 
   return {
@@ -296,7 +301,7 @@ export function barMenuTemplate(): PageContent {
 type EventSeed = { date: string; title: string; blurb: string };
 
 function barEventRow(e: EventSeed, i: number): Block {
-  return mk("columns", { columns: "2" }, { gap: "32px", align: "center" }, [
+  return mk("columns", { columns: "2" }, { gap: "32px", align: "center", animation: "slide-up" }, [
     heading(String(i + 1).padStart(2, "0"), { size: "72px", color: BAR.accent, weight: "400", font: BAR.font }),
     mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "8px", align: "flex-start" }, [
       body(e.date, { size: "12px", weight: "700", color: BAR.creamFaint, font: BAR.labelFont }),
@@ -357,7 +362,7 @@ export function barContactTemplate(): PageContent {
             { padding: "0" },
           ),
           mk("section", { layout: "stack" }, { background: BAR.inkPanel, padding: "32px", borderRadius: "4px", gap: "16px" }, [
-            heading("Replace with contact details", { size: "20px", color: BAR.cream, font: BAR.font }),
+            heading("Replace with contact details", { size: "20px", color: BAR.cream, font: BAR.font , animation: "fade-in" }),
             body("Replace with an address.", { size: "15px", color: BAR.creamFaint }),
             body("Replace with a phone number.", { size: "15px", color: BAR.creamFaint }),
             body("Replace with opening hours.", { size: "15px", color: BAR.creamFaint }),

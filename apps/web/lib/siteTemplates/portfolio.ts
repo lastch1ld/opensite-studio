@@ -81,7 +81,7 @@ function portfolioPageHero(_eyebrow: string, title: string, sub: string): Block 
     PORTFOLIO.paper,
     "96px 40px 72px",
     [
-      heading(title, { size: "56px", color: PORTFOLIO.text, align: "left", level: "h1", weight: "500", font: PORTFOLIO.font }),
+      heading(title, { size: "56px", color: PORTFOLIO.text, align: "left", level: "h1", weight: "500", font: PORTFOLIO.font, animation: "slide-up" }),
       body(sub, { size: "18px", color: PORTFOLIO.textFaint, align: "left" }),
     ],
     "820px",
@@ -236,7 +236,7 @@ export function portfolioWorkTemplate(): PageContent {
       mk(
         "contentSwitcher",
         { items: items.map((i, idx) => ({ id: randomUUID(), label: i.label, image: `https://placehold.co/900x1100?text=Project+${idx + 1}`, description: i.description })) },
-        { activeColor: PORTFOLIO.text, inactiveColor: PORTFOLIO.inkMuted, imageAspectRatio: "4 / 5", gap: "40px", animation: "fade-in" },
+        { activeColor: PORTFOLIO.text, inactiveColor: "#78766D", imageAspectRatio: "4 / 5", gap: "40px", animation: "fade-in" },
       ),
     ],
     "1100px",
@@ -347,7 +347,7 @@ export function portfolioContactTemplate(): PageContent {
             { padding: "0" },
           ),
           mk("section", { layout: "stack" }, { background: PORTFOLIO.paper, padding: "32px", borderRadius: "4px", gap: "16px" }, [
-            heading("Replace with contact details", { size: "20px", color: PORTFOLIO.text, weight: "500", font: PORTFOLIO.font }),
+            heading("Replace with contact details", { size: "20px", color: PORTFOLIO.text, weight: "500", font: PORTFOLIO.font , animation: "fade-in" }),
             body("Replace with an email address.", { size: "15px", color: PORTFOLIO.textFaint }),
             body("Replace with a phone number (optional).", { size: "15px", color: PORTFOLIO.textFaint }),
             body("Replace with a location (optional).", { size: "15px", color: PORTFOLIO.textFaint }),
