@@ -12,7 +12,7 @@ import type {
   FormField,
   PricingTier,
 } from "./types";
-import { columnsResponsiveCss, hasContainerChildren, responsiveColumnCount } from "@/lib/responsiveStyle";
+import { columnsResponsiveCss, cssStringValue, hasContainerChildren, responsiveColumnCount } from "@/lib/responsiveStyle";
 import { FormBlock } from "./FormBlock";
 import { NewsletterBlock } from "./NewsletterBlock";
 import { AccordionBlock } from "./AccordionBlock";
@@ -609,12 +609,22 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         // block tree to be restructured. BlockRenderer.tsx separately
         // cancels a container's top-padding gap when this is its first
         // child (see `fullBleed` on this definition).
-        width: "100vw",
+        //
+        // `--osw-bleed-width` defaults to the viewport, which is right for
+        // the published page. The editor canvas is NOT the viewport — it's
+        // a centered, max-width frame inside a layout with side panels —
+        // so `100vw`/`-50vw` there resolve against the browser window and
+        // shift the hero sideways by half the difference, which reads as a
+        // background bleeding past one edge and clipped at the other
+        // (docs/site-templates-plan.md). EditorClient.tsx sets the
+        // variable to its own canvas width so the same breakout lands on
+        // the frame instead.
+        width: "var(--osw-bleed-width, 100vw)",
         position: "relative",
         left: "50%",
         right: "50%",
-        marginLeft: "-50vw",
-        marginRight: "-50vw",
+        marginLeft: "calc(-0.5 * var(--osw-bleed-width, 100vw))",
+        marginRight: "calc(-0.5 * var(--osw-bleed-width, 100vw))",
         boxSizing: "border-box",
         backgroundColor: bgImage ? undefined : str(style.background, "#0B1120"),
         ...(imageLayers.length
@@ -1009,7 +1019,14 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
       return (
         <iframe
           srcDoc={str(props.html)}
-          sandbox="allow-scripts allow-same-origin"
+          // `allow-scripts allow-same-origin` together is the same as no
+          // sandbox at all: a srcDoc frame with both keeps the embedding
+          // origin, so its scripts can reach `parent.document` and act as
+          // the signed-in user — including in the editor canvas, where the
+          // embedding origin is the dashboard. Dropping allow-same-origin
+          // runs the embed in an opaque origin, which is what "sandboxed"
+          // claimed here in the first place.
+          sandbox="allow-scripts"
           style={{ width: "100%", height: str(style.height, "300px"), border: "0" }}
           title="Embedded content"
         />
@@ -1333,7 +1350,10 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
           {pauseOnHover && (
             <style
               dangerouslySetInnerHTML={{
-                __html: `[data-marquee-id="${meta.blockId}"]:hover .opensite-marquee-track{animation-play-state:paused}`,
+                // Escaped for the same reason as lib/responsiveStyle.ts's
+                // own selectors: meta.blockId comes from the stored block
+                // tree, and this <style> renders on the dashboard origin.
+                __html: `[data-marquee-id="${cssStringValue(meta.blockId)}"]:hover .opensite-marquee-track{animation-play-state:paused}`,
               }}
             />
           )}

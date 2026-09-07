@@ -1,7 +1,7 @@
 # Collections, Dynamic Pages & Conditional/Dynamic Binding
 
-Not part of Phase 0/1. This is the single largest missing architectural
-piece identified against Wix/Elementor (see docs/roadmap.md) — it's what
+Built. This was the single largest architectural gap against
+Wix/Elementor — it's what
 turns static Pages into a real data-driven site (blogs, directories,
 portfolios, listings) without bespoke code per site. Explicitly excludes
 ecommerce (product/cart/checkout) and any analytics/reporting dashboard —

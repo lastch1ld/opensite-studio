@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { requireSiteRole } from "@/lib/permissions";
-import { saveMediaFile } from "@/lib/media";
-import { customFontFormat, defaultCustomFonts, isFontFilename, type CustomFont } from "@/lib/siteSettings";
+import { fontTypeForFilename, saveMediaFile, validateFontUpload } from "@/lib/media";
+import { customFontFormat, defaultCustomFonts, type CustomFont } from "@/lib/siteSettings";
 import type { Prisma } from "@prisma/client";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ siteId: string }> }) {
@@ -37,13 +37,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ siteId:
   const name = formData.get("name");
   if (!(file instanceof File)) return NextResponse.json({ error: "file is required" }, { status: 400 });
   if (typeof name !== "string" || !name.trim()) return NextResponse.json({ error: "name is required" }, { status: 400 });
-  if (!isFontFilename(file.name)) {
-    return NextResponse.json({ error: "File must be a .woff2, .woff, .ttf, or .otf font file" }, { status: 400 });
-  }
+  // Same boundary the other two upload paths go through (lib/media.ts):
+  // an allowlist and the size cap, before anything touches disk. The type
+  // comes from the validated extension rather than `file.type`, which is
+  // client-supplied — otherwise a file named .woff2 and typed text/html
+  // would be stored, and served back, as HTML on this app's own origin.
+  const invalid = validateFontUpload(file);
+  if (invalid) return NextResponse.json({ error: invalid }, { status: 400 });
 
-  const { storageKey, url } = await saveMediaFile(siteId, file);
+  const { storageKey, url, mimeType } = await saveMediaFile(siteId, file, fontTypeForFilename(file.name)!);
   const media = await db.media.create({
-    data: { siteId, url, storageKey, mimeType: file.type || "application/octet-stream", altText: null },
+    data: { siteId, url, storageKey, mimeType, altText: null },
   });
 
   const existing = await db.siteSettings.findUnique({ where: { siteId } });

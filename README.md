@@ -2,8 +2,8 @@
 
 Self-hosted, open-source alternative to Wix/Elementor: sign up, create a
 site, edit pages live in a visual block editor, publish, and serve the
-result publicly. See [docs/](docs/) for the full design; this is the
-Phase 0 MVP described in [docs/roadmap.md](docs/roadmap.md).
+result publicly. See [docs/](docs/) for the full design, and
+[docs/roadmap.md](docs/roadmap.md) for what's built and what isn't.
 
 ## Quickstart (Docker Compose)
 

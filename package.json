@@ -1,8 +1,12 @@
 {
   "name": "opensite-studio",
   "private": true,
+  "license": "MIT",
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "scripts": {
+    "test": "npm run test --workspace=web"
+  }
 }

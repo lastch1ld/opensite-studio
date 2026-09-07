@@ -1,6 +1,6 @@
 # Theme Builder (Site-Wide Templates with Conditions)
 
-Not part of Phase 0/1. Distinct from — and a bigger scope than —
+Built. Distinct from — and a bigger scope than —
 blocks-and-theming.md's design-token theming. Token theming answers "what
 colors/fonts does everything use"; Theme Builder answers "what renders the
 header, footer, and per-content-type layout, and under what conditions."

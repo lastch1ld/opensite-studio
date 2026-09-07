@@ -21,8 +21,12 @@ export function TemplatesPanel({ siteId, initialTemplates }: { siteId: string; i
   const [templates, setTemplates] = useState(initialTemplates);
   const [name, setName] = useState("");
   const [type, setType] = useState(CREATABLE_TYPES[0]);
+  const [blank, setBlank] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Only header/footer have authored starter content to opt out of.
+  const hasStarter = type === "header" || type === "footer";
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -31,7 +35,7 @@ export function TemplatesPanel({ siteId, initialTemplates }: { siteId: string; i
     const res = await fetch(`/api/sites/${siteId}/templates`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, type }),
+      body: JSON.stringify({ name, type, blank: hasStarter ? blank : true }),
     });
     setLoading(false);
     if (!res.ok) {
@@ -56,14 +60,14 @@ export function TemplatesPanel({ siteId, initialTemplates }: { siteId: string; i
 
   return (
     <div>
-      <form onSubmit={handleCreate} className="mt-6 flex flex-wrap items-end gap-2 rounded border p-4">
+      <form onSubmit={handleCreate} className="chrome-card mt-6 flex flex-wrap items-end gap-3 p-4">
         <div>
-          <label className="block text-sm text-gray-600">Name</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} required className="rounded border px-3 py-2" />
+          <label className="chrome-label">Name</label>
+          <input value={name} onChange={(e) => setName(e.target.value)} required className="chrome-input" />
         </div>
         <div>
-          <label className="block text-sm text-gray-600">Type</label>
-          <select value={type} onChange={(e) => setType(e.target.value)} className="rounded border px-3 py-2">
+          <label className="chrome-label">Type</label>
+          <select value={type} onChange={(e) => setType(e.target.value)} className="chrome-input">
             {CREATABLE_TYPES.map((t) => (
               <option key={t} value={t}>
                 {TYPE_LABELS[t]}
@@ -71,28 +75,45 @@ export function TemplatesPanel({ siteId, initialTemplates }: { siteId: string; i
             ))}
           </select>
         </div>
-        <button type="submit" disabled={loading} className="rounded bg-black px-3 py-2 text-white disabled:opacity-50">
-          {loading ? "Creating..." : "Create template"}
+        <button type="submit" disabled={loading} className="chrome-btn chrome-btn-primary">
+          {loading ? "Creating…" : "Create template"}
         </button>
-        {error && <p className="w-full text-sm text-red-600">{error}</p>}
+        {hasStarter && (
+          <label className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
+            <input type="checkbox" checked={blank} onChange={(e) => setBlank(e.target.checked)} />
+            Start blank instead of from the default {TYPE_LABELS[type].toLowerCase()}
+          </label>
+        )}
+        {error && <p className="w-full text-sm text-[var(--danger)]">{error}</p>}
       </form>
 
-      <ul className="mt-6 divide-y">
-        {templates.map((template) => (
-          <li key={template.id} className="flex items-center justify-between py-3">
-            <div>
-              <Link href={`/dashboard/sites/${siteId}/templates/${template.id}`} className="font-medium underline">
-                {template.name}
-              </Link>
-              <p className="text-sm text-gray-500">{TYPE_LABELS[template.type] ?? template.type}</p>
-            </div>
-            <button onClick={() => handleDelete(template.id)} className="text-sm text-red-600 underline">
-              Delete
-            </button>
-          </li>
-        ))}
-        {templates.length === 0 && <p className="py-4 text-sm text-gray-500">No templates yet. Create one above.</p>}
-      </ul>
+      {templates.length === 0 ? (
+        <div className="chrome-card mt-6 px-4 py-14 text-center">
+          <p className="text-sm font-medium text-[var(--text)]">No site-wide templates yet</p>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">
+            A header and a footer are the usual first two — both start from authored content you can edit.
+          </p>
+        </div>
+      ) : (
+        <ul className="chrome-card mt-6 divide-y divide-[var(--border)]">
+          {templates.map((template) => (
+            <li key={template.id} className="flex items-center justify-between gap-3 px-4 py-3">
+              <div className="min-w-0">
+                <Link
+                  href={`/dashboard/sites/${siteId}/templates/${template.id}`}
+                  className="font-medium text-[var(--text)] hover:text-[var(--accent)]"
+                >
+                  {template.name}
+                </Link>
+                <p className="text-xs text-[var(--text-muted)]">{TYPE_LABELS[template.type] ?? template.type}</p>
+              </div>
+              <button onClick={() => handleDelete(template.id)} className="chrome-btn chrome-btn-danger shrink-0">
+                Delete
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

@@ -94,7 +94,7 @@ function boutiqueSuiteCard(s: SuiteSeed): Block {
     { layout: "stack" },
     { background: "transparent", padding: "0", gap: "12px", align: "flex-start", animation: "slide-up" },
     [
-      mk("imageOverlay", { src: "https://placehold.co/600x750", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 5", borderRadius: ARCH }),
+      mk("imageOverlay", { src: "https://placehold.co/600x750", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 5", borderRadius: ARCH }),
       mk("section", { layout: "row" }, { background: "transparent", padding: "0", justify: "space-between", align: "center" }, [
         heading(s.name, { size: "19px", color: BOUTIQUE.text, font: BOUTIQUE.font, weight: "400" }),
         body(s.rate, { size: "14px", weight: "700", color: BOUTIQUE.terracotta }),
@@ -145,7 +145,7 @@ export function hotelBoutiqueHomeTemplate(): PageContent {
         { columns: "2" },
         { gap: "48px", align: "center" },
         [
-          mk("imageOverlay", { src: "https://placehold.co/700x850", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 5", borderRadius: ARCH, animation: "slide-right" }),
+          mk("imageOverlay", { src: "https://placehold.co/700x850", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 5", borderRadius: ARCH, animation: "slide-right" }),
           mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "18px", align: "flex-start", animation: "slide-left" }, [
             heading("Welcome to Hotel name, where timeless elegance meets modern comfort.", { size: "34px", color: BOUTIQUE.text, font: BOUTIQUE.font, weight: "400" }),
             body("Replace with two or three sentences about the setting and what makes a stay here different.", { size: "16px", color: BOUTIQUE.textFaint }),
@@ -270,7 +270,7 @@ export function hotelBoutiqueAmenitiesTemplate(): PageContent {
   const archPhoto = bleed(
     BOUTIQUE.paper,
     "88px 40px 0",
-    [mk("imageOverlay", { src: "https://placehold.co/1000x600", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "16 / 9", borderRadius: ARCH, animation: "scale-in" })],
+    [mk("imageOverlay", { src: "https://placehold.co/1000x600", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "16 / 9", borderRadius: ARCH, animation: "scale-in" })],
     "1000px",
     "0",
   );

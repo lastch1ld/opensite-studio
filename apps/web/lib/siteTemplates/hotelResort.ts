@@ -87,7 +87,7 @@ function resortRoomCard(r: RoomSeed): Block {
     { layout: "stack" },
     { background: "transparent", padding: "0", gap: "10px", align: "flex-start", animation: "slide-up" },
     [
-      mk("imageOverlay", { src: "https://placehold.co/700x525", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "8px" }),
+      mk("imageOverlay", { src: "https://placehold.co/700x525", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "8px" }),
       mk("section", { layout: "row" }, { background: "transparent", padding: "0", justify: "space-between", align: "center" }, [
         heading(r.name, { size: "18px", color: RESORT.text, font: RESORT.font }),
         body(r.rate, { size: "14px", weight: "700", color: RESORT.accent }),
@@ -142,7 +142,7 @@ export function hotelResortHomeTemplate(): PageContent {
 
   const feature = (title: string, copy: string, imgLabel: string): Block =>
     mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "12px", align: "flex-start", animation: "slide-up" }, [
-      mk("imageOverlay", { src: `https://placehold.co/700x500?text=${encodeURIComponent(imgLabel)}`, alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "8px" }),
+      mk("imageOverlay", { src: `https://placehold.co/700x500?text=${encodeURIComponent(imgLabel)}`, alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "8px" }),
       heading(title, { size: "19px", color: RESORT.text, font: RESORT.font }),
       body(copy, { size: "14px", color: RESORT.textFaint }),
     ]);

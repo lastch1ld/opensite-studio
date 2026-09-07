@@ -1,6 +1,6 @@
 # Deployment (Self-Hosting)
 
-## MVP `[ ]`
+## Built
 
 - `docker-compose.yml` with two services: `web` (the Next.js app, built
   from a `Dockerfile`) and `db` (Postgres). Media stored on a mounted

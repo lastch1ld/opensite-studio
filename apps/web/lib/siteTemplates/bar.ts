@@ -155,7 +155,7 @@ export function barHomeTemplate(): PageContent {
   // (`inset: 0`) then fills exactly.
   const heroVisual = mk(
     "imageOverlay",
-    { src: heroPhotoPlaceholder(BAR.accent), alt: "", caption: "— the bar, tonight" },
+    { src: heroPhotoPlaceholder(BAR.accent), alt: "Replace with a description of this image", caption: "— the bar, tonight" },
     { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "", borderRadius: "0", animation: "scale-in" },
   );
   const hero = mk(

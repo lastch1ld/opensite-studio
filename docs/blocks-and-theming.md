@@ -1,6 +1,6 @@
 # Block Library & Theming
 
-## MVP `[ ]`
+## Built
 
 A small **block registry**: a plain object/map from `type` string → `{
 render(props, style, children) => ReactNode, inspector: FieldSchema[],

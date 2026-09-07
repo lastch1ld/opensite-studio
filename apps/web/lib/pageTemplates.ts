@@ -3,7 +3,7 @@ import { emptyPageContent } from "@/lib/pageContent";
 import { randomUUID } from "crypto";
 export { PAGE_TEMPLATES, type PageTemplateOption } from "@/lib/pageTemplateOptions";
 
-// docs/ui-ux-roadmap.md Phase B: a small, deliberately-curated set of
+// docs/ui-ux-roadmap.md: a small, deliberately-curated set of
 // starting points for a new Page, offered alongside "blank" in the
 // create-page flow (components/dashboard/PageList.tsx). Each template is a
 // real, finished-looking block tree built entirely from existing block

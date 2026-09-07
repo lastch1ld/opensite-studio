@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { THEME_PRESETS } from "@/lib/themePresets";
 
 type SiteMode = "BUILDER" | "AI_CHAT";
 type Site = { id: string; name: string; subdomain: string; mode?: SiteMode };
@@ -13,6 +14,7 @@ export function SiteList({ initialSites }: { initialSites: Site[] }) {
   const [name, setName] = useState("");
   const [subdomain, setSubdomain] = useState("");
   const [mode, setMode] = useState<SiteMode>("BUILDER");
+  const [themePresetId, setThemePresetId] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -24,7 +26,7 @@ export function SiteList({ initialSites }: { initialSites: Site[] }) {
     const res = await fetch("/api/sites", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, subdomain, mode }),
+      body: JSON.stringify({ name, subdomain, mode, themePresetId }),
     });
 
     setLoading(false);
@@ -74,9 +76,43 @@ export function SiteList({ initialSites }: { initialSites: Site[] }) {
             <option value="AI_CHAT">AI chat app</option>
           </select>
         </div>
+        <div>
+          <label className="chrome-label">Theme</label>
+          <select
+            value={themePresetId}
+            onChange={(e) => setThemePresetId(e.target.value)}
+            className="chrome-input"
+            title={THEME_PRESETS.find((p) => p.id === themePresetId)?.description ?? "Start from the plain default tokens."}
+          >
+            <option value="">Default tokens</option>
+            {THEME_PRESETS.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </div>
         <button type="submit" disabled={loading} className="chrome-btn chrome-btn-primary">
           {loading ? "Creating…" : "Create site"}
         </button>
+        {themePresetId && (
+          <div className="flex w-full items-center gap-2">
+            {(() => {
+              const colors = THEME_PRESETS.find((p) => p.id === themePresetId)!.tokens.colors;
+              return ["background", "text", "primary", "secondary"].map((key) => (
+                <span
+                  key={key}
+                  title={`${key}: ${colors[key]}`}
+                  className="h-5 w-5 rounded-full border border-[var(--border-strong)]"
+                  style={{ background: colors[key] }}
+                />
+              ));
+            })()}
+            <span className="text-xs text-[var(--text-muted)]">
+              {THEME_PRESETS.find((p) => p.id === themePresetId)!.description}
+            </span>
+          </div>
+        )}
         {error && <p className="w-full text-sm text-[var(--danger)]">{error}</p>}
       </form>
 

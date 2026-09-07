@@ -4,7 +4,7 @@ None of this is in the MVP. Documented up front so the data model and
 renderer (data-model.md, renderer.md) leave room for it — e.g. Page/Site
 already need a home for meta fields and a script-injection point.
 
-## SEO (Search Engine Optimization) `[ ]`
+## SEO (Search Engine Optimization) `[x]`
 
 - Per-page fields: meta title, meta description, canonical URL, OG
   title/description/image, Twitter card type, robots directives
@@ -19,7 +19,7 @@ already need a home for meta fields and a script-injection point.
   ISR/caching (renderer.md) and image optimization (media.md) rather than
   a separate feature.
 
-## GEO (Generative Engine Optimization) `[ ]`
+## GEO (Generative Engine Optimization) `[x]`
 
 Newer than classic SEO: optimizing so AI answer engines (ChatGPT, Perplexity,
 Google AI Overviews, etc.) can correctly parse, cite, and summarize the
@@ -36,16 +36,17 @@ site's content.
   ClaudeBot, etc.) as a robots.txt setting the site owner can toggle,
   rather than a blanket allow/deny.
 
-## Social Media `[ ]`
+## Social Media — partly built
 
-- Per-page Open Graph / Twitter Card meta (shared plumbing with SEO above).
-- Social icon/links block (already listed in blocks-and-theming.md).
+- [x] Per-page Open Graph / Twitter Card meta (shared plumbing with SEO
+  above, see `lib/seo.ts`).
+- [ ] Social icon/links block (already listed in blocks-and-theming.md).
 - Optional: social feed embed blocks (Instagram/X feed embeds) — treated as
   third-party embed blocks, not bespoke API integrations, to avoid needing
   to manage OAuth against every social platform.
 - Share buttons block for published pages.
 
-## Newsletter `[ ]`
+## Newsletter `[x]`
 
 - A "Newsletter signup" block (email input + submit) that posts to a
   configurable provider — start with a small set of adapters (e.g.
@@ -57,7 +58,7 @@ site's content.
 - Submissions optionally also logged locally via `FormSubmission`
   (data-model.md) as a fallback/backup even when a provider is configured.
 
-## Cookie Banner `[ ]`
+## Cookie Banner `[x]`
 
 - A site-level "Privacy/Cookie" setting: banner enabled, categories
   (necessary/analytics/marketing), and policy link.
@@ -69,7 +70,7 @@ site's content.
   feature; ship with sane defaults but do not claim legal compliance
   on the user's behalf without them configuring it.
 
-## Chatbots `[ ]`
+## Chatbots `[x]`
 
 - A generic "embed script" mechanism at the site level (paste a snippet /
   select a provider like Intercom, Crisp, Tawk.to) rather than building a

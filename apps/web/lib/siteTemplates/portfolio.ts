@@ -164,9 +164,9 @@ export function portfolioHomeTemplate(): PageContent {
         { columns: "3" },
         { gap: "20px", animation: "slide-up" },
         [
-          mk("imageOverlay", { src: "https://placehold.co/700x900?text=Project+one", alt: "", caption: "Replace with project name 1" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 5", borderRadius: "4px" }),
-          mk("imageOverlay", { src: "https://placehold.co/700x900?text=Project+two", alt: "", caption: "Replace with project name 2" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 5", borderRadius: "4px" }),
-          mk("imageOverlay", { src: "https://placehold.co/700x900?text=Project+three", alt: "", caption: "Replace with project name 3" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 5", borderRadius: "4px" }),
+          mk("imageOverlay", { src: "https://placehold.co/700x900?text=Project+one", alt: "Replace with a description of this image", caption: "Replace with project name 1" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 5", borderRadius: "4px" }),
+          mk("imageOverlay", { src: "https://placehold.co/700x900?text=Project+two", alt: "Replace with a description of this image", caption: "Replace with project name 2" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 5", borderRadius: "4px" }),
+          mk("imageOverlay", { src: "https://placehold.co/700x900?text=Project+three", alt: "Replace with a description of this image", caption: "Replace with project name 3" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 5", borderRadius: "4px" }),
         ],
       ),
     ],
@@ -273,7 +273,7 @@ export function portfolioAboutTemplate(): PageContent {
         { columns: "2" },
         { gap: "56px", align: "center" },
         [
-          mk("imageOverlay", { src: "https://placehold.co/800x1000?text=Portrait", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 5", borderRadius: "4px", animation: "slide-right" }),
+          mk("imageOverlay", { src: "https://placehold.co/800x1000?text=Portrait", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 5", borderRadius: "4px", animation: "slide-right" }),
           mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "16px", animation: "slide-left" }, [
             body("Replace with a longer paragraph about your background — where you trained, what you've shipped, and what kind of work you're looking for next.", { size: "17px", color: PORTFOLIO.textFaint }),
             body("Replace with a second paragraph about how you work with clients — process, communication style, timelines.", { size: "17px", color: PORTFOLIO.textFaint }),

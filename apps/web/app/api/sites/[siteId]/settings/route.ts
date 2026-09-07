@@ -10,6 +10,7 @@ import {
   defaultAnalyticsSettings,
   defaultAiChatSettings,
   redactAiChatSettings,
+  sanitizeAnalyticsSettings,
   type AiChatSettings,
 } from "@/lib/siteSettings";
 import { encryptSecret } from "@/lib/secrets";
@@ -57,6 +58,14 @@ export async function PUT(req: Request, { params }: { params: Promise<{ siteId: 
     );
   }
 
+  // Everything else in this handler is stored as the opaque JSON blob it
+  // arrived as, which is fine for settings that only ever come back out as
+  // escaped text. `analytics` is the exception: its fields end up inside a
+  // <script> body and a <script src> on every published page, so it's
+  // validated on the way in rather than trusted. See
+  // sanitizeAnalyticsSettings.
+  const analyticsToStore = analytics !== undefined ? sanitizeAnalyticsSettings(analytics) : undefined;
+
   let aiChatToStore: Prisma.InputJsonValue | undefined;
   if (aiChat !== undefined) {
     const existing = await db.siteSettings.findUnique({ where: { siteId } });
@@ -79,7 +88,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ siteId: 
       newsletter: (newsletter ?? defaultNewsletterSettings()) as Prisma.InputJsonValue,
       aiCrawlers: (aiCrawlers ?? defaultAiCrawlerSettings()) as Prisma.InputJsonValue,
       chatbotEmbed: (chatbotEmbed ?? defaultChatbotEmbedSettings()) as Prisma.InputJsonValue,
-      analytics: (analytics ?? defaultAnalyticsSettings()) as Prisma.InputJsonValue,
+      analytics: (analyticsToStore ?? defaultAnalyticsSettings()) as Prisma.InputJsonValue,
       aiChat: (aiChatToStore ?? (defaultAiChatSettings() as unknown as Prisma.InputJsonValue)),
     },
     update: {
@@ -87,7 +96,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ siteId: 
       ...(newsletter !== undefined ? { newsletter: newsletter as Prisma.InputJsonValue } : {}),
       ...(aiCrawlers !== undefined ? { aiCrawlers: aiCrawlers as Prisma.InputJsonValue } : {}),
       ...(chatbotEmbed !== undefined ? { chatbotEmbed: chatbotEmbed as Prisma.InputJsonValue } : {}),
-      ...(analytics !== undefined ? { analytics: analytics as Prisma.InputJsonValue } : {}),
+      ...(analyticsToStore !== undefined ? { analytics: analyticsToStore as Prisma.InputJsonValue } : {}),
       ...(aiChatToStore !== undefined ? { aiChat: aiChatToStore } : {}),
     },
   });

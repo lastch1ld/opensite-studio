@@ -102,7 +102,7 @@ function modernRoomCard(r: RoomRateSeed): Block {
     { layout: "stack" },
     { background: "#ffffff", padding: "0", borderRadius: "12px", gap: "0", align: "center", borderColor: MODERN.border, animation: "slide-up" },
     [
-      mk("imageOverlay", { src: "https://placehold.co/600x450", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "12px 12px 0 0", imageTreatment: "warm" }),
+      mk("imageOverlay", { src: "https://placehold.co/600x450", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "12px 12px 0 0", imageTreatment: "warm" }),
       mk("section", { layout: "stack" }, { background: "transparent", padding: "20px", gap: "6px", align: "flex-start" }, [
         mk("section", { layout: "row" }, { background: "transparent", padding: "0", justify: "space-between", align: "center" }, [
           heading(r.name, { size: "18px", color: MODERN.text, font: MODERN.font }),
@@ -120,7 +120,7 @@ function modernFeatureCard(title: string, copy: string, imgLabel: string): Block
     { layout: "stack" },
     { background: "#ffffff", padding: "0", borderRadius: "12px", gap: "0", align: "center", animation: "slide-up" },
     [
-      mk("imageOverlay", { src: `https://placehold.co/700x500?text=${encodeURIComponent(imgLabel)}`, alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "12px 12px 0 0", imageTreatment: "warm" }),
+      mk("imageOverlay", { src: `https://placehold.co/700x500?text=${encodeURIComponent(imgLabel)}`, alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "12px 12px 0 0", imageTreatment: "warm" }),
       mk("section", { layout: "stack" }, { background: "transparent", padding: "22px", gap: "8px", align: "flex-start" }, [
         heading(title, { size: "18px", color: MODERN.text, font: MODERN.font }),
         body(copy, { size: "14px", color: MODERN.textFaint }),

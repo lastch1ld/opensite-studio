@@ -184,7 +184,7 @@ function agencyHomeHero(): Block {
   ]);
   const visual = mk(
     "imageOverlay",
-    { src: HERO_MESH_DATA_URI, alt: "", caption: "Featured — Replace with project name" },
+    { src: HERO_MESH_DATA_URI, alt: "Replace with a description of this image", caption: "Featured — Replace with project name" },
     { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 5", borderRadius: "18px", animation: "scale-in" },
   );
   // Not `bleed()` — its outer band has no way to take a minHeight/justify
@@ -216,7 +216,7 @@ export function agencyHomeTemplate(): PageContent {
   // rows with different counts + aspect ratios rather than a single grid
   // with mixed spans (not something the block system exposes).
   const tile = (label: string, tag: string, ratio: string): Block =>
-    mk("imageOverlay", { src: `https://placehold.co/900x700?text=${encodeURIComponent(label)}`, alt: "", caption: `${label} — ${tag}` }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: ratio, borderRadius: "14px", animation: "fade-in" });
+    mk("imageOverlay", { src: `https://placehold.co/900x700?text=${encodeURIComponent(label)}`, alt: "Replace with a description of this image", caption: `${label} — ${tag}` }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: ratio, borderRadius: "14px", animation: "fade-in" });
   const featuredWork = bleed(
     "#ffffff",
     "40px 40px 100px",
@@ -348,9 +348,9 @@ export function agencyWorkTemplate(): PageContent {
         // codebase actually uses for N distinct static grid items
         // (see bar.ts/agency's own featuredWork tiles above).
         mk("columns", { columns: "3" }, { gap: "24px", animation: "fade-in" }, [
-          mk("imageOverlay", { src: "https://placehold.co/700x525", alt: "", caption: "Replace with project name 6" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 3", borderRadius: "12px" }),
-          mk("imageOverlay", { src: "https://placehold.co/700x525", alt: "", caption: "Replace with project name 7" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 3", borderRadius: "12px" }),
-          mk("imageOverlay", { src: "https://placehold.co/700x525", alt: "", caption: "Replace with project name 8" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 3", borderRadius: "12px" }),
+          mk("imageOverlay", { src: "https://placehold.co/700x525", alt: "Replace with a description of this image", caption: "Replace with project name 6" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 3", borderRadius: "12px" }),
+          mk("imageOverlay", { src: "https://placehold.co/700x525", alt: "Replace with a description of this image", caption: "Replace with project name 7" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 3", borderRadius: "12px" }),
+          mk("imageOverlay", { src: "https://placehold.co/700x525", alt: "Replace with a description of this image", caption: "Replace with project name 8" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 3", borderRadius: "12px" }),
         ]),
       ]),
     ],
@@ -374,7 +374,7 @@ export function agencyServicesTemplate(): PageContent {
       { gap: "48px", align: "center" },
       reverse
         ? [
-            mk("imageOverlay", { src: "https://placehold.co/700x500", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "16px", animation: "slide-right" }),
+            mk("imageOverlay", { src: "https://placehold.co/700x500", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "16px", animation: "slide-right" }),
             mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "12px", animation: "slide-left" }, [
               body(eyebrow, { size: "12px", weight: "700", color: AGENCY.accent }),
               heading(title, { size: "26px", color: AGENCY.text, font: AGENCY.font }),
@@ -387,7 +387,7 @@ export function agencyServicesTemplate(): PageContent {
               heading(title, { size: "26px", color: AGENCY.text, font: AGENCY.font }),
               body(copy, { size: "16px", color: AGENCY.textFaint }),
             ]),
-            mk("imageOverlay", { src: "https://placehold.co/700x500", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "16px", animation: "slide-left" }),
+            mk("imageOverlay", { src: "https://placehold.co/700x500", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 3", borderRadius: "16px", animation: "slide-left" }),
           ],
     );
 

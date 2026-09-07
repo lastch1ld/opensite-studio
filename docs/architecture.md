@@ -23,7 +23,9 @@ opensite-studio/
 │       ├── components/
 │       │   ├── editor/             # canvas, toolbar, layers panel, inspector
 │       │   ├── blocks/             # block registry + renderers (see blocks-and-theming.md)
-│       │   └── ui/                 # shared design-system primitives for the app chrome itself
+│       │   └── shared/            # cross-surface components (the chrome's own
+│       │                          # visual vocabulary is the .chrome-* layer in
+│       │                          # app/globals.css, not a components/ui folder)
 │       ├── lib/
 │       │   ├── auth.ts             # NextAuth config
 │       │   ├── db.ts               # Prisma client

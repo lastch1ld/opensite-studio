@@ -1,6 +1,6 @@
 # Auth
 
-## MVP `[x]`
+## Built
 
 - NextAuth with **Credentials provider** (email + password, bcrypt-hashed)
   plus Prisma adapter for session storage. OAuth providers (Google/GitHub)

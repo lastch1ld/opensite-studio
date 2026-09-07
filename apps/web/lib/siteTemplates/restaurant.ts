@@ -2,7 +2,7 @@ import type { Block, PageContent } from "@/components/blocks/types";
 import { randomUUID } from "crypto";
 import { mk, heading, body, cta, bleed, badge } from "./_shared";
 
-// Restaurant genre — docs/site-templates-plan.md Phase D.
+// Restaurant genre — docs/site-templates-plan.md.
 // Palette: deep forest green (dark band + hero, the "vintage seal" register
 // from docs/reference-sites-research.md's Banh Mi & You entry) + warm cream
 // paper + a terracotta accent for prices/CTAs, with a small gold accent
@@ -173,7 +173,9 @@ function menuItemCard(name: string, price: string, desc: string, tag?: string): 
     body(price, { size: "16px", weight: "700", color: RESTAURANT.terracotta, align: "right", font: RESTAURANT.fontBody }),
   ]);
   const children: Block[] = [header, body(desc, { size: "14px", color: RESTAURANT.textFaint, font: RESTAURANT.fontBody })];
-  if (tag) children.push(pill(tag, { background: RESTAURANT.gold, color: "#ffffff" }));
+  // Ink on gold, not white on gold: white only reaches 2.6:1 against this
+  // gold and the tag is small type (tests/siteTemplates.test.ts).
+  if (tag) children.push(pill(tag, { background: RESTAURANT.gold, color: RESTAURANT.text }));
   return mk("section", { layout: "stack" }, { background: "#ffffff", padding: "20px", borderRadius: "14px", gap: "10px", align: "flex-start", borderColor: RESTAURANT.border, animation: "fade-in" }, children);
 }
 
@@ -181,7 +183,7 @@ function menuItemCard(name: string, price: string, desc: string, tag?: string): 
 // collectionId bound, BlockRenderer.tsx's "list" branch still renders the
 // child subtree once as a responsive CSS grid (matched items empty ->
 // one static pass over `children`) — exactly the "menu-as-list-block, no
-// booking/ordering system" shape docs/site-templates-plan.md's Phase D
+// booking/ordering system" shape docs/site-templates-plan.md
 // calls for, reusing the existing block instead of a bespoke component.
 function menuCategory(title: string, items: Block[], background: string = RESTAURANT.cream): Block {
   return bleed(
@@ -215,7 +217,7 @@ export function restaurantHomeTemplate(): PageContent {
       cta("Reserve a table", { background: "transparent", color: RESTAURANT.cream, variant: "secondary" }),
     ]),
   ]);
-  const heroImage = mk("imageOverlay", { src: "https://placehold.co/700x800", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 5", borderRadius: "20px", animation: "slide-left" });
+  const heroImage = mk("imageOverlay", { src: "https://placehold.co/700x800", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 5", borderRadius: "20px", animation: "slide-left" });
   // Plain solid forest — `bleed()`/`section`'s `background` style key maps
   // to CSS `background-color`, which cannot hold a gradient (a prior
   // pass's gradient here never actually rendered, caught on
@@ -233,7 +235,7 @@ export function restaurantHomeTemplate(): PageContent {
   const waveDivider = mk(
     "embed",
     { html: `<style>body{margin:0}</style><svg viewBox="0 0 1440 80" preserveAspectRatio="none" style="width:100%;height:70px;display:block;"><path d="M0,0 L0,38 C240,74 480,8 720,34 C960,60 1200,14 1440,40 L1440,0 Z" fill="${RESTAURANT.forest}"/></svg>` },
-    { height: "70px" },
+    { height: "70px", animation: "fade-in" },
   );
 
   const dishCard = (imageAspect: string, titleSize = "18px"): Block =>
@@ -242,7 +244,7 @@ export function restaurantHomeTemplate(): PageContent {
       { layout: "stack" },
       { background: "#ffffff", padding: "0", borderRadius: "16px", gap: "0", align: "flex-start", borderColor: RESTAURANT.border, animation: "slide-up" },
       [
-        mk("imageOverlay", { src: "https://placehold.co/500x400", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: imageAspect, borderRadius: "16px 16px 0 0" }),
+        mk("imageOverlay", { src: "https://placehold.co/500x400", alt: "Replace with a description of this image", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: imageAspect, borderRadius: "16px 16px 0 0" }),
         mk("section", { layout: "stack" }, { background: "transparent", padding: "20px", gap: "6px", align: "flex-start" }, [
           heading("Replace with a dish name", { size: titleSize, color: RESTAURANT.text, font: RESTAURANT.fontDisplay }),
           body("Replace with a short, honest description.", { size: "14px", color: RESTAURANT.textFaint, font: RESTAURANT.fontBody }),
@@ -279,16 +281,17 @@ export function restaurantHomeTemplate(): PageContent {
     [restaurantReview("Replace with a real guest review — one honest sentence about the food or the room.", "Replace with a name, or “Google review”")],
     "700px",
     "0",
+    { animation: "fade-in" },
   );
 
-  const hoursLocation = bleed(RESTAURANT.forest, "72px 40px", [restaurantHoursLocation()], "800px", "0");
+  const hoursLocation = bleed(RESTAURANT.forest, "72px 40px", [restaurantHoursLocation()], "800px", "0", { animation: "fade-in" });
 
   const finalCta = bleed(
     RESTAURANT.terracotta,
     "72px 40px",
     [
       heading("Replace with a closing call to action", { size: "32px", color: "#ffffff", align: "center", font: RESTAURANT.fontDisplay }),
-      body("Replace with a supporting sentence about walk-ins or reservations.", { size: "16px", color: "#FCE4D8", align: "center", font: RESTAURANT.fontBody }),
+      body("Replace with a supporting sentence about walk-ins or reservations.", { size: "16px", color: "#ffffff", align: "center", font: RESTAURANT.fontBody }),
       cta("Reserve a table", { background: "#ffffff", color: RESTAURANT.terracotta }),
     ],
     "620px",
@@ -332,7 +335,7 @@ export function restaurantMenuTemplate(): PageContent {
     menuItemCard("Replace with a drink name", "$0", "Replace with a short, honest description."),
   ]);
 
-  const note = bleed(RESTAURANT.paper, "40px 40px", [body("Replace with a note about allergens, substitutions, or a chef's-table option.", { size: "14px", color: RESTAURANT.textFaint, align: "center", font: RESTAURANT.fontBody })], "700px", "0");
+  const note = bleed(RESTAURANT.paper, "40px 40px", [body("Replace with a note about allergens, substitutions, or a chef's-table option.", { size: "14px", color: RESTAURANT.textFaint, align: "center", font: RESTAURANT.fontBody })], "700px", "0", { animation: "fade-in" });
 
   return {
     version: 1,
@@ -349,7 +352,7 @@ export function restaurantAboutTemplate(): PageContent {
     "#ffffff",
     "80px 40px",
     [
-      heading("Replace with your mission statement", { size: "28px", color: RESTAURANT.text, align: "center", font: RESTAURANT.fontDisplay }),
+      heading("Replace with your mission statement", { size: "28px", color: RESTAURANT.text, align: "center", font: RESTAURANT.fontDisplay, animation: "fade-in" }),
       body("Replace with a longer paragraph about how the kitchen sources, cooks, and serves.", { size: "17px", color: RESTAURANT.textFaint, align: "center", font: RESTAURANT.fontBody }),
     ],
     "700px",
@@ -415,7 +418,7 @@ export function restaurantContactTemplate(): PageContent {
       mk(
         "columns",
         { columns: "2" },
-        { gap: "56px", align: "flex-start" },
+        { gap: "56px", align: "flex-start", animation: "fade-in" },
         [
           mk(
             "form",

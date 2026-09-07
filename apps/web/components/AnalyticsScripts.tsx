@@ -42,7 +42,11 @@ export function AnalyticsScripts({
         <script async src={`https://www.googletagmanager.com/gtag/js?id=${id}`} />
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', '${id}');`,
+            // Belt and braces behind lib/siteSettings.ts's
+            // sanitizeAnalyticsSettings: JSON.stringify emits the id as a
+            // quoted, escaped JS string literal, so a value that somehow got
+            // past validation still can't close the string and become code.
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', ${JSON.stringify(id)});`,
           }}
         />
       </>

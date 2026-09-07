@@ -1,6 +1,6 @@
 # Content Import (Sitemap Import & Content Clipboard)
 
-Not part of Phase 0/1. Two related one-time migration tools for bringing an
+Built. Two related one-time migration tools for bringing an
 existing (non-OpenSite-Studio) website into a new Site here: **sitemap
 import** creates empty Page structure from a site's URL list, and the
 **content clipboard** helps a user manually move an old page's text into new
