@@ -24,27 +24,53 @@ const AGENCY = {
   paperDim: "#EAE6DC",
   text: "#151513",
   textFaint: "#6B6862",
-  accent: "#FF4B12",
+  accent: "#DC2F2F",
   accentSoft: "#FFE4D9",
   border: "#DEDACD",
   font: "fraunces",
 } as const;
 
+// A radial-gradient-mesh SVG (crimson + deep indigo bleeding into
+// near-black) standing in for a real work-sample photo on the home
+// hero's visual column — an abstract Tier-A CSS/SVG "art" placeholder
+// (hallmark's enrichment hierarchy: prefer this over a flat gray
+// placehold.co box, never fabricate a fake stock photo). Same
+// feTurbulence-grain layering trick as NOISE_TEXTURE_DATA_URI
+// (registry.tsx) gives it a bit of tooth instead of a flat gradient.
+const HERO_MESH_DATA_URI =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='1000' viewBox='0 0 800 1000'%3E%3Cdefs%3E%3CradialGradient id='a' cx='24%25' cy='16%25' r='75%25'%3E%3Cstop offset='0%25' stop-color='%23DC2F2F'/%3E%3Cstop offset='60%25' stop-color='%23DC2F2F' stop-opacity='0'/%3E%3C/radialGradient%3E%3CradialGradient id='b' cx='85%25' cy='92%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%233B3268' stop-opacity='0.9'/%3E%3Cstop offset='55%25' stop-color='%233B3268' stop-opacity='0'/%3E%3C/radialGradient%3E%3ClinearGradient id='c' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23201414'/%3E%3Cstop offset='100%25' stop-color='%230A0808'/%3E%3C/linearGradient%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23c)'/%3E%3Crect width='100%25' height='100%25' fill='url(%23a)'/%3E%3Crect width='100%25' height='100%25' fill='url(%23b)'/%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E";
+
+// A floating sticky pill (not the flat full-width bar every other genre
+// uses) — `sticky:"true"` + a capped `maxWidth` + full `borderRadius`
+// on a `bleed()` band is enough to read as the mockup's glass pill nav
+// even without a `backdrop-filter` style field (not something `section`
+// exposes; a solid near-opaque paper fill reads close enough).
 function agencyNav(active: string): Block {
-  const links = ["Home", "Work", "Services", "About", "Contact"];
-  return mk(
-    "section",
-    { layout: "row" },
-    { background: AGENCY.paper, padding: "20px 40px", justify: "space-between", align: "center", borderRadius: "0" },
+  const links = ["Work", "Services", "About"];
+  return bleed(
+    "transparent",
+    "16px 24px 0",
     [
-      body("Studio name", { size: "16px", weight: "700", color: AGENCY.text, font: AGENCY.font }),
       mk(
         "section",
         { layout: "row" },
-        { background: "transparent", padding: "0", gap: "28px", align: "center" },
-        links.map((l) => body(l, { size: "14px", weight: l === active ? "700" : "400", color: l === active ? AGENCY.accent : AGENCY.textFaint })),
+        { background: "#ffffff", padding: "12px 12px 12px 22px", justify: "space-between", align: "center", borderRadius: "999px", sticky: "true", stickyOffset: "16px", boxShadow: "elevated" },
+        [
+          body("Studio name", { size: "16px", weight: "700", color: AGENCY.text, font: AGENCY.font }),
+          mk(
+            "section",
+            { layout: "row" },
+            { background: "transparent", padding: "0", gap: "24px", align: "center" },
+            [
+              ...links.map((l) => body(l, { size: "14px", weight: l === active ? "700" : "400", color: l === active ? AGENCY.text : AGENCY.textFaint })),
+              mk("button", { label: "Start a project", href: "#", variant: "primary" }, { padding: "10px 18px", borderRadius: "999px", fontSize: "13px", fontWeight: "600", background: AGENCY.ink, color: "#ffffff" }),
+            ],
+          ),
+        ],
       ),
     ],
+    "1100px",
+    "0",
   );
 }
 
@@ -140,55 +166,79 @@ function agencyWorkSwitcher(items: WorkItemSeed[]): Block {
   );
 }
 
-export function agencyHomeTemplate(): PageContent {
-  // Real `hero` block with a real backgroundImage (a work-sample photo) —
-  // not a hand-rolled bleed() with a CSS gradient. `section`'s
-  // `background` style key maps to CSS `background-color`, which cannot
-  // hold a gradient or url() — a prior pass's diagonal-wedge gradient
-  // through `bleed()` never actually rendered, caught on re-inspection.
-  // `hero`'s own `backgroundImage` prop composites the photo with a
-  // built-in dark scrim for legible text — exactly what a portfolio-led
-  // studio's hero should show first. No eyebrow label (impeccable
-  // craft-floor: the heading carries the statement).
-  const hero = mk(
-    "hero",
-    { backgroundImage: "https://placehold.co/1800x1200/0A0A0A/FF4B12?text=" },
-    { background: AGENCY.ink, padding: "120px 40px 100px", contentWidth: "760px", align: "center", gap: "22px", backgroundTexture: "grain" },
-    [
-      badge("Available for new projects", { tone: "success" }),
-      heading("Replace with a bold statement of what this studio makes.", { size: "64px", color: "#F5F3EE", align: "center", level: "h1", font: AGENCY.font, animation: "slide-up" }),
-      body("Replace with a supporting sentence naming who you work with and what kind of work you make for them.", { size: "18px", color: AGENCY.inkMuted, align: "center" }),
-      mk("section", { layout: "row" }, { background: "transparent", padding: "0", gap: "12px", justify: "center", animation: "fade-in" }, [
-        cta("See our work", { background: AGENCY.accent, color: "#ffffff" }),
-        cta("Start a project", { background: "transparent", color: "#F5F3EE", variant: "secondary" }),
-      ]),
-    ],
+// Split hero — statement left, the crimson/indigo gradient-mesh visual
+// right — replacing the old centered-hero-on-solid-ink shape (which read
+// as a recolor of every other genre's centered hero). Work-forward per
+// the brief's own priority ("browse work first"): a real featured-work
+// tag sits directly on the visual instead of another headline repeating
+// the same "portfolio-led" idea already carried by the copy.
+function agencyHomeHero(): Block {
+  const copy = mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "20px", align: "flex-start" }, [
+    badge("Available for new projects", { tone: "success" }),
+    heading("We build brands people remember.", { size: "52px", color: AGENCY.text, level: "h1", font: AGENCY.font, animation: "slide-up" }),
+    body("Replace with a supporting sentence naming who you work with and what kind of work you make for them.", { size: "17px", color: AGENCY.textFaint }),
+    mk("section", { layout: "row" }, { background: "transparent", padding: "0", gap: "12px", animation: "fade-in" }, [
+      cta("See our work", { background: AGENCY.ink, color: "#ffffff" }),
+      cta("Start a project", { background: "transparent", color: AGENCY.text, variant: "secondary" }),
+    ]),
+  ]);
+  const visual = mk(
+    "imageOverlay",
+    { src: HERO_MESH_DATA_URI, alt: "", caption: "Featured — Replace with project name" },
+    { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 5", borderRadius: "18px", animation: "scale-in" },
   );
+  // Not `bleed()` — its outer band has no way to take a minHeight/justify
+  // of its own (those only apply to the inner maxWidth column via
+  // `extra`), and filling the viewport + vertically centering the split
+  // needs both set on the *outer* band. `calc(100vh - 88px)` backs out
+  // the sticky pill nav's own footprint (16px top gap + ~72px pill)
+  // rather than fighting it for space.
+  return mk(
+    "section",
+    { layout: "stack" },
+    { background: AGENCY.paper, padding: "40px 40px 64px", minHeight: "calc(100vh - 88px)", justify: "center", align: "center", gap: "0", backgroundTexture: "dots" },
+    [mk("section", { layout: "stack" }, { background: "transparent", padding: "0", maxWidth: "1180px", gap: "0" }, [mk("columns", { columns: "2" }, { gap: "40px", align: "center" }, [copy, visual])])],
+  );
+}
 
-  const logos = bleed(AGENCY.paper, "40px 40px", [body("Trusted by teams at", { size: "12px", weight: "700", color: AGENCY.textFaint, align: "center" }), agencyLogoMarquee()], "1100px", "20px");
+export function agencyHomeTemplate(): PageContent {
+  const hero = agencyHomeHero();
 
+  // Pure white, not AGENCY.paper — the hero band right above this is
+  // *also* AGENCY.paper, and two adjacent sections in the exact same
+  // fill read as one undifferentiated block with no boundary between
+  // them ("the hero background bleeds into the next section").
+  const logos = mk("section", { layout: "stack" }, { padding: "20px 40px", background: "#ffffff", align: "center" }, [agencyLogoMarquee()]);
+
+  // Irregular tile rhythm (wide / two-up / wide) instead of a uniform
+  // N-equal-column grid — `columns` only ever emits equal `1fr` tracks,
+  // so the asymmetry comes from grouping tiles into separate `columns`
+  // rows with different counts + aspect ratios rather than a single grid
+  // with mixed spans (not something the block system exposes).
+  const tile = (label: string, tag: string, ratio: string): Block =>
+    mk("imageOverlay", { src: `https://placehold.co/900x700?text=${encodeURIComponent(label)}`, alt: "", caption: `${label} — ${tag}` }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: ratio, borderRadius: "14px", animation: "fade-in" });
   const featuredWork = bleed(
-    AGENCY.paper,
-    "96px 40px",
+    "#ffffff",
+    "40px 40px 100px",
     [
-      heading("Selected work", { size: "34px", color: AGENCY.text, align: "center", font: AGENCY.font }),
-      body("Replace with one sentence framing the range of work shown below.", { size: "16px", color: AGENCY.textFaint, align: "center" }),
-      agencyWorkSwitcher([
-        { name: "Replace with project name 1", blurb: "Replace with a one-line description of the work and outcome." },
-        { name: "Replace with project name 2", blurb: "Replace with a one-line description of the work and outcome." },
-        { name: "Replace with project name 3", blurb: "Replace with a one-line description of the work and outcome." },
+      mk("section", { layout: "row" }, { background: "transparent", padding: "0", justify: "space-between", align: "flex-end" }, [
+        heading("Selected work", { size: "32px", color: AGENCY.text, font: AGENCY.font }),
+        body("Replace with one sentence framing the range of work shown below.", { size: "15px", color: AGENCY.textFaint }),
       ]),
+      mk("columns", { columns: "1" }, { gap: "20px" }, [tile("Replace with project one", "Brand, Web", "16 / 9")]),
+      mk("columns", { columns: "2" }, { gap: "20px" }, [tile("Replace with project two", "Campaign", "3 / 4"), tile("Replace with project three", "Identity", "3 / 4")]),
+      mk("columns", { columns: "1" }, { gap: "20px" }, [tile("Replace with project four", "Product, Web", "16 / 9")]),
       cta("View all work", { background: AGENCY.ink, color: "#ffffff" }),
     ],
-    "1000px",
-    "24px",
+    "1180px",
+    "20px",
   );
 
   const serviceCard = (title: string, copy: string, featured = false): Block =>
     mk(
       "section",
       { layout: "stack" },
-      { background: featured ? AGENCY.paper : "#ffffff", padding: featured ? "40px" : "32px", borderRadius: "16px", gap: "12px", align: "flex-start", borderColor: AGENCY.border, animation: "slide-up" },
+      { background: featured ? "#ffffff" : AGENCY.paper, padding: featured ? "40px" : "32px", borderRadius: "16px", gap: "12px", align: "flex-start", borderColor: AGENCY.border, animation: "slide-up" },
       [heading(title, { size: featured ? "26px" : "19px", color: AGENCY.text, font: AGENCY.font }), body(copy, { size: featured ? "16px" : "15px", color: AGENCY.textFaint })],
     );
 
@@ -198,7 +248,7 @@ export function agencyHomeTemplate(): PageContent {
   // own "distinct devices per genre" rule extends to layout, not only
   // the uniform 3-equal-column grid this codebase otherwise defaults to.
   const services = bleed(
-    "#ffffff",
+    AGENCY.paper,
     "96px 40px",
     [
       heading("What we do", { size: "34px", color: AGENCY.text, align: "center", font: AGENCY.font }),
@@ -287,7 +337,17 @@ export function agencyWorkTemplate(): PageContent {
       mk("section", { layout: "stack" }, { background: "transparent", padding: "0", maxWidth: "1200px", align: "center", gap: "16px" }, [
         heading("More projects", { size: "30px", color: AGENCY.text, align: "center", font: AGENCY.font }),
         body("Replace with a sentence about how projects are organized (by discipline, industry, or year).", { size: "15px", color: AGENCY.textFaint, align: "center" }),
-        mk("list", { collectionId: "", columns: "3" }, { display: "grid", gap: "24px", animation: "fade-in" }, [
+        // `columns`, not `list` — `list` (BlockRenderer.tsx's special
+        // case) repeats a single child template once per bound
+        // CollectionItem; with no collection (`collectionId: ""`) it
+        // still only ever does exactly one pass, rendering all three
+        // imageOverlay children together inside that one pass's single
+        // grid cell instead of one image per column — found live as this
+        // grid stacking into one narrow column of three tall tiles
+        // instead of three side by side. `columns` is the block this
+        // codebase actually uses for N distinct static grid items
+        // (see bar.ts/agency's own featuredWork tiles above).
+        mk("columns", { columns: "3" }, { gap: "24px", animation: "fade-in" }, [
           mk("imageOverlay", { src: "https://placehold.co/700x525", alt: "", caption: "Replace with project name 6" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 3", borderRadius: "12px" }),
           mk("imageOverlay", { src: "https://placehold.co/700x525", alt: "", caption: "Replace with project name 7" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 3", borderRadius: "12px" }),
           mk("imageOverlay", { src: "https://placehold.co/700x525", alt: "", caption: "Replace with project name 8" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 3", borderRadius: "12px" }),

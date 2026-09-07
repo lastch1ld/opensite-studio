@@ -58,9 +58,31 @@ export const SITE_TEMPLATES: SiteTemplateOption[] = [
     ],
   },
   {
-    id: "hotel",
-    name: "Hotel",
-    description: "Home, Rooms, Amenities, Contact & Book — restrained stone/ice palette, Fraunces headings.",
+    id: "hotel-modern",
+    name: "Hotel — Modern",
+    description: "Home, Rooms, Amenities, Contact & Book — near-black navy + steel-blue, Plus Jakarta Sans headings.",
+    pages: [
+      { slug: "home", title: "Home", isHome: true },
+      { slug: "rooms", title: "Rooms", isHome: false },
+      { slug: "amenities", title: "Amenities", isHome: false },
+      { slug: "contact", title: "Contact & Book", isHome: false },
+    ],
+  },
+  {
+    id: "hotel-boutique",
+    name: "Hotel — Boutique",
+    description: "Home, Rooms, Amenities, Contact & Book — warm parchment + olive-green + terracotta, arch motif, Instrument Serif headings.",
+    pages: [
+      { slug: "home", title: "Home", isHome: true },
+      { slug: "rooms", title: "Rooms", isHome: false },
+      { slug: "amenities", title: "Amenities", isHome: false },
+      { slug: "contact", title: "Contact & Book", isHome: false },
+    ],
+  },
+  {
+    id: "hotel-resort",
+    name: "Hotel — Resort",
+    description: "Home, Rooms, Amenities, Contact & Book — near-black ink + gold accent, Fraunces headings.",
     pages: [
       { slug: "home", title: "Home", isHome: true },
       { slug: "rooms", title: "Rooms", isHome: false },

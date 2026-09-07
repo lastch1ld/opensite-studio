@@ -625,8 +625,20 @@ export function EditorClient({
             {/* overflow-x-hidden clips full-bleed blocks (e.g. "hero"'s 100vw
                 breakout, see registry.tsx) to this simulated-breakpoint
                 frame during editing — the real published page has no such
-                frame, so it stays genuinely edge-to-edge there. */}
-            <div className="mx-auto overflow-x-hidden bg-white shadow-sm" style={{ maxWidth: `${canvasWidth}px` }}>
+                frame, so it stays genuinely edge-to-edge there.
+                transform: translateZ(0) is a no-op paint-wise, but it makes
+                this div a containing block for `position: fixed`
+                descendants (e.g. bar.ts's `sticky: "fixed-left"` rail),
+                aligning them with the simulated page's own (centered,
+                padded) left edge instead of escaping to the real browser
+                viewport and floating over the editor's toolbar. This div
+                has no bounded height of its own — it grows to fit the
+                full, unscrolled page — so the rail's *height* can't come
+                from `top/bottom: 0` here (that would stretch it to the
+                page's total scroll height instead of one viewport); see
+                `withSticky` in BlockRenderer.tsx, which uses an explicit
+                `height: 100vh` for exactly this reason. */}
+            <div className="mx-auto overflow-x-hidden bg-white shadow-sm" style={{ maxWidth: `${canvasWidth}px`, transform: "translateZ(0)" }}>
               {showComposedPreview ? (
                 <>
                   {templateType === "header" ? (

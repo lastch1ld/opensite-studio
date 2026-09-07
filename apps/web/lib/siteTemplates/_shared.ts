@@ -75,6 +75,26 @@ export function cta(label: string, opts: { background: string; color: string; va
 }
 
 /**
+ * A text-free atmospheric gradient (radial accent glow + grain, dark
+ * base) for a `hero` block's `backgroundImage` — placehold.co is the
+ * wrong tool for this specific slot. It always bakes large, highly
+ * visible text into the image (the dimensions by default, or whatever
+ * string `?text=` is given) — fine for a content placeholder people are
+ * meant to notice, but a hero's backgroundImage sits *behind* real
+ * headline text with only a scrim over it, so that baked-in label reads
+ * as giant overlapping garbage text competing with the actual headline
+ * (found live: a "Bar interior" hero showing literally that string in
+ * huge letters cutting across "Replace with your bar's core promise").
+ * This SVG has no text at all — just a dark vignette with one tinted
+ * glow, safe to sit under any headline color a genre's hero already uses.
+ */
+export function heroPhotoPlaceholder(accentHex: string): string {
+  const accent = accentHex.replace("#", "");
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='1800' height='1200'><defs><radialGradient id='a' cx='30%25' cy='20%25' r='75%25'><stop offset='0%25' stop-color='%23${accent}' stop-opacity='0.55'/><stop offset='60%25' stop-color='%23${accent}' stop-opacity='0'/></radialGradient><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/></filter></defs><rect width='100%25' height='100%25' fill='%230A0A0A'/><rect width='100%25' height='100%25' fill='url(%23a)'/><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/></svg>`;
+  return `data:image/svg+xml,${svg}`;
+}
+
+/**
  * Full-bleed background band wrapping a centered, width-capped content
  * column — every genre's recurring section shape. `outerExtra` reaches the
  * *outer* (background-bearing) section — e.g. `{ backgroundTexture: "grain" }`,

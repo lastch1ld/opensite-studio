@@ -1,5 +1,59 @@
 # Full site templates — scope, phases, and status
 
+## Block system design vocabulary (2026-08-26)
+
+Direct feedback after the three new hotel templates: "they look once
+again way too generic... i wanna be able to build beautiful clean
+webpages in the editor not basic generic saas pages." Root cause wasn't
+the templates' copy/palette choices — it was that `components/blocks/
+registry.tsx` only ever produced flat-fill bands, uniform equal-width
+card grids, and browser-default type spacing, so no re-skin could read
+as premium design; every genre converged on the same hero →
+equal-card-grid → flat-CTA-band shape because that was the entire
+available vocabulary. Extended the registry with four additive, opt-in
+capabilities (nothing renders differently until a template/user actually
+sets one):
+
+- **Gradient backgrounds** (`gradientFrom`/`gradientTo`/`gradientAngle`)
+  on `section` and `hero` — composed as an explicit background-image
+  layer alongside the existing texture/photo layers, not a replacement
+  of the `background` shorthand.
+- **Type refinement** (`letterSpacing`/`lineHeight`) on `heading`/`text`
+  — `heading` previously hardcoded `lineHeight: 1.15` with no override.
+- **Photo treatment** (`imageTreatment`: grayscale/warm duotone/cool
+  duotone) on `image`/`imageOverlay` — a CSS `filter` on the `<img>`,
+  makes placeholder photography read as one deliberate palette instead
+  of whatever hue each individual placehold.co box happens to be.
+- **Overlap via negative margin** (`marginTop`, negative values) on
+  `section` — a real device for a card/panel floating across the bottom
+  of a hero photo. True `position: absolute` overlap was considered and
+  rejected: every block in the editor canvas is already wrapped in its
+  own `position: relative` selection/drag-handle box (BlockRenderer.tsx/
+  DragHandleWrapper.tsx), so an absolutely-positioned child would anchor
+  to its own tight wrapper instead of the intended ancestor. Negative
+  margin has no such conflict — it works through normal document flow.
+
+Demonstrated on `hotelModern.ts`'s Home page: the "Rooms & rates" panel
+now floats over the hero photo (`marginTop: "-96px"`, `borderRadius`,
+`boxShadow: "elevated"`), room/feature photos carry the warm-duotone
+treatment, nav links and labels are tracked-out small caps
+(`letterSpacing: "0.06em"`), and the closing CTA band uses a real
+two-stop gradient instead of a flat fill. Live-verified (desktop +
+mobile, `/preview`), no console errors. **Not yet propagated** to the
+Boutique/Resort hotel templates or any other genre — natural next step,
+either on request or as part of a broader consistency pass.
+
+Deferred (higher risk, not attempted this pass): asymmetric `columns`
+spans (`gridColumn: span N` on a child) — the plumbing exists in
+principle (BlockRenderer.tsx's existing `cloneElement` prop-injection
+for the public path, `DragHandleWrapper`'s `block` prop for the editor
+path) but needs the two paths implemented and kept in sync deliberately,
+the same class of editor/public divergence bug this session already hit
+multiple times elsewhere. True absolute-position overlap has the same
+wrapper-architecture conflict noted above and would need a deliberate
+redesign of that wrapper, not a field addition.
+
+
 Source material: `docs/reference-sites-research.md`/`docs/reference-sites-plan.md`
 (the block-library work) plus a second local reference,
 `C:\Users\Tobi\Repos\tourism-wix-generator` — a separate repo with 6
@@ -36,10 +90,12 @@ the existing convention in `lib/pageTemplates.ts`.
 | Genre | Pages | Status |
 |---|---|---|
 | SaaS / tech product | Home, Features, Pricing, About, Contact | ✅ Done — `lib/siteTemplates.ts` |
-| Agency / creative services | Home, Work, Services, About, Contact | 🔶 Built, not live-verified (no dev Postgres in this pass) — `lib/siteTemplates/agency.ts` |
-| Personal portfolio | Home, Work, About, Contact | 🔶 Built, not live-verified (no dev Postgres in this pass) — `lib/siteTemplates/portfolio.ts` |
+| Agency / creative services | Home, Work, Services, About, Contact | ✅ Live-verified (editor canvas desktop+mobile, `/preview`, all 5 pages) — `lib/siteTemplates/agency.ts` |
+| Personal portfolio | Home, Work, About, Contact | ✅ Live-verified (editor canvas desktop+mobile, `/preview`, all 4 pages) — `lib/siteTemplates/portfolio.ts` |
 | Restaurant | Home, Menu, About, Contact/Reservations | 🔶 Built, not live-verified (no dev Postgres in this pass) — `lib/siteTemplates/restaurant.ts` |
-| Hotel | Home, Rooms, Amenities/Gallery, Contact/Book | 🔶 Built, not live-verified (no dev Postgres in this pass) — `lib/siteTemplates/hotel.ts` |
+| Hotel — Modern | Home, Rooms, Amenities, Contact & Book | ✅ Live-verified (`/preview`, all 4 pages) — `lib/siteTemplates/hotelModern.ts`. Near-black navy + steel-blue, Plus Jakarta Sans. Reference: Framer's "Mariven" template. |
+| Hotel — Boutique | Home, Rooms, Amenities, Contact & Book | ✅ Live-verified (`/preview`, all 4 pages) — `lib/siteTemplates/hotelBoutique.ts`. Warm parchment + olive + terracotta, arch-shaped photo motif, Instrument Serif. Reference: Framer's "Toscana" template. |
+| Hotel — Resort | Home, Rooms, Amenities, Contact & Book | ✅ Live-verified (`/preview` + mobile, all 4 pages) — `lib/siteTemplates/hotelResort.ts`. Near-black ink + gold, Fraunces. Reference: Framer's "Luxen Resort" template. |
 | Bar | Home, Menu (drinks), Events, Contact | 🔶 Built, not live-verified (no dev Postgres in this pass) — `lib/siteTemplates/bar.ts` |
 
 Restaurant/Hotel/Bar were originally one "local business/hospitality"
@@ -127,10 +183,10 @@ booking/rooms system).
 ## Todo
 
 - [x] Phase A — SaaS template (5 pages, bulletproof + animated + shipped)
-- [ ] Phase B — Agency template (5 pages code-complete, `tsc`/`build`/`eslint` clean; left unchecked — live editor/preview verification still outstanding, no dev Postgres in this pass, same bar as Phase C below)
-- [ ] Phase C — Personal portfolio template (code built and tsc/eslint/build-clean — `lib/siteTemplates/portfolio.ts` — left unchecked because no dev Postgres was available in this pass, so it hasn't cleared the "bulletproof" live-browser bar Phase A's checked box implies)
+- [x] Phase B — Agency template (5 pages, live-verified in editor canvas desktop+mobile + `/preview`; found and fixed one real bug — the Work page's "More projects" grid used `list` with no `collectionId`, which only ever does one repeat pass and rendered all 3 images inside a single stacked grid cell instead of 3 columns; swapped for `columns`)
+- [x] Phase C — Personal portfolio template (4 pages, live-verified in editor canvas desktop+mobile + `/preview`; no bugs found — clean on first pass)
 - [ ] Phase D — Restaurant template (code-complete — `lib/siteTemplates/restaurant.ts`, dispatcher + catalog wired — left unchecked: not live-verified in editor/preview, no dev Postgres in this pass)
-- [ ] Phase E — Hotel template (code-complete — `lib/siteTemplates/hotel.ts`, dispatcher + catalog wired — left unchecked: not live-verified in editor/preview, no dev Postgres in this pass)
+- [x] Phase E — Hotel template. Originally one "nordic-stone" register; **replaced with three separate hotel templates** per direct request ("go through framer for templates we can reproduce... a new beautiful cleansheet design and then 2 other separate hotel page templates") — `hotel.ts` deleted, catalog id `hotel` retired, replaced by `hotel-modern`/`hotel-boutique`/`hotel-resort` in `siteTemplateOptions.ts` + the dispatcher. Each researched directly off a live Framer hotel template (see table above) rather than recolored from this codebase's existing genres. All three live-verified, 4 pages each, `/preview` (+ mobile spot-check on Resort's densest 4-column grid). While live-verifying the original single hotel.ts before the rebuild, found and fixed one real bug now baked into all three: `imageOverlay`'s wrapper div never set an explicit `width`, relying entirely on inheriting one from a stretching flex/grid parent; a card wrapper using `align: "flex-start"` opted out of that stretch, collapsing room-rate photos to 0×0 on the actual published page. Fixed at the registry level (`width: "100%"` added alongside the existing height fallback in `registry.tsx`'s `imageOverlay`) — spot-checked Bar's hero afterward for regressions, none found.
 - [ ] Phase F — Bar template (code-complete — `lib/siteTemplates/bar.ts`, dispatcher + catalog wired — but left unchecked: not live-verified in editor/preview, no dev Postgres available in this pass)
 - [ ] Phase G — Editor-canvas background-bleed bugfix
 - [ ] Phase H — Final animation/image/quality pass across all 6 genres

@@ -60,6 +60,78 @@ const OFFSET_FIELDS: FieldSchema[] = [
   { key: "zIndex", label: "Stack order", friendlyLabel: "Bring to front / send to back", group: "style", input: "text" },
 ];
 
+// Direct response to "the templates look generic" — the block system
+// itself only ever produced flat-fill bands, uniform card grids, and
+// browser-default type spacing, so no amount of re-skinning a genre's
+// palette/copy could read as premium design; every genre converged on
+// the same hero → equal-card-grid → flat-CTA-band shape because that
+// was the entire design vocabulary available. These four field groups
+// (gradients, type refinement, image treatment, overlap-via-negative-
+// margin) target exactly that gap. Every field is additive/opt-in with
+// an unset-by-default fallback identical to prior behavior, so no
+// existing template's rendered output changes until a template author
+// (or user) actually reaches for one of these.
+
+// Letter-spacing/line-height on text — large display type reads
+// noticeably more "designed" with tight negative tracking, and small
+// tracked-out labels/eyebrows are a recurring device across real
+// editorial sites this project's own reference research keeps citing
+// (docs/reference-sites-research.md), but neither was reachable before:
+// `heading` hardcoded `lineHeight: 1.15` with no override, and neither
+// block exposed `letterSpacing` at all.
+const TYPE_REFINEMENT_FIELDS: FieldSchema[] = [
+  { key: "letterSpacing", label: "Letter spacing", friendlyLabel: "Character spacing (e.g. -0.02em, 0.15em)", group: "style", input: "text" },
+  { key: "lineHeight", label: "Line height", friendlyLabel: "Line spacing (e.g. 1.1, 1.6)", group: "style", input: "text" },
+];
+
+// A real CSS gradient background — distinct from `backgroundTexture`
+// (a fixed repeating pattern) and from `hero`'s photo-only `backgroundImage`
+// prop. Previously a "background" style key only ever became a flat
+// `background-color`; a two-stop `linear-gradient` is one of the
+// cheapest, highest-impact moves out of "flat SaaS-template band" into
+// something that reads intentional. Three plain color/number fields
+// (not a raw CSS string) so a non-technical editor can use it directly.
+const GRADIENT_FIELDS: FieldSchema[] = [
+  { key: "gradientFrom", label: "Gradient start", friendlyLabel: "Gradient — start color (leave blank for solid)", group: "style", input: "color", tokenCategory: "colors" },
+  { key: "gradientTo", label: "Gradient end", friendlyLabel: "Gradient — end color", group: "style", input: "color", tokenCategory: "colors" },
+  { key: "gradientAngle", label: "Gradient angle", friendlyLabel: "Gradient direction (degrees, e.g. 135)", group: "style", input: "text" },
+];
+
+function gradientBackgroundImage(style: Record<string, unknown>): string {
+  const from = str(style.gradientFrom);
+  const to = str(style.gradientTo);
+  if (!from || !to) return "";
+  const angle = str(style.gradientAngle, "135") || "135";
+  return `linear-gradient(${angle}deg, ${from}, ${to})`;
+}
+
+// A duotone-lite/grayscale photo treatment — the single biggest lever
+// real boutique/editorial sites use to make stock-shaped placeholder
+// photography read as "considered" rather than "stock stock photo":
+// desaturating (optionally with a warm/cool cast) so every image on a
+// page reads as one deliberate palette instead of whatever hue each
+// individual placeholder happens to be. Plain CSS `filter`, applied
+// directly to the `<img>` — no new asset pipeline needed.
+const IMAGE_TREATMENT_FIELD: FieldSchema = {
+  key: "imageTreatment",
+  label: "Photo treatment",
+  friendlyLabel: "Color treatment",
+  group: "style",
+  input: "select",
+  options: [
+    { label: "None (default)", value: "" },
+    { label: "Grayscale", value: "grayscale" },
+    { label: "Warm duotone", value: "warm" },
+    { label: "Cool duotone", value: "cool" },
+  ],
+};
+
+const IMAGE_TREATMENT_FILTERS: Record<string, string> = {
+  grayscale: "grayscale(1) contrast(1.05)",
+  warm: "grayscale(0.6) sepia(0.35) saturate(1.3) contrast(1.05)",
+  cool: "grayscale(0.6) saturate(1.15) hue-rotate(180deg) contrast(1.05)",
+};
+
 // Scroll-in animation (docs/ui-ux-roadmap.md: "add motion.dev ... where
 // possible as options") — one shared field appended to every built-in
 // block's inspector below, resolved generically in BlockRenderer.tsx
@@ -116,6 +188,13 @@ export const STICKY_FIELD: FieldSchema = {
   options: [
     { label: "No (default)", value: "" },
     { label: "Yes", value: "true" },
+    // A true fixed side rail (a vertical nav running the full viewport
+    // height, independent of page scroll — e.g. a bar/nightlife genre's
+    // side-rail nav) needs `position: fixed` pinned to the left edge, not
+    // `sticky`'s "pin once scrolled to" behavior. Reuses this same field
+    // (and withSticky's wrapper) rather than a second style key, since
+    // both are really "take this block out of normal flow and pin it".
+    { label: "Fixed to left edge", value: "fixed-left" },
   ],
 };
 
@@ -136,6 +215,15 @@ export const STICKY_OFFSET_FIELD: FieldSchema = {
 const NOISE_TEXTURE_DATA_URI =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E";
 
+// A second texture option alongside paper-grain — a plain repeating dot
+// pattern (radial dot, 22px tile) for a flat-color band that wants some
+// depth without the grain's photographic-paper feel. `currentColor`
+// can't reach into a data URI, so the dot is a fixed dark value at low
+// opacity — reads fine on both light and dark section backgrounds since
+// it's the opacity, not the hue, doing the work.
+const DOT_GRID_DATA_URI =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Ccircle cx='2' cy='2' r='1.4' fill='%23000000' fill-opacity='0.18'/%3E%3C/svg%3E";
+
 const BACKGROUND_TEXTURE_FIELD: FieldSchema = {
   key: "backgroundTexture",
   label: "Background texture",
@@ -145,6 +233,31 @@ const BACKGROUND_TEXTURE_FIELD: FieldSchema = {
   options: [
     { label: "None (default)", value: "" },
     { label: "Paper grain", value: "grain" },
+    { label: "Dot grid", value: "dots" },
+  ],
+};
+
+// A closed set of fixed shadow presets (not a raw box-shadow text field)
+// — matches how every other style field in this registry works (pick
+// from a small named set, not arbitrary CSS). "Elevated" is what makes a
+// `sticky` pill nav actually read as floating above the page instead of
+// just a rounded bar sitting flush against it — color alone (even a
+// contrasting fill) doesn't carry that impression on its own.
+const BOX_SHADOW_PRESETS: Record<string, string> = {
+  soft: "0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06)",
+  elevated: "0 2px 6px rgba(0,0,0,0.07), 0 16px 40px rgba(0,0,0,0.12)",
+};
+
+const BOX_SHADOW_FIELD: FieldSchema = {
+  key: "boxShadow",
+  label: "Shadow",
+  friendlyLabel: "Add elevation",
+  group: "style",
+  input: "select",
+  options: [
+    { label: "None (default)", value: "" },
+    { label: "Soft", value: "soft" },
+    { label: "Elevated (floating)", value: "elevated" },
   ],
 };
 
@@ -298,25 +411,89 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
       },
       { key: "gap", label: "Gap", friendlyLabel: "Space between items", group: "style", input: "text", tokenCategory: "spacing" },
       { key: "borderRadius", label: "Corner radius", friendlyLabel: "Rounded corners", group: "style", input: "text" },
+      // A hero band that should fill the viewport (and vertically center
+      // its content via `justify: "center"`) needs a real height to
+      // center *within* — every prior full-bleed hero just let content
+      // padding determine height, with no way to reach "fill the
+      // viewport" at all.
+      { key: "minHeight", label: "Min height", friendlyLabel: "Minimum height (e.g. 100vh)", group: "style", input: "text" },
+      // Plain explicit width — distinct from `maxWidth` (which always
+      // pairs with `margin: auto` centering, for a capped-and-centered
+      // content column). A `position: fixed` side rail wants a genuine
+      // narrow width instead, with nothing centering it.
+      { key: "width", label: "Width", friendlyLabel: "Fixed width (e.g. 88px)", group: "style", input: "text" },
       BACKGROUND_TEXTURE_FIELD,
+      ...GRADIENT_FIELDS,
+      BOX_SHADOW_FIELD,
+      // Negative values pull this section up over whatever precedes it —
+      // a genuine overlap (the section's box actually moves, not just a
+      // visual nudge that leaves its old space reserved), the same
+      // technique real hospitality/boutique reference sites use for a
+      // price card or stat strip floating across a hero photo's bottom
+      // edge. True `position: absolute` overlap doesn't work here: every
+      // block in the editor canvas is already wrapped in its own
+      // `position: relative` selection/drag-handle box (BlockRenderer.tsx/
+      // DragHandleWrapper.tsx), so an absolutely-positioned child would
+      // anchor to its own tight wrapper instead of the intended ancestor
+      // — negative margin has no such conflict, since it works through
+      // normal document flow instead of escaping it.
+      { key: "marginTop", label: "Margin top", friendlyLabel: "Pull up to overlap the block above (e.g. -64px)", group: "style", input: "text" },
     ],
     render(props, style, children) {
       const layout = str(props.layout, "stack");
       const maxWidth = str(style.maxWidth);
       const align = str(style.align);
       const justify = str(style.justify);
-      const texture = str(style.backgroundTexture) === "grain";
+      const textureKey = str(style.backgroundTexture);
+      const shadow = BOX_SHADOW_PRESETS[str(style.boxShadow)];
+      // Composed as explicit layers (not the `background` shorthand) so a
+      // texture and a gradient can coexist — same technique `hero`'s own
+      // bgImage/texture layering already established below.
+      const imageLayers: string[] = [];
+      const sizeLayers: string[] = [];
+      const repeatLayers: string[] = [];
+      if (textureKey === "grain") {
+        imageLayers.push(`url("${NOISE_TEXTURE_DATA_URI}")`);
+        sizeLayers.push("200px 200px");
+        repeatLayers.push("repeat");
+      }
+      if (textureKey === "dots") {
+        imageLayers.push(`url("${DOT_GRID_DATA_URI}")`);
+        sizeLayers.push("22px 22px");
+        repeatLayers.push("repeat");
+      }
+      const gradient = gradientBackgroundImage(style);
+      if (gradient) {
+        imageLayers.push(gradient);
+        sizeLayers.push("cover");
+        repeatLayers.push("no-repeat");
+      }
       const cssStyle: CSSProperties = {
         padding: str(style.padding, "24px"),
         backgroundColor: str(style.background, "#ffffff"),
-        ...(texture ? { backgroundImage: `url("${NOISE_TEXTURE_DATA_URI}")`, backgroundSize: "200px 200px", backgroundRepeat: "repeat" } : {}),
+        ...(imageLayers.length ? { backgroundImage: imageLayers.join(", "), backgroundSize: sizeLayers.join(", "), backgroundRepeat: repeatLayers.join(", ") } : {}),
+        ...(shadow ? { boxShadow: shadow } : {}),
         display: "flex",
         flexDirection: layout === "row" ? "row" : "column",
         gap: str(style.gap, "12px"),
-        minHeight: "40px",
+        minHeight: str(style.minHeight, "40px"),
         boxSizing: "border-box",
         borderRadius: str(style.borderRadius, "0"),
-        ...(maxWidth ? { maxWidth, marginLeft: "auto", marginRight: "auto" } : {}),
+        ...(str(style.marginTop) ? { marginTop: str(style.marginTop), position: "relative" } : {}),
+        // `width: "100%"` alongside `maxWidth`/`margin:auto` — without it,
+        // a section with maxWidth nested inside a flex parent whose own
+        // `align-items` isn't "stretch" (every genre template's centered
+        // `bleed()` band sets `align:"center"` on purpose, to center the
+        // capped column as a group) shrink-wraps to its *content's*
+        // max-content size instead of actually filling out to maxWidth
+        // first. Text tends to mask this (it wraps to fill the available
+        // measure anyway), but a CSS-grid child with no in-flow content to
+        // measure (an absolutely-positioned image, e.g. `contentSwitcher`/
+        // `columns`) can get 0 max-content contribution and its whole
+        // track collapses — found live via a genre template's Team
+        // section rendering with its photo panel completely gone.
+        ...(maxWidth ? { maxWidth, width: "100%", marginLeft: "auto", marginRight: "auto" } : {}),
+        ...(str(style.width) ? { width: str(style.width), flexShrink: 0 } : {}),
         ...(align ? { alignItems: align as CSSProperties["alignItems"] } : {}),
         ...(justify ? { justifyContent: justify as CSSProperties["justifyContent"] } : {}),
       };
@@ -362,7 +539,27 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         ],
       },
       { key: "gap", label: "Gap", friendlyLabel: "Space between items", group: "style", input: "text", tokenCategory: "spacing" },
+      // Neither of these existed before — every hero was exactly as tall
+      // as its padding + content made it, with content always vertically
+      // centered inside that. A full-bleed atmospheric photo hero (nav on
+      // top, headline anchored low against the image, matching how real
+      // reference sites like NKORA/Métier compose one) needs to actually
+      // fill the viewport and pin content to an edge, not just the middle.
+      { key: "minHeight", label: "Min height", friendlyLabel: "Minimum height (e.g. 100vh)", group: "style", input: "text" },
+      {
+        key: "verticalAlign",
+        label: "Vertical position",
+        friendlyLabel: "Content position (top to bottom)",
+        group: "style",
+        input: "select",
+        options: [
+          { label: "Center (default)", value: "" },
+          { label: "Top", value: "flex-start" },
+          { label: "Bottom", value: "flex-end" },
+        ],
+      },
       BACKGROUND_TEXTURE_FIELD,
+      ...GRADIENT_FIELDS,
     ],
     render(props, style, children) {
       const bgImage = str(props.backgroundImage);
@@ -379,8 +576,30 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         sizeLayers.push("200px 200px");
         repeatLayers.push("repeat");
       }
+      // A gradient only applies when there's no photo — a hero with a real
+      // background photo already gets its own dark scrim layer below, and
+      // stacking a *second*, independently-configured gradient underneath
+      // a photo the visitor never sees the gradient through added a config
+      // surface with no visible effect. This is the "no photo at all, just
+      // color" hero variant instead — an atmospheric gradient hero without
+      // needing a placeholder photo layered under it.
+      const gradient = !bgImage ? gradientBackgroundImage(style) : "";
+      if (gradient) {
+        imageLayers.push(gradient);
+        sizeLayers.push("cover");
+        repeatLayers.push("no-repeat");
+      }
       if (bgImage) {
-        imageLayers.push("linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.45))", `url(${bgImage})`);
+        // Quoted, not bare `url(${bgImage})` — every prior caller passed a
+        // plain https:// URL (no special characters), so this went
+        // unnoticed, but an unquoted CSS url() cannot contain raw spaces
+        // or angle brackets. A data-URI SVG placeholder (`heroPhotoPlaceholder`
+        // in _shared.ts) has both, and an unquoted url() containing them
+        // is a parse error that silently drops every style declaration
+        // *after* it on the same element — found live as `minHeight`
+        // (declared later in this same style object) computing to `auto`
+        // with no visible error anywhere.
+        imageLayers.push("linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.45))", `url("${bgImage}")`);
         sizeLayers.push("cover", "cover");
         repeatLayers.push("no-repeat", "no-repeat");
       }
@@ -404,6 +623,8 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         padding: str(style.padding, "96px 24px"),
         display: "flex",
         justifyContent: "center",
+        alignItems: (str(style.verticalAlign) || "center") as CSSProperties["alignItems"],
+        ...(str(style.minHeight) ? { minHeight: str(style.minHeight) } : {}),
       };
       const innerStyle: CSSProperties = {
         width: "100%",
@@ -454,6 +675,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
       },
       FONT_FIELD,
       ...OFFSET_FIELDS,
+      ...TYPE_REFINEMENT_FIELDS,
       DISPLAY_AS_BADGE_FIELD,
       BADGE_TONE_FIELD,
     ],
@@ -468,6 +690,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
           fontWeight: str(style.fontWeight, "600") as CSSProperties["fontWeight"],
           background: tone.bg,
           color: tone.fg,
+          ...(str(style.letterSpacing) ? { letterSpacing: str(style.letterSpacing) } : {}),
           ...fontFamilyStyle(style),
           ...offsetStyle(style),
         };
@@ -480,6 +703,8 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         margin: 0,
         whiteSpace: "pre-wrap",
         textAlign: (str(style.textAlign, "left") as CSSProperties["textAlign"]),
+        ...(str(style.lineHeight) ? { lineHeight: str(style.lineHeight) } : {}),
+        ...(str(style.letterSpacing) ? { letterSpacing: str(style.letterSpacing) } : {}),
         ...fontFamilyStyle(style),
         ...offsetStyle(style),
       };
@@ -538,10 +763,12 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         ],
       },
       { key: "borderRadius", label: "Corner radius", friendlyLabel: "Rounded corners", group: "style", input: "text" },
+      IMAGE_TREATMENT_FIELD,
       ...OFFSET_FIELDS,
     ],
     render(props, style) {
       const maxWidth = str(style.maxWidth) || str(style.sizePreset);
+      const treatment = IMAGE_TREATMENT_FILTERS[str(style.imageTreatment)];
       const cssStyle: CSSProperties = {
         width: "100%",
         display: "block",
@@ -549,6 +776,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         borderRadius: str(style.borderRadius, "0"),
         ...(maxWidth ? { maxWidth, marginLeft: "auto", marginRight: "auto" } : {}),
         ...(str(style.aspectRatio) ? { aspectRatio: str(style.aspectRatio) } : {}),
+        ...(treatment ? { filter: treatment } : {}),
         ...offsetStyle(style),
       };
       // eslint-disable-next-line @next/next/no-img-element
@@ -652,6 +880,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         ],
       },
       FONT_FIELD,
+      ...TYPE_REFINEMENT_FIELDS,
     ],
     render(props, style) {
       const Tag = (["h1", "h2", "h3", "h4", "h5", "h6"].includes(str(props.level)) ? str(props.level) : "h2") as
@@ -666,7 +895,8 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         fontWeight: str(style.fontWeight, "700") as CSSProperties["fontWeight"],
         color: str(style.color, "#111111"),
         margin: 0,
-        lineHeight: 1.15,
+        lineHeight: str(style.lineHeight) || 1.15,
+        ...(str(style.letterSpacing) ? { letterSpacing: str(style.letterSpacing) } : {}),
         textAlign: (str(style.textAlign, "left") as CSSProperties["textAlign"]),
         ...fontFamilyStyle(style),
       };
@@ -700,6 +930,15 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         ],
       },
       { key: "gap", label: "Gap", friendlyLabel: "Space between columns", group: "style", input: "text", tokenCategory: "spacing" },
+      // A split hero (text column + a full-height visual column) needs
+      // the grid itself to actually reach a real height — CSS Grid's
+      // default `align-items: stretch` then makes every column match it
+      // automatically. Without this, the grid only ever grew to fit its
+      // shorter column's content (the text), leaving the visual column
+      // that same short height with dead empty space below it inside
+      // whatever taller band wrapped the whole hero — found live as an
+      // image panel that stopped well short of the hero's own height.
+      { key: "minHeight", label: "Min height", friendlyLabel: "Minimum height (e.g. 100vh)", group: "style", input: "text" },
     ],
     render(props, style, children, meta) {
       const desktopColumns = Number(str(props.columns, "2")) || 2;
@@ -709,7 +948,43 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         // column count itself must already reflect meta.breakpoint here.
         gridTemplateColumns: `repeat(${responsiveColumnCount(desktopColumns, meta.breakpoint)}, 1fr)`,
         gap: str(style.gap, "16px"),
-        minHeight: "40px",
+        minHeight: str(style.minHeight, "40px"),
+        // A `minHeight` on the grid *container* only sets its own overall
+        // floor — it does nothing for the single implicit row inside,
+        // which CSS Grid still sizes to `grid-auto-rows: auto` (the
+        // tallest item's own natural content height) by default. A
+        // column holding only an absolutely-positioned `<img>` con
+        // tributes zero natural height, so that row — and every item in
+        // it, `align-items: stretch` notwithstanding, since stretch needs
+        // the row to already have a height to stretch into — collapsed to
+        // 0 even though the container itself correctly reported the full
+        // `minHeight`. `1fr` makes the one row actually claim 100% of
+        // that space, which is what `stretch` needed all along.
+        // `gridAutoRows: "1fr"` alongside it — `gridTemplateRows` only
+        // sizes the row(s) the desktop column count implies. At the
+        // "mobile" breakpoint (responsiveColumnCount above),
+        // gridTemplateColumns collapses to a single track, so a 2-item
+        // row that used to sit side by side in that one explicit row now
+        // wraps: item 1 keeps the explicit 1fr row, item 2 spills into an
+        // implicit row CSS Grid sizes with grid-auto-rows: auto by
+        // default — the same zero-natural-height collapse 1fr was added
+        // above to prevent, just one row over. Found live as a
+        // split-hero's image panel rendering full height on desktop and
+        // tablet but vanishing entirely on mobile.
+        ...(str(style.minHeight) ? { gridTemplateRows: "1fr", gridAutoRows: "1fr" } : {}),
+        // Without an explicit width, a grid with no track that has real
+        // in-flow intrinsic content (e.g. every column holds only an
+        // aspect-ratio image with an absolutely-positioned `<img>`, which
+        // contributes ~0 to max-content sizing) can compute its own
+        // shrink-to-fit width as 0 and the whole grid disappears — even
+        // though its ancestor chain is otherwise definite-width. A
+        // multi-column row with one text-heavy column happens to dodge
+        // this (that column's real content pulls the equal-`fr` tracks
+        // wide enough to look fine), which is what let it go unnoticed
+        // until an all-image row exposed it. `width: 100%` removes the
+        // shrink-to-fit step entirely — found live via a genre template's
+        // work-grid tiles rendering as 0x0 (image loaded, box invisible).
+        width: "100%",
       };
       return (
         <div style={cssStyle} data-columns-id={meta.blockId}>
@@ -1035,6 +1310,12 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         display: "flex",
         width: "max-content",
         gap,
+        // The track-level `gap` sits between the two copies too (they're
+        // its only two direct children below), so the copies aren't
+        // flush — `-50%` alone lands short by half that gap, producing a
+        // visible hitch/snap once per loop. `--marquee-gap` feeds the
+        // exact correction into the shared keyframes (app/globals.css).
+        ["--marquee-gap" as string]: gap,
         animationName: "opensite-marquee-scroll",
         animationDuration: `${speed}s`,
         animationTimingFunction: "linear",
@@ -1078,6 +1359,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         gridTemplateColumns: `repeat(${responsiveColumnCount(desktopColumns, meta.breakpoint)}, 1fr)`,
         gap: str(style.gap, "20px"),
         alignItems: "stretch",
+        width: "100%",
       };
       if (tiers.length === 0) {
         return <p style={{ color: "#9ca3af", fontSize: "14px" }}>No pricing tiers yet — add some in the Properties panel.</p>;
@@ -1224,24 +1506,47 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
       { key: "borderRadius", label: "Corner radius", friendlyLabel: "Rounded corners", group: "style", input: "text" },
       { key: "captionColor", label: "Caption color", group: "style", input: "color", tokenCategory: "colors" },
       { key: "captionFontSize", label: "Caption font size", group: "style", input: "text", tokenCategory: "typography" },
+      IMAGE_TREATMENT_FIELD,
     ],
     render(props, style) {
       const position = str(style.captionPosition, "bottom");
       const opacity = str(style.overlayOpacity, "0.5");
+      const aspectRatio = str(style.aspectRatio);
+      const treatment = IMAGE_TREATMENT_FILTERS[str(style.imageTreatment)];
       return (
         <div
           style={{
             position: "relative",
             overflow: "hidden",
             borderRadius: str(style.borderRadius, "0"),
-            aspectRatio: str(style.aspectRatio, "4 / 3"),
+            // An explicit aspect ratio caps height to *this box's own*
+            // width, which is wrong for a panel meant to fill whatever
+            // height its container (e.g. a `columns` row stretched to a
+            // hero's full viewport height) actually has. Falling back to
+            // `height: "100%"` — not the old hardcoded default of
+            // "4 / 3" — lets a deliberately-unset aspect ratio actually
+            // fill its parent; found live as a split-hero visual column
+            // rendering at 0 height with an aspect ratio removed but
+            // nothing telling the box to fill the space instead.
+            ...(aspectRatio ? { aspectRatio } : { height: "100%" }),
+            // `width: "100%"` — same shrink-to-fit-collapses-to-0 issue
+            // `columns`/`section` were already fixed for above: this div
+            // has no in-flow content of its own to size against (its
+            // `<img>` is absolutely positioned, contributing ~0), so it
+            // depends entirely on a stretching flex/grid parent for its
+            // width. A parent that opts OUT of stretch on purpose (e.g. a
+            // card wrapper using `align: "flex-start"` to left-align its
+            // *text* content) silently strips that away too — found live
+            // as a hotel template's room-rate card photos rendering at
+            // 0x0 on the actual published page, not just in the editor.
+            width: "100%",
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={str(props.src)}
             alt={str(props.alt)}
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", ...(treatment ? { filter: treatment } : {}) }}
           />
           <div
             style={{
@@ -1449,6 +1754,7 @@ const builtinBlocks: Record<string, Omit<AppBlockDef, "type">> = {
         display: "grid",
         gridTemplateColumns: `repeat(${responsiveColumnCount(desktopColumns, meta.breakpoint)}, 1fr)`,
         gap: str(style.gap, "12px"),
+        width: "100%",
       };
       return (
         <div style={cssStyle} data-columns-id={meta.blockId}>

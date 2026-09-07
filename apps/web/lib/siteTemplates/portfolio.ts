@@ -147,7 +147,7 @@ export function portfolioHomeTemplate(): PageContent {
   );
 
   const recentWork = bleed(
-    PORTFOLIO.paper,
+    "#ffffff",
     "0px 40px 96px",
     [
       mk(
@@ -164,9 +164,9 @@ export function portfolioHomeTemplate(): PageContent {
         { columns: "3" },
         { gap: "20px", animation: "slide-up" },
         [
-          mk("imageOverlay", { src: "https://placehold.co/700x900", alt: "", caption: "Replace with project name 1" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 5", borderRadius: "4px" }),
-          mk("imageOverlay", { src: "https://placehold.co/700x900", alt: "", caption: "Replace with project name 2" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 5", borderRadius: "4px" }),
-          mk("imageOverlay", { src: "https://placehold.co/700x900", alt: "", caption: "Replace with project name 3" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 5", borderRadius: "4px" }),
+          mk("imageOverlay", { src: "https://placehold.co/700x900?text=Project+one", alt: "", caption: "Replace with project name 1" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 5", borderRadius: "4px" }),
+          mk("imageOverlay", { src: "https://placehold.co/700x900?text=Project+two", alt: "", caption: "Replace with project name 2" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 5", borderRadius: "4px" }),
+          mk("imageOverlay", { src: "https://placehold.co/700x900?text=Project+three", alt: "", caption: "Replace with project name 3" }, { captionPosition: "bottom", overlayOpacity: "0.55", aspectRatio: "4 / 5", borderRadius: "4px" }),
         ],
       ),
     ],
@@ -235,7 +235,7 @@ export function portfolioWorkTemplate(): PageContent {
     [
       mk(
         "contentSwitcher",
-        { items: items.map((i) => ({ id: randomUUID(), label: i.label, image: "https://placehold.co/900x1100", description: i.description })) },
+        { items: items.map((i, idx) => ({ id: randomUUID(), label: i.label, image: `https://placehold.co/900x1100?text=Project+${idx + 1}`, description: i.description })) },
         { activeColor: PORTFOLIO.text, inactiveColor: PORTFOLIO.inkMuted, imageAspectRatio: "4 / 5", gap: "40px", animation: "fade-in" },
       ),
     ],
@@ -273,7 +273,7 @@ export function portfolioAboutTemplate(): PageContent {
         { columns: "2" },
         { gap: "56px", align: "center" },
         [
-          mk("imageOverlay", { src: "https://placehold.co/800x1000", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 5", borderRadius: "4px", animation: "slide-right" }),
+          mk("imageOverlay", { src: "https://placehold.co/800x1000?text=Portrait", alt: "", caption: "" }, { captionPosition: "bottom", overlayOpacity: "0", aspectRatio: "4 / 5", borderRadius: "4px", animation: "slide-right" }),
           mk("section", { layout: "stack" }, { background: "transparent", padding: "0", gap: "16px", animation: "slide-left" }, [
             body("Replace with a longer paragraph about your background — where you trained, what you've shipped, and what kind of work you're looking for next.", { size: "17px", color: PORTFOLIO.textFaint }),
             body("Replace with a second paragraph about how you work with clients — process, communication style, timelines.", { size: "17px", color: PORTFOLIO.textFaint }),

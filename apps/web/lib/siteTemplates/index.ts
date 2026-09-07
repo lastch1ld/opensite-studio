@@ -2,7 +2,9 @@ import type { PageContent } from "@/components/blocks/types";
 import { saasHomeTemplate, saasFeaturesTemplate, saasPricingTemplate, saasAboutTemplate, saasContactTemplate } from "./saas";
 import { agencyHomeTemplate, agencyWorkTemplate, agencyServicesTemplate, agencyAboutTemplate, agencyContactTemplate } from "./agency";
 import { portfolioHomeTemplate, portfolioWorkTemplate, portfolioAboutTemplate, portfolioContactTemplate } from "./portfolio";
-import { hotelHomeTemplate, hotelRoomsTemplate, hotelAmenitiesTemplate, hotelContactTemplate } from "./hotel";
+import { hotelModernHomeTemplate, hotelModernRoomsTemplate, hotelModernAmenitiesTemplate, hotelModernContactTemplate } from "./hotelModern";
+import { hotelBoutiqueHomeTemplate, hotelBoutiqueRoomsTemplate, hotelBoutiqueAmenitiesTemplate, hotelBoutiqueContactTemplate } from "./hotelBoutique";
+import { hotelResortHomeTemplate, hotelResortRoomsTemplate, hotelResortAmenitiesTemplate, hotelResortContactTemplate } from "./hotelResort";
 import { restaurantHomeTemplate, restaurantMenuTemplate, restaurantAboutTemplate, restaurantContactTemplate } from "./restaurant";
 import { barHomeTemplate, barMenuTemplate, barEventsTemplate, barContactTemplate } from "./bar";
 
@@ -11,8 +13,11 @@ import { barHomeTemplate, barMenuTemplate, barEventsTemplate, barContactTemplate
 // file is the client-safe catalog of which pages a template creates; this
 // function is where each genre's actual block tree lives). One genre per
 // module (./saas.ts, and eventually ./agency.ts, ./portfolio.ts,
-// ./restaurant.ts, ./hotel.ts, ./bar.ts — see docs/site-templates-plan.md)
-// so each can be authored independently without touching a shared file.
+// ./restaurant.ts, ./hotelModern.ts/./hotelBoutique.ts/./hotelResort.ts,
+// ./bar.ts — see docs/site-templates-plan.md) so each can be authored
+// independently without touching a shared file. Hotel is three separate
+// registers (Modern/Boutique/Resort), not one — see hotelModern.ts's file
+// comment for why — retiring the single original hotel.ts.
 export function siteTemplatePageContent(templateId: string, slug: string): PageContent | null {
   if (templateId === "saas") {
     switch (slug) {
@@ -60,16 +65,44 @@ export function siteTemplatePageContent(templateId: string, slug: string): PageC
         return null;
     }
   }
-  if (templateId === "hotel") {
+  if (templateId === "hotel-modern") {
     switch (slug) {
       case "home":
-        return hotelHomeTemplate();
+        return hotelModernHomeTemplate();
       case "rooms":
-        return hotelRoomsTemplate();
+        return hotelModernRoomsTemplate();
       case "amenities":
-        return hotelAmenitiesTemplate();
+        return hotelModernAmenitiesTemplate();
       case "contact":
-        return hotelContactTemplate();
+        return hotelModernContactTemplate();
+      default:
+        return null;
+    }
+  }
+  if (templateId === "hotel-boutique") {
+    switch (slug) {
+      case "home":
+        return hotelBoutiqueHomeTemplate();
+      case "rooms":
+        return hotelBoutiqueRoomsTemplate();
+      case "amenities":
+        return hotelBoutiqueAmenitiesTemplate();
+      case "contact":
+        return hotelBoutiqueContactTemplate();
+      default:
+        return null;
+    }
+  }
+  if (templateId === "hotel-resort") {
+    switch (slug) {
+      case "home":
+        return hotelResortHomeTemplate();
+      case "rooms":
+        return hotelResortRoomsTemplate();
+      case "amenities":
+        return hotelResortAmenitiesTemplate();
+      case "contact":
+        return hotelResortContactTemplate();
       default:
         return null;
     }

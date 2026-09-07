@@ -226,14 +226,17 @@ body {
 
 /* "marquee" block (components/blocks/registry.tsx): every instance shares
    this same 0%/-50% shape (the child sequence is rendered twice back-to-
-   back, so -50% is exactly one full sequence width) — only duration/
-   direction differ per instance, set inline per block. */
+   back) — only duration/direction differ per instance, set inline per
+   block. The `- var(--marquee-gap) / 2` term corrects for the track's
+   own flex `gap` landing between the two copies: without it, `-50%`
+   alone stops half a gap short of copy two's start, so the loop visibly
+   snaps back once per cycle instead of scrolling continuously. */
 @keyframes opensite-marquee-scroll {
   from {
     transform: translateX(0);
   }
   to {
-    transform: translateX(-50%);
+    transform: translateX(calc(-50% - (var(--marquee-gap, 0px) / 2)));
   }
 }
 

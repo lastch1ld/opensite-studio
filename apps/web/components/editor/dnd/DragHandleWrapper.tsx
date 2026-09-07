@@ -32,7 +32,7 @@ export function DragHandleWrapper({
   });
 
   const node = (
-    <div ref={setNodeRef} style={{ position: "relative", opacity: isDragging ? 0.4 : 1 }}>
+    <div ref={setNodeRef} style={{ position: "relative", width: "100%", height: "100%", opacity: isDragging ? 0.4 : 1 }}>
       {!isRoot && (
         <button
           {...attributes}

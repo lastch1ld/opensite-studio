@@ -70,12 +70,30 @@ function ScrubAnimatedBlock({ variant, children }: { variant: Target; children: 
   const y = useTransform(scrollYProgress, [0, 1], [typeof variant.y === "number" ? variant.y : 0, 0]);
   const scale = useTransform(scrollYProgress, [0, 1], [typeof variant.scale === "number" ? variant.scale : 1, 1]);
   return (
-    <motion.div ref={ref} style={{ opacity, x, y, scale }}>
+    <motion.div ref={ref} style={{ opacity, x, y, scale, width: "100%", height: "100%" }}>
       {children}
     </motion.div>
   );
 }
 
+// A block wrapped in an `animation` value gets an extra motion.div layer
+// around its rendered output — purely for the enter transition, never
+// meant to change layout. But a plain `width:auto`/`height:auto` div is a
+// flex/grid item like any other: under a non-stretch `align-items` (e.g.
+// every genre template's centered `bleed()` band), it shrink-wraps to its
+// own max-content size instead of filling the container. For a block
+// whose own layout depends on getting real width (or, in a `columns` row
+// stretched to a fixed height, real height) from its ancestor — a
+// `columns`/`contentSwitcher` grid with `1fr` tracks and no in-flow
+// content to measure, e.g. an absolutely-positioned image, or an
+// `imageOverlay` panel with its `height: 100%` fallback resolving against
+// this wrapper's own `auto` height — that collapses whole columns to 0px
+// — found live via a genre template's Team section rendering with no
+// photo at all, and separately a split-hero visual column rendering at
+// 0 height with the animation removed but nothing telling the box to
+// fill the space instead. `width`/`height: 100%` make this wrapper
+// transparent to layout, matching what happens with no animation set at
+// all.
 function withAnimation(style: Record<string, unknown>, node: ReactNode): ReactNode {
   const key = typeof style.animation === "string" ? style.animation : "";
   const variant = ANIMATION_VARIANTS[key];
@@ -85,6 +103,7 @@ function withAnimation(style: Record<string, unknown>, node: ReactNode): ReactNo
   }
   return (
     <motion.div
+      style={{ width: "100%", height: "100%" }}
       initial={variant}
       whileInView={{ opacity: 1, x: 0, y: 0, scale: 1 }}
       viewport={{ once: true, amount: 0.3 }}
@@ -100,6 +119,19 @@ function withAnimation(style: Record<string, unknown>, node: ReactNode): ReactNo
 // outermost layer (outside the selection-outline wrapper too) so the
 // whole block, chrome included while editing, pins as one unit.
 function withSticky(style: Record<string, unknown>, node: ReactNode): ReactNode {
+  if (style.sticky === "fixed-left") {
+    // `height: "100vh"` rather than `bottom: 0` — `vh` always resolves
+    // against the real browser viewport regardless of which ancestor
+    // establishes this fixed element's containing block, whereas
+    // `bottom: 0` resolves against that containing block's own height.
+    // The editor canvas gives this element a *transformed* (not viewport)
+    // containing block — see the comment on the canvas div in
+    // EditorClient.tsx — so a `bottom: 0` here stretched the rail to that
+    // div's full, unscrolled page height instead of one viewport, spacing
+    // out its `justify: "space-between"` nav links across the whole page
+    // instead of keeping them compact near the top.
+    return <div style={{ position: "fixed", left: 0, top: 0, height: "100vh", zIndex: 20 }}>{node}</div>;
+  }
   if (style.sticky !== "true") return node;
   const top = typeof style.stickyOffset === "string" && style.stickyOffset.trim() ? style.stickyOffset : "0px";
   return <div style={{ position: "sticky", top, zIndex: 5 }}>{node}</div>;
@@ -145,6 +177,10 @@ export function BlockRenderer({
       display: "grid",
       gridTemplateColumns: `repeat(${responsiveColumnCount(desktopColumns, activeBreakpoint)}, 1fr)`,
       gap: String(resolvedStyle.gap ?? "16px"),
+      // Same shrink-to-fit-collapses-to-0 issue as `columns` (registry.tsx)
+      // — a grid with no track holding real in-flow intrinsic content can
+      // compute 0 width even inside an otherwise definite-width ancestor.
+      width: "100%",
     };
     // docs/reference-sites-plan.md Tier 5: an optional client-side tag
     // filter bar (Mosaic's category filter) built from every distinct
@@ -193,13 +229,21 @@ export function BlockRenderer({
     const animatedList = withAnimation(resolvedStyle, content);
     if (!onSelect) return <>{withSticky(resolvedStyle, animatedList)}</>;
     const isSelected = block.id === selectedId;
+    // `height: "100%"` alongside `width: "100%"` — this selection-outline
+    // wrapper only exists in the editor (public renderer skips it, see
+    // `!onSelect` above), so a child relying on a percentage height to fill
+    // a `columns` row stretched by CSS Grid's `align-items: stretch` (e.g.
+    // imageOverlay's own `height: "100%"` fallback) resolved against this
+    // div's `height: auto` and collapsed to 0 — found live as a split-hero
+    // visual column rendering full height on the real site but 0px, empty,
+    // in the editor canvas.
     const selectionNode = (
       <div
         onClick={(e) => {
           e.stopPropagation();
           onSelect(block.id);
         }}
-        style={{ outline: isSelected ? "2px solid #2563eb" : "1px dashed transparent", outlineOffset: "-1px", cursor: "pointer", position: "relative" }}
+        style={{ outline: isSelected ? "2px solid #2563eb" : "1px dashed transparent", outlineOffset: "-1px", cursor: "pointer", position: "relative", width: "100%", height: "100%" }}
       >
         {animatedList}
       </div>
@@ -301,6 +345,8 @@ export function BlockRenderer({
         outlineOffset: "-1px",
         cursor: "pointer",
         position: "relative",
+        width: "100%",
+        height: "100%",
       }}
       onMouseEnter={(e) => {
         if (!isSelected) e.currentTarget.style.outline = "1px dashed #94a3b8";
