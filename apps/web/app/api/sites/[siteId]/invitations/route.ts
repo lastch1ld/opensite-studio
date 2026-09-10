@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { normalizeEmail } from "@/lib/email";
 import { requireSiteRole } from "@/lib/permissions";
 import type { MembershipRole } from "@prisma/client";
 
@@ -33,7 +34,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ siteId:
   }
 
   const invitation = await db.invitation.create({
-    data: { siteId, email: email.trim(), role, token: randomUUID() },
+    data: { siteId, email: normalizeEmail(email), role, token: randomUUID() },
   });
   return NextResponse.json(invitation, { status: 201 });
 }
