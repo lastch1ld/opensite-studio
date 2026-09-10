@@ -78,6 +78,20 @@ export function validateFontUpload(file: File): string | null {
   return null;
 }
 
+// What the serve route (app/api/media/[siteId]/[file]) is allowed to put in
+// a Content-Type header. Both upload allowlists landed after the first
+// media was already stored, and nothing re-validated those older rows —
+// their `mimeType` is whatever the client claimed at the time, including
+// text/html. The row is the only thing the serve route has to go on, so it
+// is clamped here rather than trusted: an unknown type is served as an
+// opaque download instead of as whatever it says it is.
+const SERVABLE_TYPES = [...ALLOWED_UPLOAD_TYPES, ...Object.values(FONT_TYPE_BY_EXTENSION)];
+
+/** The Content-Type a stored file may be served as. */
+export function serveMimeType(storedMimeType: string): string {
+  return SERVABLE_TYPES.includes(storedMimeType) ? storedMimeType : "application/octet-stream";
+}
+
 function extensionFor(mimeType: string): string {
   return EXTENSION_BY_TYPE[mimeType] ?? FONT_EXTENSION_BY_TYPE[mimeType] ?? "";
 }
