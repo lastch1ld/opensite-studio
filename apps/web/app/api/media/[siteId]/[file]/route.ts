@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import path from "path";
 import { db } from "@/lib/db";
+import { serveMimeType } from "@/lib/media";
 
 // Public route (no auth) — matches the public renderer serving published
 // pages that reference these URLs. Only serves files with a matching Media
@@ -21,7 +22,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ siteId:
     const buffer = await readFile(path.join(/* turbopackIgnore: true */ storageRoot, siteId, file));
     return new NextResponse(new Uint8Array(buffer), {
       headers: {
-        "Content-Type": media.mimeType,
+        "Content-Type": serveMimeType(media.mimeType),
         "Cache-Control": "public, max-age=31536000, immutable",
         // Defense in depth behind lib/media.ts's upload allowlist: these
         // bytes are served from the app's own origin, so anything that

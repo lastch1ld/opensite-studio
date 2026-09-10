@@ -6,6 +6,7 @@ import {
   MAX_UPLOAD_BYTES,
   fontTypeForFilename,
   processImage,
+  serveMimeType,
   validateFontUpload,
   validateUpload,
 } from "@/lib/media";
@@ -134,5 +135,21 @@ describe("processImage", () => {
     const tiny = await sharp(await photoPng(40, 40)).webp({ quality: 20 }).toBuffer();
     const out = await processImage(tiny, "image/webp");
     expect(out.buffer.byteLength).toBeLessThanOrEqual(tiny.byteLength);
+  });
+});
+
+describe("serveMimeType", () => {
+  it("passes through the types uploads can actually be stored as", () => {
+    for (const type of [...ALLOWED_UPLOAD_TYPES, "font/woff2", "font/woff", "font/ttf", "font/otf"]) {
+      expect(serveMimeType(type), type).toBe(type);
+    }
+  });
+
+  it("clamps a type stored before the allowlists existed", () => {
+    // The row is the only thing the serve route has; a pre-allowlist one
+    // can say anything the uploading client said.
+    for (const type of ["text/html", "application/javascript", "image/svg+xml; charset=utf-8", ""]) {
+      expect(serveMimeType(type), type).toBe("application/octet-stream");
+    }
   });
 });
