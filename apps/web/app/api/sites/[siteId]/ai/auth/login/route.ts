@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
+import { emailWhere } from "@/lib/email";
 import { requireAiChatSite } from "@/lib/aiChatSite";
 import { setVisitorSession } from "@/lib/visitorAuth";
 
@@ -14,7 +15,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ siteId:
     return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
   }
 
-  const visitor = await db.siteVisitor.findUnique({ where: { siteId_email: { siteId, email } } });
+  const visitor = await db.siteVisitor.findFirst({ where: { siteId, email: emailWhere(email) } });
   if (!visitor || !(await bcrypt.compare(password, visitor.passwordHash))) {
     return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
   }

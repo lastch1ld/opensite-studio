@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
+import { emailWhere, normalizeEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
   const { email, password, name } = await req.json();
@@ -12,14 +13,14 @@ export async function POST(req: Request) {
     );
   }
 
-  const existing = await db.user.findUnique({ where: { email } });
+  const existing = await db.user.findFirst({ where: { email: emailWhere(email) } });
   if (existing) {
     return NextResponse.json({ error: "An account with that email already exists." }, { status: 409 });
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
   const user = await db.user.create({
-    data: { email, passwordHash, name: typeof name === "string" ? name : undefined },
+    data: { email: normalizeEmail(email), passwordHash, name: typeof name === "string" ? name : undefined },
   });
 
   return NextResponse.json({ id: user.id, email: user.email });

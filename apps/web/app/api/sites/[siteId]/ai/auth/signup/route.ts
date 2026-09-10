@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
+import { emailWhere, normalizeEmail } from "@/lib/email";
 import { requireAiChatSite } from "@/lib/aiChatSite";
 import { setVisitorSession } from "@/lib/visitorAuth";
 
@@ -19,12 +20,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ siteId:
     );
   }
 
-  const existing = await db.siteVisitor.findUnique({ where: { siteId_email: { siteId, email } } });
+  const existing = await db.siteVisitor.findFirst({ where: { siteId, email: emailWhere(email) } });
   if (existing) return NextResponse.json({ error: "An account with that email already exists." }, { status: 409 });
 
   const passwordHash = await bcrypt.hash(password, 10);
   const visitor = await db.siteVisitor.create({
-    data: { siteId, email, passwordHash, name: typeof name === "string" && name.trim() ? name.trim() : undefined },
+    data: { siteId, email: normalizeEmail(email), passwordHash, name: typeof name === "string" && name.trim() ? name.trim() : undefined },
   });
   await setVisitorSession(siteId, visitor.id);
   return NextResponse.json({ id: visitor.id, email: visitor.email, name: visitor.name });
